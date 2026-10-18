@@ -50,9 +50,12 @@ graph TB
                 HEADROOM["Emergency Headroom<br/>2 GB Buffer"]
             end
             
-            subgraph DISK_SPLIT["پارتیشن‌بندی دیسک (Disk Layout)"]
-                DRIVE_C["C:\ (OS + IIS + .NET 8 Runtime)<br/>80 GB"]
-                DRIVE_D["D:\ (Data & Binaries)<br/>D:\ParkPlaceCRM (Web/Worker) - 60 GB<br/>D:\SQLData (MDF / LDF / TempDB) - 160 GB"]
+            subgraph DISK_SPLIT["پارتیشن‌بندی دیسک مجازی ۲۵۰ گیگابایتی (Disk Layout)"]
+                DRIVE_C["C:\ (OS + IIS + Apps)<br/>100 GB"]
+                DRIVE_D["D:\ (CRM App + SQL Data)<br/>50 GB"]
+                DRIVE_L["L:\ (SQL Transaction Logs)<br/>30 GB"]
+                DRIVE_T["T:\ (SQL TempDB - 8 Files)<br/>20 GB"]
+                UNALLOCATED["Unallocated (رزرو تخصیص‌نیافته)<br/>50 GB"]
             end
         end
     end
@@ -70,9 +73,17 @@ graph TB
 | **Operating System** | Windows Server 2022 Standard | نصب ۶۴ بیتی با آخرین آپدیت‌های امنیتی |
 | **vCPU** | **8 vCPU** | ۲ سوکت با ۴ هسته (یا ۱ سوکت با ۸ هسته) |
 | **Memory (RAM)** | **32 GB** | حافظه رزروشده جهت پایداری بدون Memory Ballooning |
-| **Storage (Disk)** | **300 GB** | دیسک از نوع Thin Provisioned یا Thick Lazy Zeroed |
+| **Storage (Disk)** | **250 GB** | دیسک مجازی ۲۵۰ گیگابایتی (کنترلر PVSCSI) |
 | **Storage Controller** | VMware Paravirtual (PVSCSI) | کنترلر دیسک بهینه‌شده برای دیتابیس‌های پرتراکنش |
 | **Network Adapter** | **VMXNET3** | کارت شبکه مجازی سازمانی پرسرعت ۱۰ گیگابیت |
+
+### ۲.۲. ساختار و طرح تفکیک پارتیشن‌های دیسک (Disk Partition Layout)
+از مجموع **۲۵۰ گیگابایت** دیسک مجازی، پارتیشن‌های زیر با در نظر گرفتن پارتیشن‌های سیستمی UEFI (شامل EFI System Partition معادل ۱۰۰ مگابایت، MSR معادل ۱۶ مگابایت و Windows Recovery معادل ۵۰۰ مگابایت تا ۱ گیگابایت) طراحی شده‌اند:
+* **درایو `C:` (ظرفیت ۱۰۰ گیگابایت):** سیستم‌عامل ویندوز سرور، وب‌سرور IIS 10، ران‌تایم‌های .NET 8 و نرم‌افزارهای پایه‌ای.
+* **درایو `D:` (ظرفیت ۵۰ گیگابایت):** باینری‌های سامانه تدارکات (`D:\ParkPlaceCRM`) و فایل‌های داده‌ای SQL Server (`.mdf` / `.ndf`).
+* **درایو `L:` (ظرفیت ۳۰ گیگابایت):** لاگ‌های تراکنشی دیتابیس SQL Server (`.ldf`) جهت جداسازی I/O متوالی (Sequential Write Isolation).
+* **درایو `T:` (ظرفیت ۲۰ گیگابایت):** پایگاه داده موقت SQL Server (`TempDB`) شامل ۸ فایل متناسب با ۸ هسته پردازنده جهت جلوگیری از Bottleneck در جدول‌های موقت.
+* **فضای تخصیص‌نیافته (Unallocated Space - معادل ۵۰ گیگابایت):** دست‌نخورده و بدون پارتیشن‌بندی رها می‌شود تا در آینده بنا به نیاز عملیاتی به هریک از درایوها توسعه یابد.
 
 ---
 

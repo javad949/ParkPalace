@@ -56,7 +56,7 @@ flowchart TD
 * **سازگاری سخت‌افزاری:** ESXi 7.0 Update 3 یا بالاتر
 * **تخصیص پردازنده:** `8 vCPU` (سوکت: ۱ یا ۲، هسته: ۸)
 * **تخصیص حافظه:** `32 GB` (فعال‌سازی گزینه **Reserve all guest memory** جهت پیشگیری از جابجایی حافظه روی دیسک)
-* **تخصیص دیسک:** `300 GB` با کنترلر **VMware Paravirtual SCSI (PVSCSI)**
+* **تخصیص دیسک:** `250 GB` با کنترلر **VMware Paravirtual SCSI (PVSCSI)**
 * **کارت شبکه:** **VMXNET3** متصل به ساب‌نت اداری (شبکه `192.168.1.0/24`)
 * **اتصال مدیا:** اتصال به فایل ISO ویندوز سرور ۲۰۲۲ در دیتااستور
 
@@ -65,9 +65,13 @@ flowchart TD
 ### گام ۲: نصب ویندوز سرور ۲۰۲۲ و تنظیمات پایه سیستم‌عامل
 1. نصب ویندوز سرور در حالت `Windows Server 2022 Standard (Desktop Experience)`.
 2. نصب **VMware Tools**.
-3. **پارتیشن‌بندی دیسک ۳۰۰ گیگابایتی:**
-   * **درایو `C:` (حجم ۸۰ گیگابایت):** سیستم‌عامل ویندوز، سرویس IIS، ران‌تایم دات‌نت و ابزارهای مانیتورینگ.
-   * **درایو `D:` (حجم ۲۲۰ گیگابایت):** فایل‌های اجرایی اپلیکیشن (`D:\ParkPlaceCRM`) و فایل‌های پایگاه داده (`D:\SQLData`).
+3. **پارتیشن‌بندی دیسک مجازی ۲۵۰ گیگابایتی:**
+   با در نظر گرفتن پارتیشن‌های سیستمی UEFI (شامل EFI System Partition معادل ۱۰۰MB، MSR معادل ۱۶MB و Recovery معادل ۱GB):
+   * **درایو `C:` (حجم ۱۰۰ گیگابایت):** سیستم‌عامل ویندوز سرور، وب‌سرور IIS 10، ران‌تایم‌های دات‌نت و ابزارهای مانیتورینگ.
+   * **درایو `D:` (حجم ۵۰ گیگابایت):** فایل‌های اجرایی اپلیکیشن (`D:\ParkPlaceCRM`) و فایل‌های داده‌ای SQL Server (`D:\SQLData\Data`).
+   * **درایو `L:` (حجم ۳۰ گیگابایت):** فایل‌های لاگ تراکنشی SQL Server (`L:\SQLLogs`).
+   * **درایو `T:` (حجم ۲۰ گیگابایت):** فایل‌های دیتابیس موقت SQL Server (`T:\SQLTempDB`).
+   * **فضای تخصیص‌نیافته (Unallocated معادل ۵۰ گیگابایت):** بدون پارتیشن‌بندی جهت ذخیره استراتژیک در هایپروایزر رها می‌شود.
 4. **تنظیمات شبکه در ویندوز:**
    ```powershell
    # نام‌گذاری کارت شبکه و اعمال IP ثابت
@@ -87,11 +91,11 @@ flowchart TD
 1. **نصب ستاپ SQL Server 2022:**
    * انتخاب فقط ویژگی `Database Engine Services`.
    * Instance Name: پیش‌فرض (`MSSQLSERVER`).
-   * مسیر دایرکتوری‌ها:
+   * مسیر دایرکتوری‌ها بر اساس پارتیشن‌های تفکیک‌شده:
      * Data Root Directory: `D:\SQLData`
      * User Database Directory: `D:\SQLData\Data`
-     * User Database Log Directory: `D:\SQLData\Logs`
-     * TempDB Directory: `D:\SQLData\TempDB` (۸ فایل TempDB متناسب با ۸ هسته CPU با سایز اولیه ۱ گیگابایت و اتوگروث ۶۴ مگابایت).
+     * User Database Log Directory: `L:\SQLLogs` (درایو L اختصاصی لاگ)
+     * TempDB Directory: `T:\SQLTempDB` (درایو T اختصاصی TempDB شامل ۸ فایل دیتا با سایز اولیه ۱ گیگابایت و اتوگروث ۶۴ مگابایت).
 2. **اعمال سقف مصرف حافظه (Memory Cap):**
    در نرم‌افزار SSMS اسکریپت زیر اجرا می‌شود:
    ```sql
@@ -110,13 +114,13 @@ flowchart TD
      * پروتکل **Shared Memory** فعال شود (`Enabled`).
      * پروتکل **Named Pipes** فعال شود.
      * در تنظیمات **TCP/IP**، گزینه `Listen All` روی `No` قرار گیرد و صرفاً آدرس `IP1` برابر با `127.0.0.1` روی پورت `1433` فعال گردد (یا در فایروال ویندوز هرگونه ترافیک ورودی به پورت ۱۴۳۳ از خارج ماشین مسدود شود).
-4. **ایجاد پایگاه داده و کاربر اختصاصی:**
+4. **ایجاد پایگاه داده و کاربر اختصاصی با فایل‌های تفکیک‌شده:**
    ```sql
    CREATE DATABASE [ParkPalaceCRM_DB]
    ON PRIMARY 
    ( NAME = N'ParkPalaceCRM_DB_Data', FILENAME = N'D:\SQLData\Data\ParkPalaceCRM_DB.mdf', SIZE = 4096MB, FILEGROWTH = 256MB )
    LOG ON 
-   ( NAME = N'ParkPalaceCRM_DB_Log', FILENAME = N'D:\SQLData\Logs\ParkPalaceCRM_DB_Log.ldf', SIZE = 1024MB, FILEGROWTH = 128MB );
+   ( NAME = N'ParkPalaceCRM_DB_Log', FILENAME = N'L:\SQLLogs\ParkPalaceCRM_DB_Log.ldf', SIZE = 1024MB, FILEGROWTH = 128MB );
    GO
 
    USE [ParkPalaceCRM_DB];
