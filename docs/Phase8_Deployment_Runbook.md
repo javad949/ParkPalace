@@ -5,9 +5,10 @@
 **فاز:** فاز ۸ — آمادگی استقرار عملیاتی و تحلیل ریسک معماری  
 **تاریخ انتشار:** ۲۶ مهر ۱۴۰۵ (2026-10-18)  
 **محیط هدف:** شبکه سازمانی کارخانه (`sahar.loc`)  
-**نام دامنه هدف:** `crm.sahar.loc` | **پورت هدف:** `8888` | **مسیر فایل‌ها:** `D:\ParkPlaceCRM`  
+**نام دامنه هدف:** `crm.sahar.loc` | **پورت هدف:** `80` (HTTP) | **مسیر فایل‌ها:** `D:\ParkPlaceCRM`  
+**آدرس IP پیشنهادی:** `192.168.1.248` | **ماشین مجازی:** `CRM` (طرح تک‌سرور VM-01)  
 **وضعیت اجرا:** **پیشنهادی و آماده‌سازی‌شده — اکیداً بدون اجرا در سرور PDC (Mandatory Stop)**  
-**نسخه سند:** ۱.۰.۰  
+**نسخه سند:** ۲.۰.۰ (بازبینی‌شده بر اساس معماری تک‌ماشین مجازی)  
 
 ---
 
@@ -15,29 +16,29 @@
 
 > [!CAUTION]
 > **توصیه مؤکد و حیاتی معمار ارشد سیستم:**  
-> سرور `pdc.sahar.loc` با آدرس IP `192.168.1.250`، **کنترل‌کننده اصلی دامین (Primary Domain Controller)** سازمان سحر است. اجرای یک وب‌اپلیکیشن تجاری (شامل IIS، وب‌سوکت‌های بلادرنگ SignalR، ورکر پس‌زمینه و دسترسی شبکه باز به پورت ۸۸۸۸) بر روی سرور PDC با خطرات امنیتی و عملیاتی بسیار شدیدی همراه است.
+> سرور `pdc.sahar.loc` با آدرس IP `192.168.1.250`، **کنترل‌کننده اصلی دامین (Primary Domain Controller)** سازمان سحر است. اجرای وب‌اپلیکیشن تجاری (شامل IIS، وب‌سوکت‌های بلادرنگ SignalR، ورکر پس‌زمینه و پایگاه داده SQL Server) بر روی سرور PDC با خطرات امنیتی و عملیاتی بسیار شدیدی همراه است و کاملاً مردود است.
 
-### دلایل فنی ضرورت استفاده از سرور مجزا (Dedicated Application Server):
+### دلایل فنی ضرورت استفاده از تک‌سرور مجزا (Dedicated Single VM - VM-01):
 1. **سطح حمله امنیتی (Attack Surface):** هرگونه آسیب‌پذیری روز-صفر احتمالی در وب‌سرور یا وب‌سایت، دسترسی اولیه را روی کنترل‌کننده کل امنیت سازمان (PDC) فراهم می‌کند که می‌تواند منجر به تسخیر کامل دامین گردد.
-2. **تداخل منابع پردازشی با سرویس‌های دامین:** پردازش‌های سنگین محاسبات گزارش‌گیری، فیلترینگ و استریم صوتی ممکن است منجر به مصرف حافظه و تداخل با سرویس‌های حیاتی `lsass.exe`, `Active Directory`, `Kerberos Key Distribution Center` و `DNS` شود.
-3. **ریسک راه‌اندازی مجدد و اختلال شبکه:** خطاهای احتمالی یا نیاز به ریستارت کردن IIS یا سرور اپلیکیشن ممکن است دسترسی کل کلاینت‌های سازمان به لاگین دامین، فایل‌شیرینگ و احراز هویت را برای دقایقی قطع نماید.
+2. **تداخل منابع پردازشی با سرویس‌های دامین:** پردازش‌های سنگین محاسبات گزارش‌گیری، فیلترینگ و موتور SQL Server موجب تسخیر حافظه و تداخل با سرویس‌های حیاتی `lsass.exe`, `Active Directory`, `Kerberos KDC` و `DNS` می‌شود.
+3. **ریسک راه‌اندازی مجدد و اختلال شبکه:** خطاهای احتمالی یا نیاز به ریستارت کردن IIS یا سرور اپلیکیشن دسترسی کل کلاینت‌های سازمان به لاگین دامین، فایل‌شیرینگ و احراز هویت را برای دقایقی قطع می‌نماید.
 
-**راهکار پیشنهادی استاندارد:**  
-تخصیص یک ماشین مجازی یا سرور اختصاصی مجزا (مانند `app-crm.sahar.loc` یا `192.168.1.246/248`) عضو دامین به عنوان وب‌سرور CRM، در حالی که پایگاه داده می‌تواند روی یک SQL Server استاندارد میزبانی شود.
+**راهکار مصوب کارفرما (طرح VM-01):**  
+تخصیص یک ماشین مجازی مستقل در بستر VMware ESXi با نام `CRM`، آدرس IP `192.168.1.248`، منابع ۸ هسته vCPU، ۳۲ گیگابایت RAM، ۳۰۰ گیگابایت دیسک و کارت شبکه VMXNET3، جهت میزبانی همزمان IIS 10 و SQL Server 2022 (با سقف حافظه ۲۰ گیگابایت).
 
 ---
 
 ## ۲. پیش‌نیازهای نرم‌افزاری و زیرساختی سرور استقرار (Prerequisites)
 
 پیش از اقدام به استقرار نهایی، سرور هدف باید واجد مشخصات زیر باشد:
-- **سیستم‌عامل:** Windows Server 2019 یا 2022 نسخه Standard یا Datacenter.
+- **سیستم‌عامل:** Windows Server 2022 Standard (64-bit).
+- **موتور دیتابیس:** SQL Server 2022 Standard/Enterprise (با سقف حافظه ۲۰ گیگابایت و ارتباط لوکال).
 - **وب‌سرور IIS 10:** با فعال بودن ویژگی‌های:
   - `Windows Authentication`
-  - `WebSocket Protocol` (جهت کارکرد پاپ‌آپ بلادرنگ SignalR)
+  - `WebSocket Protocol` (جهت کارکرد پاپ‌آپ بلادرنگ SignalR روی پورت ۸۰)
   - `HTTP Activation`
 - **پکیج میزبانی دات‌نت:** نصب **ASP.NET Core 8 Hosting Bundle** (نسخه 8.0.x).
 - **ماژول URL Rewrite:** نصب نسخه ۲.۱ رسمی مایکروسافت.
-- **گواهینامه SSL/TLS:** گواهینامه معتبر داخلی برای نام دامنه `crm.sahar.loc`.
 - **حساب کاربری سرویس دامین:** حساب اختصاصی بدون دسترسی ادمین دامین (مانند `sahar\svc_crm`).
 
 ---
@@ -65,10 +66,10 @@ Set-ItemProperty "IIS:\AppPools\ParkPalaceCRM_AppPool" -Name "processModel.passw
 Set-ItemProperty "IIS:\AppPools\ParkPalaceCRM_AppPool" -Name "recycling.periodicRestart.time" -Value "04:00:00"
 ```
 
-### گام ۳: ایجاد وب‌سایت در IIS با پورت ۸۸۸۸
+### گام ۳: ایجاد وب‌سایت در IIS با پورت ۸۰
 ```powershell
 New-WebSite -Name "ParkPalaceCRM" `
-    -Port 8888 `
+    -Port 80 `
     -PhysicalPath "D:\ParkPlaceCRM\api" `
     -ApplicationPool "ParkPalaceCRM_AppPool" `
     -HostHeader "crm.sahar.loc"
@@ -83,14 +84,22 @@ Set-WebConfigurationProperty -Filter "/system.webServer/security/authentication/
     -Name "enabled" -Value "True" -PSPath "IIS:\Sites\ParkPalaceCRM"
 ```
 
-### گام ۵: دسترسی پایگاه داده در SQL Server (سیاست کمترین سطح دسترسی)
-در پایگاه داده `ParkPalaceCRM_DB`، حساب سرویس صرفاً دسترسی‌های خواندن/نوشتن را دریافت می‌کند و از دادن نقش `sysadmin` یا `db_owner` اکیداً خودداری می‌شود:
+### گام ۵: ایجاد پایگاه داده لوکال و تنظیم سقف حافظه در SQL Server 2022
+در پایگاه داده `ParkPalaceCRM_DB` روی همین ماشین، سقف حافظه و دسترسی‌های کاربر سرویس تنظیم می‌شود:
 ```sql
+-- تنظیم سقف حافظه ۲۰ گیگابایت برای بافر پول SQL Server
+EXEC sys.sp_configure N'show advanced options', 1;
+RECONFIGURE WITH OVERRIDE;
+EXEC sys.sp_configure N'max server memory (MB)', 20480;
+RECONFIGURE WITH OVERRIDE;
+GO
+
 USE [ParkPalaceCRM_DB];
 CREATE USER [sahar\svc_crm] FOR LOGIN [sahar\svc_crm];
 ALTER ROLE [db_datareader] ADD MEMBER [sahar\svc_crm];
 ALTER ROLE [db_datawriter] ADD MEMBER [sahar\svc_crm];
 GRANT EXECUTE TO [sahar\svc_crm];
+GO
 ```
 
 ### گام ۶: پیکربندی ورکر به عنوان Windows Service
@@ -100,35 +109,48 @@ sc.exe create "ParkPalaceCRMWorker" `
     binPath= "D:\ParkPlaceCRM\worker\ParkPalace.Worker.exe" `
     start= auto `
     obj= "sahar\svc_crm" `
-    password= "P@ssw0rdSecure!"
+    password= "YourSecurePasswordHere"
 sc.exe start "ParkPalaceCRMWorker"
 ```
 
 ### گام ۷: پیکربندی فایروال سرور (Windows Defender Firewall)
-باز کردن دسترسی فقط به پورت ۸۸۸۸ از مبدأ ساب‌نت اداری:
+باز کردن دسترسی فقط به پورت ۸۰ از مبدأ ساب‌نت اداری و مسدودسازی دسترسی مستقیم خارجی به پورت ۱۴۳۳ SQL:
 ```powershell
-New-NetFirewallRule -DisplayName "ParkPalace CRM Inbound Port 8888" `
+# باز کردن پورت 80 وب
+New-NetFirewallRule -DisplayName "ParkPalace CRM Inbound HTTP Port 80" `
     -Direction Inbound `
-    -LocalPort 8888 `
+    -LocalPort 80 `
     -Protocol TCP `
     -Action Allow `
     -RemoteAddress "192.168.1.0/24"
+
+# اطمینان از مسدود بودن دسترسی خارجی به SQL Server
+New-NetFirewallRule -DisplayName "Block Inbound Remote SQL 1433" `
+    -Direction Inbound `
+    -LocalPort 1433 `
+    -Protocol TCP `
+    -Action Block
 ```
 
 ### گام ۸: تنظیم رکورد DNS در کنترل‌کننده دامین
-افزودن رکورد A برای `crm.sahar.loc`:
+افزودن رکورد A برای `crm.sahar.loc` با اشاره به ماشین `CRM`:
 ```powershell
 Add-DnsServerResourceRecordA -Name "crm" `
     -ZoneName "sahar.loc" `
-    -IPv4Address "192.168.1.246" `
+    -IPv4Address "192.168.1.248" `
     -CreatePtr
+
+# ثبت SPN برای پورت 80 جهت Kerberos
+setspn -S "HTTP/crm.sahar.loc" "sahar\svc_crm"
+setspn -S "HTTP/crm" "sahar\svc_crm"
 ```
 
 ---
 
 ## ۴. چک‌لیست اعتبارسنجی پس از استقرار (Smoke Verification)
 
-1. باز کردن آدرس `http://crm.sahar.loc:8888` در مرورگر کلاینت عضو دامین و اطمینان از لاگین خودکار با NTLM/Kerberos.
-2. استعلام اندپوینت `http://crm.sahar.loc:8888/api/health` و دریافت پاسخ `{"status":"Healthy"}`.
-3. بررسی پاپ‌آپ زنده با شبیه‌سازی یک تماس تلفنی.
-4. بررسی عدم ثبت هرگونه خطای سطح بالا در Event Viewer ویندوز (`Application Log`).
+1. باز کردن آدرس `http://crm.sahar.loc` در مرورگر کلاینت عضو دامین و اطمینان از لاگین خودکار با NTLM/Kerberos.
+2. استعلام اندپوینت `http://crm.sahar.loc/api/health` و دریافت پاسخ `{"status":"Healthy"}`.
+3. بررسی پاپ‌آپ زنده SignalR با شبیه‌سازی یک تماس تلفنی ورودی روی پورت ۸۰.
+4. ممیزی مصرف رم و اطمینان از عدم تجاوز SQL Server 2022 از سقف ۲۰ گیگابایت.
+5. بررسی صحت پشتیبان‌گیری دیتابیس به مسیر شبکه خارج از سرور (`\\nas.sahar.loc\backups\CRM`).
