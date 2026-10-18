@@ -10,6 +10,8 @@ using ParkPalace.Domain.Constants;
 using ParkPalace.Infrastructure.Data;
 using Xunit;
 
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
+
 namespace ParkPalace.IntegrationTests;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>

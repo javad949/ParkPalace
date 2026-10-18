@@ -182,6 +182,20 @@ public class ReportsController : ControllerBase
         return File(result.FileBytes, result.ContentType, result.FileName);
     }
 
+    [HttpGet("export/csv")]
+    public async Task<IActionResult> ExportReportCsv([FromQuery] ExportRequestDto request, CancellationToken cancellationToken)
+    {
+        request.Format = "csv";
+        return await ExportReportGet(request, cancellationToken);
+    }
+
+    [HttpGet("export/excel")]
+    public async Task<IActionResult> ExportReportExcel([FromQuery] ExportRequestDto request, CancellationToken cancellationToken)
+    {
+        request.Format = "xlsx";
+        return await ExportReportGet(request, cancellationToken);
+    }
+
     [HttpPost("export")]
     public async Task<IActionResult> ExportReportPost([FromBody] ExportRequestDto request, CancellationToken cancellationToken)
     {
