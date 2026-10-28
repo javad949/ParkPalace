@@ -20,3 +20,10 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
+
+## Local Artifacts & Scratch
+publish/
+release/
+scratch/
+*.png
+
