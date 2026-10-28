@@ -46,6 +46,7 @@ import {
   CreateGoodsReceiptRequest,
   PurchaseOrderDto
 } from '../../types';
+import { formatJalali, formatJalaliDateTime } from '../../utils/jalali';
 
 interface WarehouseViewProps {
   activeDevRole?: string;
@@ -484,12 +485,12 @@ export const WarehouseView: React.FC<WarehouseViewProps> = ({
           <span className="kpi-lbl">آخرین همگام‌سازی با سپیدار</span>
           <span className="kpi-val" style={{ fontSize: '15px' }}>
             {syncStatus?.lastSuccessfulSyncUtc 
-              ? new Date(syncStatus.lastSuccessfulSyncUtc).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }) 
+              ? formatJalaliDateTime(syncStatus.lastSuccessfulSyncUtc)
               : 'نامشخص'}
           </span>
           <span className="kpi-sub">
             {syncStatus?.lastSuccessfulSyncUtc 
-              ? new Date(syncStatus.lastSuccessfulSyncUtc).toLocaleDateString('fa-IR') 
+              ? 'همگام‌سازی آخرین بار' 
               : 'هنوز همگام نشده'}
           </span>
         </div>
@@ -583,6 +584,7 @@ export const WarehouseView: React.FC<WarehouseViewProps> = ({
               </tr>
             ) : (
               items.map((item) => {
+                const isUnitMismatch = item.stockStatus === 'UnitMismatch' || !!item.isUnitMismatch;
                 const isCritical = item.stockStatus === 'Critical' || item.stockStatus === 'OutOfStock';
                 return (
                   <tr
@@ -602,23 +604,34 @@ export const WarehouseView: React.FC<WarehouseViewProps> = ({
                       {item.categoryName}
                     </td>
                     <td style={{ padding: '12px 16px', fontWeight: 700, color: '#fff' }}>
-                      {item.onHandQuantity.toLocaleString('fa-IR')} <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>{item.unitName}</span>
+                      {isUnitMismatch ? (
+                        <span style={{ fontSize: '12px', color: '#f59e0b', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <AlertCircle size={13} />
+                          واحد نیازمند بررسی
+                        </span>
+                      ) : (
+                        <>
+                          {item.onHandQuantity.toLocaleString('fa-IR')} <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>{item.unitName}</span>
+                        </>
+                      )}
                     </td>
-                    <td style={{ padding: '12px 16px', color: item.reservableQuantity > 0 ? '#34d399' : '#f87171' }}>
-                      {item.reservableQuantity.toLocaleString('fa-IR')}
+                    <td style={{ padding: '12px 16px', color: isUnitMismatch ? 'var(--text-muted)' : (item.reservableQuantity > 0 ? '#34d399' : '#f87171') }}>
+                      {isUnitMismatch ? '-' : item.reservableQuantity.toLocaleString('fa-IR')}
                     </td>
                     <td style={{ padding: '12px 16px', color: 'var(--text-muted)' }}>
                       {item.safetyStock.toLocaleString('fa-IR')}
                     </td>
                     <td style={{ padding: '12px 16px' }}>
-                      {item.dailyConsumption7d > 0 ? `${item.dailyConsumption7d.toLocaleString('fa-IR')} / روز` : '-'}
+                      {!isUnitMismatch && item.dailyConsumption7d > 0 ? `${item.dailyConsumption7d.toLocaleString('fa-IR')} / روز` : '-'}
                     </td>
                     <td style={{ padding: '12px 16px' }}>
-                      {item.dailyConsumption30d > 0 ? `${item.dailyConsumption30d.toLocaleString('fa-IR')} / روز` : '-'}
+                      {!isUnitMismatch && item.dailyConsumption30d > 0 ? `${item.dailyConsumption30d.toLocaleString('fa-IR')} / روز` : '-'}
                     </td>
                     <td style={{ padding: '12px 16px' }}>
-                      <span className={`badge-status ${isCritical ? 'critical' : item.isStale ? 'stale' : 'normal'}`}>
-                        {item.stockStatus === 'Critical' ? 'کسری بحرانی' :
+                      <span className={`badge-status ${isUnitMismatch ? 'warning' : isCritical ? 'critical' : item.isStale ? 'stale' : 'normal'}`}
+                            style={isUnitMismatch ? { backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.3)' } : undefined}>
+                        {isUnitMismatch ? 'واحد نیازمند بررسی' :
+                         item.stockStatus === 'Critical' ? 'کسری بحرانی' :
                          item.stockStatus === 'OutOfStock' ? 'اتمام موجودی' :
                          item.isStale ? 'داده قدیمی' : 'نرمال'}
                       </span>
@@ -771,7 +784,7 @@ export const WarehouseView: React.FC<WarehouseViewProps> = ({
                   <td>{r.orderNumber}</td>
                   <td>{r.deliveryNoteNumber || '—'}</td>
                   <td>{r.receivedByUsername}</td>
-                  <td>{new Date(r.receiptDateUtc).toLocaleDateString('fa-IR')}</td>
+                  <td>{formatJalali(r.receiptDateUtc)}</td>
                   <td>
                     {r.status === 'Accepted' && <span className="badge-status normal" style={{ background: '#059669', color: '#ecfdf5' }}>پذیرش کامل</span>}
                     {r.status === 'PartiallyAccepted' && <span className="badge-status normal" style={{ background: '#d97706', color: '#fffbeb' }}>پذیرش مشروط/جزئی</span>}
@@ -1172,7 +1185,7 @@ export const WarehouseView: React.FC<WarehouseViewProps> = ({
                                   {isOutflow ? '-' : '+'}{m.quantity.toLocaleString('fa-IR')} {m.unitName}
                                 </td>
                                 <td style={{ padding: '8px 12px', color: 'var(--text-muted)' }}>
-                                  {new Date(m.transactionDateUtc).toLocaleDateString('fa-IR')}
+                                  {formatJalali(m.transactionDateUtc)}
                                 </td>
                                 <td style={{ padding: '8px 12px' }}>
                                   {m.isCancelled ? (

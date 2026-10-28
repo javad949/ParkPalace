@@ -38,6 +38,8 @@ import {
   reconcileCdrBatch, 
   fetchSuppliers 
 } from '../../services/api';
+import { JalaliDatePicker } from '../JalaliDatePicker';
+import { formatJalali, formatJalaliDateTime, dateOnlyToIsoUtc } from '../../utils/jalali';
 
 interface CallsViewProps {
   devRole?: string;
@@ -157,7 +159,7 @@ export const CallsView: React.FC<CallsViewProps> = ({
         noteText: newNoteText.trim(),
         outcome: newNoteOutcome,
         followUpRequired: newNoteFollowUp,
-        followUpDueDateUtc: newNoteFollowUp && newNoteDueDate ? new Date(newNoteDueDate).toISOString() : undefined,
+        followUpDueDateUtc: newNoteFollowUp && newNoteDueDate ? dateOnlyToIsoUtc(newNoteDueDate) : undefined,
         followUpAssignedTo: devRole.toLowerCase()
       };
       const note = await addCallNote(selectedCall.id, req, devRole);
@@ -539,7 +541,7 @@ export const CallsView: React.FC<CallsViewProps> = ({
                       </td>
                       <td>{c.extension || '-'}</td>
                       <td style={{ fontSize: '0.8rem' }}>
-                        {new Date(c.startTimeUtc).toLocaleString('fa-IR')}
+                        {formatJalaliDateTime(c.startTimeUtc)}
                       </td>
                       <td style={{ fontSize: '0.8rem' }}>
                         {c.durationSeconds ? `${c.durationSeconds} ثانیه` : '-'}
@@ -620,7 +622,7 @@ export const CallsView: React.FC<CallsViewProps> = ({
                     <td style={{ fontFamily: 'monospace', fontWeight: 700 }}>{c.callerNumber}</td>
                     <td style={{ fontFamily: 'monospace', color: '#94a3b8' }}>{c.normalizedCallerNumber}</td>
                     <td>{c.extension || '-'}</td>
-                    <td>{new Date(c.startTimeUtc).toLocaleString('fa-IR')}</td>
+                    <td>{formatJalaliDateTime(c.startTimeUtc)}</td>
                     <td>{c.durationSeconds ? `${c.durationSeconds} ثانیه` : '-'}</td>
                     <td>
                       <button
@@ -679,7 +681,7 @@ export const CallsView: React.FC<CallsViewProps> = ({
                     <td>{fu.noteText}</td>
                     <td>{fu.followUpAssignedTo || fu.username}</td>
                     <td style={{ fontSize: '0.85rem', color: '#facc15' }}>
-                      {fu.followUpDueDateUtc ? new Date(fu.followUpDueDateUtc).toLocaleDateString('fa-IR') : 'نامشخص'}
+                      {fu.followUpDueDateUtc ? formatJalali(fu.followUpDueDateUtc) : 'نامشخص'}
                     </td>
                     <td>
                       <span className="badge badge-warning">در انتظار انجام</span>
@@ -922,7 +924,7 @@ export const CallsView: React.FC<CallsViewProps> = ({
               </div>
               <div>
                 <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>زمان آغاز:</span>
-                <div style={{ fontSize: '0.85rem' }}>{new Date(selectedCall.startTimeUtc).toLocaleString('fa-IR')}</div>
+                <div style={{ fontSize: '0.85rem' }}>{formatJalaliDateTime(selectedCall.startTimeUtc)}</div>
               </div>
               <div>
                 <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>مدت مکالمه:</span>
@@ -960,12 +962,12 @@ export const CallsView: React.FC<CallsViewProps> = ({
                     <div key={n.id} style={{ background: '#0f172a', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>
                         <span>ثبت توسط: {n.username}</span>
-                        <span>{new Date(n.createdAtUtc).toLocaleString('fa-IR')}</span>
+                        <span>{formatJalaliDateTime(n.createdAtUtc)}</span>
                       </div>
                       <div style={{ fontSize: '0.85rem', color: '#f8fafc' }}>{n.noteText}</div>
                       {n.followUpRequired && (
                         <div style={{ marginTop: '6px', fontSize: '0.75rem', color: '#facc15' }}>
-                          اقدام بعدی: {n.outcome} | مهلت: {n.followUpDueDateUtc ? new Date(n.followUpDueDateUtc).toLocaleDateString('fa-IR') : 'نامشخص'}
+                          اقدام بعدی: {n.outcome} | مهلت: {n.followUpDueDateUtc ? formatJalali(n.followUpDueDateUtc) : 'نامشخص'}
                         </div>
                       )}
                     </div>
@@ -1028,19 +1030,13 @@ export const CallsView: React.FC<CallsViewProps> = ({
                 </label>
 
                 {newNoteFollowUp && (
-                  <input
-                    type="date"
-                    value={newNoteDueDate}
-                    onChange={e => setNewNoteDueDate(e.target.value)}
-                    style={{
-                      background: '#1e293b',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#f8fafc',
-                      fontSize: '0.8rem',
-                      padding: '4px 8px',
-                      borderRadius: '6px'
-                    }}
-                  />
+                  <div style={{ minWidth: '170px' }}>
+                    <JalaliDatePicker
+                      value={newNoteDueDate}
+                      onChange={val => setNewNoteDueDate(val)}
+                      placeholder="مهلت پیگیری..."
+                    />
+                  </div>
                 )}
 
                 <button

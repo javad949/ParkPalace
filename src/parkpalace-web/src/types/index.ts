@@ -9,6 +9,8 @@ export interface MeResponse {
   isAuthenticated: boolean;
   roles: string[];
   permissions: string[];
+  activeRole?: string;
+  availableRoles?: string[];
 }
 
 export interface HealthResponse {
@@ -83,6 +85,24 @@ export interface MaterialDto {
   description?: string;
   specifications?: string;
   brand?: string;
+  packaging?: string;
+  packageSize?: number;
+  packageSizeUnitId?: string;
+  packageSizeUnitName?: string;
+  packageSizeUnitCode?: string;
+  purchaseUnitId?: string;
+  purchaseUnitName?: string;
+  purchaseUnitCode?: string;
+  consumptionUnitId?: string;
+  consumptionUnitName?: string;
+  consumptionUnitCode?: string;
+  productFamily?: string;
+  categorizationStatus?: string;
+  isCustomizedByUser?: boolean;
+  standardizationNotes?: string;
+  sepidarItemCode?: string;
+  sepidarItemTitle?: string;
+  sepidarBaseUnit?: string;
   minStock?: number;
   safetyStock?: number;
   leadTimeDays?: number;
@@ -101,6 +121,8 @@ export interface MaterialUnitConversionDto {
   toUnitName: string;
   toUnitCode: string;
   factor: number;
+  isConfirmed: boolean;
+  notes?: string;
 }
 
 export interface SupplierMaterialSummaryDto {
@@ -240,8 +262,9 @@ export interface InventoryItemDto {
   dailyConsumption7d: number;
   dailyConsumption30d: number;
   isStale: boolean;
+  isUnitMismatch?: boolean;
   lastSyncUtc: string;
-  stockStatus: string; // 'Normal' | 'Critical' | 'OutOfStock' | 'Stale'
+  stockStatus: string; // 'Normal' | 'Critical' | 'OutOfStock' | 'Stale' | 'UnitMismatch'
 }
 
 export interface SupplierMaterialSummaryDto {
@@ -364,6 +387,11 @@ export interface PurchaseRecommendationDto {
   status: string;
   generatedAtUtc: string;
   alternativeSuppliers: AlternativeSupplierDto[];
+  reservableOnHand?: number | null;
+  dataWarning?: string;
+  isDefinitive?: boolean;
+  requiresManualReview?: boolean;
+  reserveStatusDescription?: string;
 }
 
 export interface ReplenishmentPolicyDto {
@@ -472,6 +500,7 @@ export interface CreatePurchaseOrderRequest {
   deliveryTerms?: string;
   notes?: string;
   directIssue: boolean;
+  manualReviewConfirmed?: boolean;
   lines: CreatePurchaseOrderLineRequest[];
 }
 

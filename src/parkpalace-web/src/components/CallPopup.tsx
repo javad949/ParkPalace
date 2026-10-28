@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { CallerPopupDto, PartyMatchDto, CreateCallNoteRequest } from '../types';
 import { addCallNote, classifyCall } from '../services/api';
+import { JalaliDatePicker } from './JalaliDatePicker';
+import { formatJalali, formatJalaliDateTime, dateOnlyToIsoUtc } from '../utils/jalali';
 
 interface CallPopupProps {
   devRole?: string;
@@ -145,7 +147,7 @@ export const CallPopup: React.FC<CallPopupProps> = ({
         noteText: noteText.trim(),
         outcome,
         followUpRequired,
-        followUpDueDateUtc: followUpRequired && followUpDueDate ? new Date(followUpDueDate).toISOString() : undefined,
+        followUpDueDateUtc: followUpRequired && followUpDueDate ? dateOnlyToIsoUtc(followUpDueDate) : undefined,
         followUpAssignedTo: devRole.toLowerCase()
       };
       await addCallNote(popup.callId, payload, devRole);
@@ -238,7 +240,7 @@ export const CallPopup: React.FC<CallPopupProps> = ({
               {isRinging && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#facc15', display: 'inline-block' }} />}
             </div>
             <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-              داخلی: {popup.extension || userExtension} | {new Date(popup.timestampUtc).toLocaleTimeString('fa-IR')}
+              داخلی: {popup.extension || userExtension} | {formatJalaliDateTime(popup.timestampUtc)}
             </div>
           </div>
         </div>
@@ -384,7 +386,7 @@ export const CallPopup: React.FC<CallPopupProps> = ({
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   {rc.direction === 0 ? <PhoneIncoming size={12} color="#4ade80" /> : <PhoneOutgoing size={12} color="#38bdf8" />}
-                  <span>{new Date(rc.startTimeUtc).toLocaleDateString('fa-IR')}</span>
+                  <span>{formatJalali(rc.startTimeUtc)}</span>
                   {rc.durationSeconds ? <span>({rc.durationSeconds} ثانیه)</span> : null}
                 </div>
                 <div style={{ color: '#94a3b8', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -460,19 +462,13 @@ export const CallPopup: React.FC<CallPopupProps> = ({
           </label>
 
           {followUpRequired && (
-            <input
-              type="date"
-              value={followUpDueDate}
-              onChange={e => setFollowUpDueDate(e.target.value)}
-              style={{
-                background: '#1e293b',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                color: '#f8fafc',
-                fontSize: '0.75rem',
-                padding: '2px 6px',
-                borderRadius: '6px'
-              }}
-            />
+            <div style={{ minWidth: '150px' }}>
+              <JalaliDatePicker
+                value={followUpDueDate}
+                onChange={val => setFollowUpDueDate(val)}
+                placeholder="مهلت پیگیری..."
+              />
+            </div>
           )}
 
           <button

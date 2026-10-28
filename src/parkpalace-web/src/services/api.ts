@@ -59,10 +59,12 @@ import {
 const API_BASE = '/api';
 
 function getHeaders(devRole?: string): HeadersInit {
-  const h: HeadersInit = { 'Content-Type': 'application/json' };
-  if (devRole) {
-    h['X-Dev-Role'] = devRole;
-    h['X-Dev-User'] = `sahar\\${devRole.toLowerCase()}`;
+  const h: Record<string, string> = { 'Content-Type': 'application/json' };
+  const role = devRole || (typeof window !== 'undefined' ? localStorage.getItem('parkpalace_active_role') : null);
+  if (role) {
+    h['X-Active-Role'] = role;
+    h['X-Dev-Role'] = role;
+    h['X-Dev-User'] = `sahar\\${role.toLowerCase()}`;
   }
   return h;
 }
@@ -188,7 +190,69 @@ export async function createMaterial(data: {
   return res.json();
 }
 
-export async function addUnitConversion(materialId: string, data: { fromUnitId: string; toUnitId: string; factor: number }, devRole?: string): Promise<void> {
+export async function updateMaterial(id: string, data: {
+  name: string;
+  categoryId: string;
+  baseUnitId: string;
+  brand?: string;
+  packaging?: string;
+  packageSize?: number;
+  packageSizeUnitId?: string;
+  purchaseUnitId?: string;
+  consumptionUnitId?: string;
+  productFamily?: string;
+  description?: string;
+  specifications?: string;
+  standardizationNotes?: string;
+  minStock?: number;
+  safetyStock?: number;
+  leadTimeDays?: number;
+  isActive?: boolean;
+}, devRole?: string): Promise<MaterialDto> {
+  const res = await fetch(`${API_BASE}/v1/materials/${id}`, {
+    method: 'PUT',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در ویرایش کاتالوگ: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function confirmConversion(materialId: string, conversionId: string, devRole?: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/v1/materials/${materialId}/conversions/${conversionId}/confirm`, {
+    method: 'POST',
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در تأیید تبدیل واحد: ${res.status}`);
+  }
+}
+
+export async function confirmCategorization(materialId: string, devRole?: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/v1/materials/${materialId}/confirm-categorization`, {
+    method: 'POST',
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در تأیید دسته‌بندی کاتالوگ: ${res.status}`);
+  }
+}
+
+export async function addUnitConversion(materialId: string, data: {
+  fromUnitId: string;
+  toUnitId: string;
+  factor: number;
+  isConfirmed?: boolean;
+  notes?: string;
+}, devRole?: string): Promise<any> {
   const res = await fetch(`${API_BASE}/v1/materials/${materialId}/conversions`, {
     method: 'POST',
     headers: getHeaders(devRole),
@@ -199,6 +263,7 @@ export async function addUnitConversion(materialId: string, data: { fromUnitId: 
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || err.title || `خطا در ثبت تبدیل واحد: ${res.status}`);
   }
+  return res.json();
 }
 
 // ================= Phase 3: Suppliers & Parties =================

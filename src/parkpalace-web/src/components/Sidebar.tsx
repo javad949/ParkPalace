@@ -15,24 +15,66 @@ interface SidebarProps {
   currentView: ViewType;
   onSelectView: (view: ViewType) => void;
   userRoles: string[];
+  userPermissions?: string[];
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentView, onSelectView, userRoles }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentView, onSelectView, userRoles, userPermissions = [] }) => {
   const isAdmin = userRoles.includes('Admin');
+  const hasAnyRole = (...roles: string[]) => userRoles.some(r => roles.includes(r));
+  const hasPerm = (perm: string) => isAdmin || userPermissions.includes(perm);
 
-  const navItems = [
-    { id: 'dashboard' as ViewType, label: 'داشبورد مدیریت', icon: LayoutDashboard },
-    { id: 'materials' as ViewType, label: 'کاتالوگ مواد اولیه', icon: Package },
-    { id: 'suppliers' as ViewType, label: 'تأمین‌کنندگان و مخاطبین', icon: Users },
-    { id: 'orders' as ViewType, label: 'سفارشات و تدارکات', icon: ShoppingCart },
-    { id: 'warehouse' as ViewType, label: 'انبار واحد و موجودی', icon: Warehouse },
-    { id: 'finance' as ViewType, label: 'مالی و تطبیق فاکتورها', icon: Receipt },
-    { id: 'calls' as ViewType, label: 'مرکز تماس (ایزابل)', icon: PhoneCall },
+  const navItems: Array<{ id: ViewType; label: string; icon: any; isVisible: boolean }> = [
+    { 
+      id: 'dashboard', 
+      label: 'داشبورد مدیریت', 
+      icon: LayoutDashboard,
+      isVisible: true 
+    },
+    { 
+      id: 'materials', 
+      label: 'کاتالوگ مواد اولیه', 
+      icon: Package,
+      isVisible: hasPerm('Materials.View') || hasAnyRole('Admin', 'Procurement', 'Manager', 'Warehouse')
+    },
+    { 
+      id: 'suppliers', 
+      label: 'تأمین‌کنندگان و مخاطبین', 
+      icon: Users,
+      isVisible: hasPerm('Suppliers.View') || hasAnyRole('Admin', 'Procurement', 'Manager', 'Finance')
+    },
+    { 
+      id: 'orders', 
+      label: 'سفارشات و تدارکات', 
+      icon: ShoppingCart,
+      isVisible: hasPerm('Orders.View') || hasAnyRole('Admin', 'Procurement', 'Manager')
+    },
+    { 
+      id: 'warehouse', 
+      label: 'انبار واحد و موجودی', 
+      icon: Warehouse,
+      isVisible: hasPerm('Warehouse.View') || hasPerm('Inventory.View') || hasAnyRole('Admin', 'Warehouse', 'Manager')
+    },
+    { 
+      id: 'finance', 
+      label: 'مالی و تطبیق فاکتورها', 
+      icon: Receipt,
+      isVisible: hasPerm('Finance.View') || hasPerm('Invoices.View') || hasAnyRole('Admin', 'Finance', 'Manager')
+    },
+    { 
+      id: 'calls', 
+      label: 'مرکز تماس (ایزابل)', 
+      icon: PhoneCall,
+      isVisible: hasPerm('Calls.View') || hasAnyRole('Admin', 'Procurement', 'Manager')
+    },
+    { 
+      id: 'admin', 
+      label: 'مدیریت و دسترسی‌ها', 
+      icon: ShieldCheck,
+      isVisible: isAdmin || hasPerm('Admin.Users')
+    }
   ];
 
-  if (isAdmin) {
-    navItems.push({ id: 'admin' as ViewType, label: 'مدیریت و دسترسی‌ها', icon: ShieldCheck });
-  }
+  const visibleNavItems = navItems.filter(item => item.isVisible);
 
   return (
     <aside className="sidebar">
@@ -45,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onSelectView, use
       </div>
 
       <ul className="nav-list">
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentView === item.id;
           return (

@@ -8,7 +8,9 @@ import {
   Clock,
   ShieldCheck,
   Send,
-  Trash2
+  Trash2,
+  AlertTriangle,
+  Eye
 } from 'lucide-react';
 import { 
   fetchRecommendations, 
@@ -27,6 +29,8 @@ import {
   MaterialDto,
   PartyDto
 } from '../../types';
+import { JalaliDatePicker } from '../JalaliDatePicker';
+import { formatJalali, formatJalaliDateTime, dateOnlyToIsoUtc } from '../../utils/jalali';
 
 interface OrdersViewProps {
   activeDevRole?: string;
@@ -65,6 +69,8 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     deliveryTerms: string;
     notes: string;
     directIssue: boolean;
+    manualReviewConfirmed: boolean;
+    hasUnverifiedReserve: boolean;
     lines: Array<{
       materialId: string;
       orderedQuantity: number;
@@ -79,6 +85,8 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     deliveryTerms: 'تحویل در انبار مرکزی تهران',
     notes: '',
     directIssue: true, // Procurement direct PO issuance without manager approval
+    manualReviewConfirmed: false,
+    hasUnverifiedReserve: false,
     lines: [
       { materialId: '', orderedQuantity: 100, unitPrice: 0, taxRate: 0.10, discountAmount: 0 }
     ]
@@ -183,13 +191,18 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
 
   // Open Create PO Pre-filled from Recommendation
   const handleCreateFromRecommendation = (rec: PurchaseRecommendationDto) => {
+    const isUnverified = rec.requiresManualReview || !rec.isDefinitive;
     setFormData({
       supplierId: rec.preferredSupplierId || '',
       expectedDeliveryDateUtc: '',
       paymentTerms: 'نقدی ۳۰ روزه',
       deliveryTerms: 'تحویل در انبار مرکزی تهران',
-      notes: `صادر شده خودکار بر اساس پیشنهاد هوشمند خرید دوره ای (MOQ: ${rec.minOrderQuantity} ${rec.baseUnit})`,
-      directIssue: true,
+      notes: isUnverified 
+        ? `[بررسی دستی الزامی است: وضعیت رزرو در سپیدار نامعلوم است] پیشنهاد خرید دوره‌ای (MOQ: ${rec.minOrderQuantity} ${rec.baseUnit})`
+        : `صادر شده خودکار بر اساس پیشنهاد هوشمند خرید دوره ای (MOQ: ${rec.minOrderQuantity} ${rec.baseUnit})`,
+      directIssue: !isUnverified, // BLOCKED from automatic direct issuance if unverified reserve!
+      manualReviewConfirmed: false,
+      hasUnverifiedReserve: isUnverified,
       lines: [
         {
           materialId: rec.materialId,
@@ -247,11 +260,12 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
     try {
       const payload: CreatePurchaseOrderRequest = {
         supplierId: formData.supplierId,
-        expectedDeliveryDateUtc: formData.expectedDeliveryDateUtc ? new Date(formData.expectedDeliveryDateUtc).toISOString() : undefined,
+        expectedDeliveryDateUtc: dateOnlyToIsoUtc(formData.expectedDeliveryDateUtc),
         paymentTerms: formData.paymentTerms,
         deliveryTerms: formData.deliveryTerms,
         notes: formData.notes,
         directIssue: formData.directIssue,
+        manualReviewConfirmed: formData.manualReviewConfirmed,
         lines: formData.lines.map(l => ({
           materialId: l.materialId,
           orderedQuantity: Number(l.orderedQuantity),
@@ -348,6 +362,8 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                 deliveryTerms: 'تحویل در انبار مرکزی تهران',
                 notes: '',
                 directIssue: true,
+                manualReviewConfirmed: false,
+                hasUnverifiedReserve: false,
                 lines: [{ materialId: '', orderedQuantity: 100, unitPrice: 0, taxRate: 0.10, discountAmount: 0 }]
               });
               setShowCreateModal(true);
@@ -503,7 +519,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                         </button>
                       </td>
                       <td>{renderStatusBadge(order.status)}</td>
-                      <td>{order.issuedAtUtc ? new Date(order.issuedAtUtc).toLocaleDateString('fa-IR') : '—'}</td>
+                      <td>{formatJalali(order.issuedAtUtc)}</td>
                       <td>{order.lineCount} ردیف</td>
                       <td style={{ fontWeight: 600 }}>{order.grandTotal.toLocaleString('fa-IR')}</td>
                       <td>{order.issuedByUsername || order.createdBy}</td>
@@ -609,6 +625,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                 <tr>
                   <th>کد ماده</th>
                   <th>شرح ماده اولیه</th>
+                  <th>وضعیت قطعیت</th>
                   <th>موجودی آزاد</th>
                   <th>مصرف روزانه</th>
                   <th>نقطه سفارش (s)</th>
@@ -621,39 +638,116 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
               <tbody>
                 {recLoading ? (
                   <tr>
-                    <td colSpan={9} style={{ textAlign: 'center', padding: '30px' }}>در حال محاسبه الگوریتم دوره‌ای R, s, S...</td>
+                    <td colSpan={10} style={{ textAlign: 'center', padding: '30px' }}>در حال محاسبه الگوریتم دوره‌ای R, s, S...</td>
                   </tr>
                 ) : filteredRecs.length === 0 ? (
                   <tr>
-                    <td colSpan={9} style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
+                    <td colSpan={10} style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
                       هیچ موردی مطابق فیلتر یافت نشد.
                     </td>
                   </tr>
                 ) : (
-                  filteredRecs.map(r => (
-                    <tr key={r.id} style={{ background: r.suggestedPurchaseQuantity > 0 ? 'rgba(2, 132, 199, 0.03)' : undefined }}>
-                      <td style={{ fontWeight: 600 }}>{r.materialCode}</td>
-                      <td>{r.materialName}</td>
-                      <td>{r.usableOnHand.toLocaleString('fa-IR')} {r.baseUnit}</td>
-                      <td>{r.averageDailyConsumption.toLocaleString('fa-IR')} {r.baseUnit}</td>
-                      <td>{r.safetyStock.toLocaleString('fa-IR')}</td>
-                      <td>{r.targetStock.toLocaleString('fa-IR')}</td>
-                      <td style={{ fontWeight: 700, color: r.suggestedPurchaseQuantity > 0 ? '#0284c7' : 'var(--text-muted)' }}>
-                        {r.suggestedPurchaseQuantity > 0 ? `${r.suggestedPurchaseQuantity.toLocaleString('fa-IR')} ${r.baseUnit}` : 'بی‌نیاز'}
-                      </td>
-                      <td>{r.preferredSupplierName || 'نامشخص'}</td>
-                      <td>
-                        <button
-                          className="btn-primary"
-                          onClick={() => handleCreateFromRecommendation(r)}
-                          style={{ padding: '4px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
-                        >
-                          <Send size={12} />
-                          <span>صدور سفارش</span>
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  filteredRecs.map(r => {
+                    const isUnverified = r.requiresManualReview || !r.isDefinitive;
+                    return (
+                      <tr key={r.id} style={{ background: r.suggestedPurchaseQuantity > 0 ? 'rgba(2, 132, 199, 0.03)' : undefined }}>
+                        <td style={{ fontWeight: 600 }}>{r.materialCode}</td>
+                        <td>
+                          <div>{r.materialName}</div>
+                          {r.dataWarning && (
+                            <div style={{ fontSize: '11px', color: '#ea580c', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                              <AlertTriangle size={11} />
+                              <span>{r.dataWarning}</span>
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          {isUnverified ? (
+                            <span style={{
+                              background: 'rgba(234, 88, 12, 0.1)',
+                              color: '#c2410c',
+                              border: '1px solid rgba(234, 88, 12, 0.3)',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <AlertTriangle size={12} />
+                              <span>غیرقطعی (بررسی دستی)</span>
+                            </span>
+                          ) : (
+                            <span style={{
+                              background: 'rgba(22, 163, 74, 0.1)',
+                              color: '#16a34a',
+                              border: '1px solid rgba(22, 163, 74, 0.3)',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 600
+                            }}>
+                              قطعی
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          {isUnverified || r.reservableOnHand === null ? (
+                            <div>
+                              <span style={{ color: '#ea580c', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <AlertTriangle size={12} />
+                                <span>نامعلوم (استعلام دستی)</span>
+                              </span>
+                              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                                فیزیکی: {r.usableOnHand.toLocaleString('fa-IR')} {r.baseUnit}
+                              </div>
+                            </div>
+                          ) : (
+                            <span>{r.usableOnHand.toLocaleString('fa-IR')} {r.baseUnit}</span>
+                          )}
+                        </td>
+                        <td>{r.averageDailyConsumption.toLocaleString('fa-IR')} {r.baseUnit}</td>
+                        <td>{r.safetyStock.toLocaleString('fa-IR')}</td>
+                        <td>{r.targetStock.toLocaleString('fa-IR')}</td>
+                        <td style={{ fontWeight: 700, color: r.suggestedPurchaseQuantity > 0 ? '#0284c7' : 'var(--text-muted)' }}>
+                          {r.suggestedPurchaseQuantity > 0 ? `${r.suggestedPurchaseQuantity.toLocaleString('fa-IR')} ${r.baseUnit}` : 'بی‌نیاز'}
+                        </td>
+                        <td>{r.preferredSupplierName || 'نامشخص'}</td>
+                        <td>
+                          {isUnverified ? (
+                            <button
+                              className="btn-secondary"
+                              onClick={() => handleCreateFromRecommendation(r)}
+                              style={{
+                                padding: '4px 10px',
+                                fontSize: '11px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                borderColor: '#ea580c',
+                                color: '#c2410c',
+                                background: 'rgba(234, 88, 12, 0.06)'
+                              }}
+                              title="صدور خودکار مسدود است؛ صدور صرفاً پس از بررسی دستی مجاز است"
+                            >
+                              <Eye size={12} />
+                              <span>بررسی و صدور دستی</span>
+                            </button>
+                          ) : (
+                            <button
+                              className="btn-primary"
+                              onClick={() => handleCreateFromRecommendation(r)}
+                              style={{ padding: '4px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            >
+                              <Send size={12} />
+                              <span>صدور سفارش</span>
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -724,16 +818,12 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                   </select>
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', marginBottom: '6px', fontWeight: 600 }}>تاریخ تحویل مورد انتظار</label>
-                  <input
-                    type="date"
-                    className="input-field"
-                    value={formData.expectedDeliveryDateUtc}
-                    onChange={(e) => setFormData({ ...formData, expectedDeliveryDateUtc: e.target.value })}
-                    style={{ width: '100%' }}
-                  />
-                </div>
+                <JalaliDatePicker
+                  label="تاریخ تحویل مورد انتظار"
+                  value={formData.expectedDeliveryDateUtc}
+                  onChange={(val) => setFormData({ ...formData, expectedDeliveryDateUtc: val })}
+                  placeholder="انتخاب تاریخ تحویل شمسی..."
+                />
 
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', marginBottom: '6px', fontWeight: 600 }}>شرایط پرداخت</label>
@@ -758,6 +848,40 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                 </div>
               </div>
 
+              {/* Unverified Reserve Manual Review Warning Banner */}
+              {formData.hasUnverifiedReserve && (
+                <div style={{
+                  background: 'rgba(234, 88, 12, 0.08)',
+                  border: '1px solid rgba(234, 88, 12, 0.35)',
+                  padding: '12px 16px',
+                  borderRadius: '8px',
+                  marginBottom: '16px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ea580c', fontWeight: 700, fontSize: '13px', marginBottom: '4px' }}>
+                    <AlertTriangle size={16} />
+                    <span>هشدار کنترل بازرگانی: وضعیت رزرو نامعلوم در سپیدار</span>
+                  </div>
+                  <p style={{ margin: '0 0 10px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                    اقلام این سفارش دارای وضعیت رزرو نامعلوم در سپیدار هستند و پیشنهاد خرید غیرقطعی اعلام شده است. صدور مستقیم خودکار مسدود گردیده و سفارش به‌صورت پیش‌نویس (جهت بررسی کارشناسی) ثبت خواهد شد، مگر آنکه کارشناس خرید پس از تطبیق دستی کاردکس، تعهد کالاها را بررسی کرده و صدور مستقیم را صریحاً تأیید نماید.
+                  </p>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: '#c2410c' }}>
+                    <input
+                      type="checkbox"
+                      checked={formData.manualReviewConfirmed}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setFormData({
+                          ...formData,
+                          manualReviewConfirmed: checked,
+                          directIssue: checked
+                        });
+                      }}
+                    />
+                    <span>اینجانب بررسی دستی کاردکس و موجودی آزاد را در سپیدار انجام داده و صدور مستقیم را تأیید می‌نمایم.</span>
+                  </label>
+                </div>
+              )}
+
               {/* Direct Issue Authorization Toggle */}
               <div style={{
                 background: 'rgba(2, 132, 199, 0.08)',
@@ -774,10 +898,23 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                   <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
                     با انتخاب این گزینه، وضعیت سفارش مستقیماً «Issued» شده و اسنپ‌شات مشخصات و قیمت‌ها قفل می‌گردد.
                   </p>
+                  {formData.hasUnverifiedReserve && !formData.manualReviewConfirmed && (
+                    <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#ea580c', fontWeight: 600 }}>
+                      ⚠️ به دلیل وضعیت رزرو نامعلوم مسدود است — ابتدا تأیید بررسی دستی در کادر بالا الزامی است.
+                    </p>
+                  )}
                 </div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600 }}>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: (formData.hasUnverifiedReserve && !formData.manualReviewConfirmed) ? 'not-allowed' : 'pointer',
+                  fontWeight: 600,
+                  opacity: (formData.hasUnverifiedReserve && !formData.manualReviewConfirmed) ? 0.6 : 1
+                }}>
                   <input
                     type="checkbox"
+                    disabled={formData.hasUnverifiedReserve && !formData.manualReviewConfirmed}
                     checked={formData.directIssue}
                     onChange={(e) => setFormData({ ...formData, directIssue: e.target.checked })}
                   />
@@ -1098,7 +1235,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
                   ) : (
                     selectedOrder.audits.map(audit => (
                       <tr key={audit.id}>
-                        <td>{new Date(audit.timestampUtc).toLocaleString('fa-IR')}</td>
+                        <td>{formatJalaliDateTime(audit.timestampUtc)}</td>
                         <td style={{ fontWeight: 600, color: '#0284c7' }}>{audit.action}</td>
                         <td>{audit.performedBy}</td>
                         <td>{audit.detailsJson || '—'}</td>

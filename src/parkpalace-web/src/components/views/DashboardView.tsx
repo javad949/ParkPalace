@@ -642,7 +642,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ devRole = 'Admin',
                                 boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
                                 pointerEvents: 'none'
                               }}>
-                                <div><strong>{t.jalaliDate}</strong></div>
+                                <div><strong>{toPersianDigits(t.jalaliDate)}</strong></div>
                                 <div>مبلغ: {toPersianDigits(Number(t.totalAmount).toLocaleString())} ریال</div>
                                 <div>سفارشات: {toPersianDigits(t.orderCount)} عدد</div>
                               </div>
@@ -660,7 +660,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ devRole = 'Admin',
 
                             {/* Date Label */}
                             <span style={{ fontSize: '10px', color: 'var(--text-dim)', marginTop: '8px', transform: 'rotate(-25deg)', whiteSpace: 'nowrap' }}>
-                              {t.period.slice(-5)}
+                              {toPersianDigits(t.jalaliDate ? t.jalaliDate.slice(-5) : t.period.slice(-5))}
                             </span>
                           </div>
                         );

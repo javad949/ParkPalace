@@ -32,6 +32,8 @@ import {
   MaterialDto,
   PurchaseOrderDto
 } from '../../types';
+import { JalaliDatePicker } from '../JalaliDatePicker';
+import { formatJalali, dateOnlyToIsoUtc } from '../../utils/jalali';
 
 interface FinanceViewProps {
   activeDevRole?: string;
@@ -177,7 +179,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
         supplierId: invoiceForm.supplierId,
         purchaseOrderId: invoiceForm.purchaseOrderId || undefined,
         invoiceNumber: invoiceForm.invoiceNumber.trim(),
-        invoiceDateUtc: new Date(invoiceForm.invoiceDateUtc).toISOString(),
+        invoiceDateUtc: dateOnlyToIsoUtc(invoiceForm.invoiceDateUtc)!,
         currency: invoiceForm.currency,
         notes: invoiceForm.notes,
         lines: invoiceForm.lines.map(l => ({
@@ -508,7 +510,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                       <td style={{ fontWeight: 600, color: '#0284c7' }}>{inv.invoiceNumber}</td>
                       <td>{inv.supplierName}</td>
                       <td>{inv.orderNumber || '—'}</td>
-                      <td>{new Date(inv.invoiceDateUtc).toLocaleDateString('fa-IR')}</td>
+                      <td>{formatJalali(inv.invoiceDateUtc)}</td>
                       <td style={{ fontWeight: 600 }}>{inv.totalAmount.toLocaleString('fa-IR')}</td>
                       <td>{inv.taxTotal.toLocaleString('fa-IR')}</td>
                       <td>
@@ -625,7 +627,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                       <td style={{ fontWeight: 600, color: ex.totalVarianceAmount > 0 ? '#ef4444' : 'inherit' }}>
                         {ex.totalVarianceAmount.toLocaleString('fa-IR')} ریال
                       </td>
-                      <td>{new Date(ex.evaluatedAtUtc).toLocaleDateString('fa-IR')}</td>
+                      <td>{formatJalali(ex.evaluatedAtUtc)}</td>
                       <td>
                         {ex.isResolved ? (
                           <span className="badge-status normal" style={{ background: '#059669', color: '#ecfdf5' }}>
@@ -789,7 +791,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                         </div>
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
                           <div>مبلغ سند: <strong>{cand.amount.toLocaleString('fa-IR')} ریال</strong></div>
-                          <div>تاریخ سند: {new Date(cand.voucherDateUtc).toLocaleDateString('fa-IR')}</div>
+                          <div>تاریخ سند: {formatJalali(cand.voucherDateUtc)}</div>
                           <div>نام طرف‌حساب: {cand.supplierName}</div>
                           <div style={{ marginTop: '6px', color: '#0284c7' }}>علت تطبیق: {cand.matchReason}</div>
                         </div>
@@ -839,7 +841,7 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                       <td style={{ fontWeight: 600 }}>{h.invoiceNumber}</td>
                       <td>{h.supplierName}</td>
                       <td style={{ color: '#0284c7', fontWeight: 600 }}>{h.sepidarVoucherNumber}</td>
-                      <td>{new Date(h.sepidarVoucherDateUtc).toLocaleDateString('fa-IR')}</td>
+                      <td>{formatJalali(h.sepidarVoucherDateUtc)}</td>
                       <td>{h.sepidarAmount.toLocaleString('fa-IR')} ریال</td>
                       <td>{Math.round(h.candidateConfidenceScore * 100)}٪</td>
                       <td>
@@ -1103,17 +1105,12 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
                   </select>
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', marginBottom: '6px', fontWeight: 600 }}>تاریخ فاکتور</label>
-                  <input
-                    type="date"
-                    className="input-field"
-                    value={invoiceForm.invoiceDateUtc}
-                    onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceDateUtc: e.target.value })}
-                    required
-                    style={{ width: '100%' }}
-                  />
-                </div>
+                <JalaliDatePicker
+                  label="تاریخ فاکتور"
+                  value={invoiceForm.invoiceDateUtc}
+                  onChange={(val) => setInvoiceForm({ ...invoiceForm, invoiceDateUtc: val })}
+                  required
+                />
               </div>
 
               {/* Lines Table */}

@@ -30,6 +30,8 @@ import {
   PagedResult,
   SupplierMaterialDto
 } from '../../types';
+import { JalaliDatePicker } from '../JalaliDatePicker';
+import { formatJalali, dateOnlyToIsoUtc } from '../../utils/jalali';
 
 interface SuppliersViewProps {
   activeDevRole?: string;
@@ -252,7 +254,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
         price: Number(quotePrice),
         currency: quoteCurrency,
         unitId: quoteUnitId,
-        effectiveFrom: new Date(quoteEffectiveFrom).toISOString(),
+        effectiveFrom: dateOnlyToIsoUtc(quoteEffectiveFrom)!,
         source: quoteSource,
         notes: quoteNotes || undefined
       }, activeDevRole);
@@ -602,7 +604,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                                         {latestPrice.price.toLocaleString('fa-IR')} {latestPrice.currency}
                                       </strong>
                                       <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>
-                                        هر {latestPrice.unitName} ({new Date(latestPrice.effectiveFrom).toLocaleDateString('fa-IR')})
+                                        هر {latestPrice.unitName} ({formatJalali(latestPrice.effectiveFrom)})
                                       </div>
                                     </div>
                                   ) : (
@@ -891,12 +893,10 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                     </select>
                   </div>
                   <div className="form-group">
-                    <label>تاریخ استعلام (موثر از):</label>
-                    <input 
-                      type="date" 
-                      className="form-input"
+                    <JalaliDatePicker
+                      label="تاریخ استعلام (موثر از):"
                       value={quoteEffectiveFrom}
-                      onChange={(e) => setQuoteEffectiveFrom(e.target.value)}
+                      onChange={(val) => setQuoteEffectiveFrom(val)}
                       required
                     />
                   </div>
