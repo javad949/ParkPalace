@@ -35,7 +35,7 @@ public class IssabelLiveTelephonyAdapter : ITelephonyAdapter
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        var host = _configuration["Telephony:AmiHost"] ?? "192.168.1.241";
+        var host = _configuration["Telephony:AmiHost"] ?? "192.168.1.245";
         var port = int.TryParse(_configuration["Telephony:AmiPort"], out var p) ? p : 5038;
         var user = _configuration["Telephony:AmiUser"] ?? "crm_ami";
         var pass = _configuration["Telephony:AmiSecret"] ?? "";

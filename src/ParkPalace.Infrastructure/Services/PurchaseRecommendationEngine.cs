@@ -20,6 +20,8 @@ public class PurchaseRecommendationEngine : IPurchaseRecommendationEngine
         Guid warehouseId, 
         CancellationToken cancellationToken = default)
     {
+        await EnsureSyncStateHealthyAsync(cancellationToken);
+
         var materials = await _dbContext.Materials
             .Include(m => m.Category)
             .Include(m => m.BaseUnit)
@@ -31,7 +33,7 @@ public class PurchaseRecommendationEngine : IPurchaseRecommendationEngine
         var list = new List<PurchaseRecommendationDto>();
         foreach (var material in materials)
         {
-            var rec = await GenerateRecommendationForMaterialAsync(material.Id, warehouseId, cancellationToken);
+            var rec = await GenerateRecommendationForMaterialInternalAsync(material.Id, warehouseId, cancellationToken);
             if (rec != null)
             {
                 list.Add(rec);
@@ -44,6 +46,28 @@ public class PurchaseRecommendationEngine : IPurchaseRecommendationEngine
     }
 
     public async Task<PurchaseRecommendationDto?> GenerateRecommendationForMaterialAsync(
+        Guid materialId, 
+        Guid warehouseId, 
+        CancellationToken cancellationToken = default)
+    {
+        await EnsureSyncStateHealthyAsync(cancellationToken);
+        return await GenerateRecommendationForMaterialInternalAsync(materialId, warehouseId, cancellationToken);
+    }
+
+    private async Task EnsureSyncStateHealthyAsync(CancellationToken cancellationToken)
+    {
+        var latestJob = await _dbContext.InventorySyncJobs
+            .OrderByDescending(j => j.StartedAtUtc)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        // Requirement 2: Mid-run failure must NOT feed half-baked inventory to recommendation engine
+        if (latestJob != null && (latestJob.Status == SyncJobStatus.Failed || latestJob.Status == SyncJobStatus.Running))
+        {
+            throw new InvalidOperationException($"وضعیت آخرین اجرای همگام‌سازی انبار نامعتبر است (وضعیت: {latestJob.Status}، شناسه: {latestJob.Id}). به منظور جلوگیری از خطای تأمین ناشی از داده‌های ناقص یا نیمه‌کاره، محاسبات پیشنهاد خرید تا تکمیل همگام‌سازی موفق بعدی صریحاً متوقف گردید.");
+        }
+    }
+
+    private async Task<PurchaseRecommendationDto?> GenerateRecommendationForMaterialInternalAsync(
         Guid materialId, 
         Guid warehouseId, 
         CancellationToken cancellationToken = default)
@@ -65,9 +89,14 @@ public class PurchaseRecommendationEngine : IPurchaseRecommendationEngine
             .FirstOrDefaultAsync(p => p.MaterialId == materialId, cancellationToken);
 
         decimal onHand = snapshot?.OnHandQuantity ?? 0m;
-        decimal reservableOnHand = snapshot?.ReservableQuantity ?? onHand;
+        // Do NOT replace Reservable with OnHand when unproven in Sepidar.
+        bool isReserveProven = snapshot != null && (
+            snapshot.SourceSnapshotKey?.EndsWith(":RES-PROVEN", StringComparison.OrdinalIgnoreCase) == true ||
+            (snapshot.ReservableQuantity > 0 && snapshot.SourceSnapshotKey?.EndsWith(":RES-UNPROVEN", StringComparison.OrdinalIgnoreCase) != true)
+        );
+        decimal? provenReservableOnHand = isReserveProven ? snapshot!.ReservableQuantity : (decimal?)null;
         decimal incomingOrders = snapshot?.IncomingQuantity ?? 0m;
-        decimal reservedQuantity = snapshot?.ReservedQuantity ?? 0m;
+        decimal? provenReserved = (snapshot != null && snapshot.ReservedQuantity > 0) ? snapshot.ReservedQuantity : (decimal?)null;
 
         // Effective policy values (falling back to material attributes or standard bakery defaults)
         int leadTimeDays = policy?.LeadTimeDays ?? material.LeadTimeDays ?? 2;
@@ -85,8 +114,13 @@ public class PurchaseRecommendationEngine : IPurchaseRecommendationEngine
         // TargetStock = AverageDailyConsumption * (LeadTimeDays + ReviewPeriodDays) + SafetyStock
         decimal targetStock = Math.Round((avgDailyConsumption * (leadTimeDays + reviewPeriodDays)) + safetyStock, 2);
 
-        // InventoryPosition = UsableOnHand + EligibleIncomingPurchaseOrders - ReservedQuantity
-        decimal inventoryPosition = Math.Round(reservableOnHand + incomingOrders - reservedQuantity, 2);
+        // Core Replenishment Inventory Position:
+        // If Reservable is proven (> 0), use: ReservableOnHand + IncomingOrders - ReservedQuantity.
+        // If Reservable is unproven/unknown (e.g. Sepidar raw materials where SaleWithReserveQuantity is 0 across ERP),
+        // do NOT substitute with OnHand or invent speculative reserves. Base position strictly on verified OnHand + Incoming.
+        decimal inventoryPosition = provenReservableOnHand.HasValue
+            ? Math.Round(provenReservableOnHand.Value + incomingOrders - (provenReserved ?? 0m), 2)
+            : Math.Round(onHand + incomingOrders, 2);
 
         // RawSuggestedQuantity = max(0, TargetStock - InventoryPosition)
         decimal rawSuggested = Math.Max(0m, Math.Round(targetStock - inventoryPosition, 2));
@@ -115,15 +149,23 @@ public class PurchaseRecommendationEngine : IPurchaseRecommendationEngine
                 .FirstOrDefault();
         }
 
-        // Generate warnings if data is stale or estimates are assumed
+        // Generate warnings if data is stale, estimates are assumed, or reserves are unverified in Sepidar
         var warnings = new List<string>();
         if (snapshot == null)
         {
             warnings.Add("موجودی فیزیکی در انبار ثبت نشده است (فرض موجودی صفر).");
         }
-        else if (snapshot.IsStale || (now - snapshot.SnapshotTimeUtc).TotalHours > 24)
+        else
         {
-            warnings.Add("داده‌های موجودی انبار قدیمی است (بیش از ۲۴ ساعت از آخرین همگام‌سازی).");
+            if (snapshot.IsStale || (now - snapshot.SnapshotTimeUtc).TotalHours > 24)
+            {
+                warnings.Add("داده‌های موجودی انبار قدیمی است (بیش از ۲۴ ساعت از آخرین همگام‌سازی).");
+            }
+
+            if (!provenReservableOnHand.HasValue)
+            {
+                warnings.Add("وضعیت رزرو در سپیدار نامعلوم است؛ موقعیت انبار صرفاً بر مبنای موجودی عینی فیزیکی و سفارشات در راه لحاظ گردید.");
+            }
         }
 
         if (incomingOrders == 0m)
@@ -134,7 +176,7 @@ public class PurchaseRecommendationEngine : IPurchaseRecommendationEngine
         string warningText = string.Join(" | ", warnings);
 
         string unitCode = material.BaseUnit?.Code ?? "KG";
-        string explanation = $"میانگین مصرف روزانه ({avgDailyConsumption:N1} {unitCode}) در دوره تأمین و بازبینی ({leadTimeDays + reviewPeriodDays} روز) به علاوه ذخیره احتیاطی ({safetyStock:N0} {unitCode}) = سطح هدف {targetStock:N0}. کسری موقعیت انبار ({inventoryPosition:N0}) برابر با {rawSuggested:N0} {unitCode} است.";
+        string explanation = $"میانگین مصرف روزانه ({avgDailyConsumption:N1} {unitCode}) در دوره تأمین و بازبینی ({leadTimeDays + reviewPeriodDays} روز) به علاوه ذخیره احتیاطی ({safetyStock:N0} {unitCode}) = سطح هدف {targetStock:N0}. موقعیت انبار بر مبنای موجودی عینی ({onHand:N0}) + سفارشات در راه ({incomingOrders:N0}) برابر با {inventoryPosition:N0} {unitCode} است. کسری: {rawSuggested:N0} {unitCode}.";
         if (roundedSuggested > rawSuggested)
         {
             explanation += $" بر اساس حداقل سفارش ({moq:N0}) یا مضرب بسته ({packageMultiple:N0}) به {roundedSuggested:N0} {unitCode} افزایش یافت.";
@@ -151,9 +193,9 @@ public class PurchaseRecommendationEngine : IPurchaseRecommendationEngine
                 MaterialId = materialId,
                 WarehouseId = warehouseId,
                 CurrentOnHand = onHand,
-                ReservableOnHand = reservableOnHand,
+                ReservableOnHand = provenReservableOnHand ?? 0m,
                 IncomingOrders = incomingOrders,
-                ReservedQuantity = reservedQuantity,
+                ReservedQuantity = provenReserved ?? 0m,
                 AverageDailyConsumption = avgDailyConsumption,
                 LeadTimeDays = leadTimeDays,
                 ReviewPeriodDays = reviewPeriodDays,
@@ -174,9 +216,9 @@ public class PurchaseRecommendationEngine : IPurchaseRecommendationEngine
         else
         {
             existingRec.CurrentOnHand = onHand;
-            existingRec.ReservableOnHand = reservableOnHand;
+            existingRec.ReservableOnHand = provenReservableOnHand ?? 0m;
             existingRec.IncomingOrders = incomingOrders;
-            existingRec.ReservedQuantity = reservedQuantity;
+            existingRec.ReservedQuantity = provenReserved ?? 0m;
             existingRec.AverageDailyConsumption = avgDailyConsumption;
             existingRec.LeadTimeDays = leadTimeDays;
             existingRec.ReviewPeriodDays = reviewPeriodDays;
@@ -193,6 +235,12 @@ public class PurchaseRecommendationEngine : IPurchaseRecommendationEngine
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        bool isDefinitive = provenReservableOnHand.HasValue;
+        bool requiresManualReview = !isDefinitive;
+        string? reserveStatusDesc = !isDefinitive
+            ? "وضعیت رزرو در سپیدار نامعلوم است؛ محاسبات غیرقطعی بوده و نیازمند بررسی دستی است."
+            : null;
+
         return new PurchaseRecommendationDto
         {
             Id = existingRec.Id,
@@ -203,7 +251,7 @@ public class PurchaseRecommendationEngine : IPurchaseRecommendationEngine
             UnitName = material.BaseUnit?.Name ?? "کیلوگرم",
             UnitCode = unitCode,
             CurrentOnHand = onHand,
-            ReservableOnHand = reservableOnHand,
+            ReservableOnHand = provenReservableOnHand,
             IncomingOrders = incomingOrders,
             AverageDailyConsumption = avgDailyConsumption,
             LeadTimeDays = leadTimeDays,
@@ -216,8 +264,11 @@ public class PurchaseRecommendationEngine : IPurchaseRecommendationEngine
             PreferredSupplierId = preferredSupplier?.Id,
             PreferredSupplierName = preferredSupplier?.DisplayName,
             Status = "Active",
-            RecommendationExplanation = explanation,
+            RecommendationExplanation = isDefinitive ? explanation : $"{explanation} [پیشنهاد غیرقطعی: نیازمند بررسی دستی]",
             DataWarning = string.IsNullOrWhiteSpace(warningText) ? null : warningText,
+            IsDefinitive = isDefinitive,
+            RequiresManualReview = requiresManualReview,
+            ReserveStatusDescription = reserveStatusDesc,
             GeneratedAtUtc = now
         };
     }

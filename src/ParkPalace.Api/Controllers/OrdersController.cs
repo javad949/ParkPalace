@@ -111,7 +111,7 @@ public class OrdersController : ControllerBase
         try
         {
             var username = _currentUserService.Username ?? "User";
-            var issued = await _orderService.IssueOrderAsync(id, username, payload.ConcurrencyToken, ct);
+            var issued = await _orderService.IssueOrderAsync(id, username, payload.ConcurrencyToken, payload.ManualReviewConfirmed, ct);
             return Ok(issued);
         }
         catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException ex)
@@ -160,4 +160,5 @@ public class OrdersController : ControllerBase
 public class IssueOrderPayload
 {
     public string ConcurrencyToken { get; set; } = string.Empty;
+    public bool ManualReviewConfirmed { get; set; } = false;
 }

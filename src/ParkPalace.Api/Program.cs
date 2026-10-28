@@ -54,8 +54,16 @@ else
 
 builder.Services.AddScoped<IConsumptionCalculator, ConsumptionCalculator>();
 builder.Services.AddScoped<IPurchaseRecommendationEngine, PurchaseRecommendationEngine>();
+builder.Services.AddScoped<ICatalogStandardizationEngine, CatalogStandardizationEngine>();
 builder.Services.AddScoped<IInventorySyncService, InventorySyncService>();
-builder.Services.AddScoped<ISepidarReadAdapter, SepidarReadAdapterPlaceholder>();
+if (!string.IsNullOrWhiteSpace(sepidarConnStr))
+{
+    builder.Services.AddScoped<ISepidarReadAdapter, SepidarLiveReadAdapter>();
+}
+else
+{
+    builder.Services.AddScoped<ISepidarReadAdapter, SepidarReadAdapterPlaceholder>();
+}
 
 // Phase 5 Services
 builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
@@ -75,7 +83,15 @@ builder.Services.AddScoped<ISepidarReconciliationService, SepidarReconciliationS
 
 // Phase 6 Services: Telephony, Call Management, Audio Recordings & SignalR
 builder.Services.AddSignalR();
-builder.Services.AddSingleton<ITelephonyAdapter, ParkPalace.Infrastructure.Services.Telephony.SimulatedTelephonyAdapter>();
+var telephonyProvider = builder.Configuration["Telephony:Provider"] ?? "Simulated";
+if (telephonyProvider.Equals("Issabel", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddSingleton<ITelephonyAdapter, ParkPalace.Infrastructure.Services.Telephony.IssabelLiveTelephonyAdapter>();
+}
+else
+{
+    builder.Services.AddSingleton<ITelephonyAdapter, ParkPalace.Infrastructure.Services.Telephony.SimulatedTelephonyAdapter>();
+}
 builder.Services.AddScoped<ICallManagerService, ParkPalace.Infrastructure.Services.Telephony.CallManagerService>();
 builder.Services.AddScoped<IRecordingService, ParkPalace.Infrastructure.Services.Telephony.RecordingService>();
 builder.Services.AddSingleton<ITelephonyNotificationService, ParkPalace.Api.Services.SignalRTelephonyNotificationService>();
@@ -97,7 +113,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:8888", "http://crm.sahar.loc:8888")
+        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:8888", "http://crm.sahar.loc:8888", "https://crm.sahar.loc", "http://crm.sahar.loc")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -129,16 +145,19 @@ if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "ParkPalace CRM API v1");
     });
+}
 
-    using var scope = app.Services.CreateScope();
+// Ensure database seed data, roles, permissions, and initial admin mappings exist across all environments
+using (var scope = app.Services.CreateScope())
+{
     var dbContext = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
     try
     {
-        await CrmDbSeeder.SeedAsync(dbContext);
+        await CrmDbSeeder.SeedAsync(dbContext, app.Environment.IsDevelopment() || app.Environment.IsStaging());
     }
     catch (Exception ex)
     {
-        app.Logger.LogWarning(ex, "Development seeding warning: {Message}", ex.Message);
+        app.Logger.LogWarning(ex, "Database seeding warning: {Message}", ex.Message);
     }
 }
 

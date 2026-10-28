@@ -40,7 +40,7 @@ public class HealthController : ControllerBase
             DatabaseConnected = dbConnected,
             SepidarIntegrationStatus = _sepidarAdapter.IsConfigured 
                 ? "Active (Read-Only)" 
-                : "Not configured (Disabled by default in Phase 2)"
+                : "Not configured (Fixture Mode active - Phase 4 & 5)"
         };
 
         return Ok(response);

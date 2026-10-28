@@ -46,7 +46,7 @@ public class ConsumptionCalculator : IConsumptionCalculator
         decimal NormalizeQty(InventoryMovement m)
         {
             if (m.UnitId == material.BaseUnitId) return m.Quantity;
-            var conv = material.UnitConversions.FirstOrDefault(c => c.FromUnitId == m.UnitId && c.ToUnitId == material.BaseUnitId);
+            var conv = material.UnitConversions.FirstOrDefault(c => c.IsConfirmed && c.FromUnitId == m.UnitId && c.ToUnitId == material.BaseUnitId);
             if (conv != null && conv.Factor > 0) return m.Quantity * conv.Factor;
             return m.Quantity;
         }

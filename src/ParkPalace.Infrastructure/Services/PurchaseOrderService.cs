@@ -170,6 +170,23 @@ public class PurchaseOrderService : IPurchaseOrderService
         po.DiscountTotal = discountTotal;
         po.GrandTotal = subTotal + taxTotal - discountTotal;
 
+        // Enforcement of manual review for unverified/unproven reserve items (Requirement 2 & 5)
+        // Reserve unknown status is independent of numerical OnHand (positive, zero, or negative)
+        var lineMaterialIds = req.Lines.Select(l => l.MaterialId).Distinct().ToList();
+        var snapshots = await _dbContext.InventorySnapshots
+            .Where(s => lineMaterialIds.Contains(s.MaterialId) && s.WarehouseId == po.WarehouseId)
+            .ToListAsync(ct);
+
+        var snapByMatId = snapshots.ToDictionary(s => s.MaterialId);
+        var unverifiedMaterials = lineMaterialIds
+            .Where(matId => snapByMatId.TryGetValue(matId, out var s) && IsReserveUnproven(s))
+            .ToHashSet();
+
+        if (unverifiedMaterials.Count > 0 && !req.ManualReviewConfirmed)
+        {
+            throw new InvalidOperationException("ایجاد سفارش خرید (اعم از پیش‌نویس یا صدور مستقیم) برای اقلام دارای وضعیت رزرو نامعلوم در سپیدار، بدون تأیید صریح بررسی دستی توسط کارشناس خرید مجاز نیست.");
+        }
+
         // Direct PO issuance by Procurement without manager approval (SRS FR-05)
         if (req.DirectIssue)
         {
@@ -222,7 +239,7 @@ public class PurchaseOrderService : IPurchaseOrderService
         return (await GetOrderByIdAsync(po.Id, ct))!;
     }
 
-    public async Task<PurchaseOrderDto> IssueOrderAsync(Guid id, string username, string concurrencyToken, CancellationToken ct = default)
+    public async Task<PurchaseOrderDto> IssueOrderAsync(Guid id, string username, string concurrencyToken, bool manualReviewConfirmed = false, CancellationToken ct = default)
     {
         var po = await _dbContext.PurchaseOrders
             .Include(p => p.Supplier)
@@ -248,6 +265,22 @@ public class PurchaseOrderService : IPurchaseOrderService
             throw new DbUpdateConcurrencyException("اطلاعات سفارش توسط کاربر دیگری به‌روزرسانی شده است. لطفاً صفحه را تازه‌سازی کنید.");
         }
 
+        // Requirement 2 & 5: Subsequent issue/approval cannot bypass manual review for unproven reserves
+        var poMaterialIds = po.Lines.Select(l => l.MaterialId).Distinct().ToList();
+        var issueSnapshots = await _dbContext.InventorySnapshots
+            .Where(s => poMaterialIds.Contains(s.MaterialId) && s.WarehouseId == po.WarehouseId)
+            .ToListAsync(ct);
+
+        var issueSnapByMatId = issueSnapshots.ToDictionary(s => s.MaterialId);
+        var unverifiedInIssue = poMaterialIds
+            .Where(matId => issueSnapByMatId.TryGetValue(matId, out var s) && IsReserveUnproven(s))
+            .ToHashSet();
+
+        if (unverifiedInIssue.Count > 0 && !manualReviewConfirmed)
+        {
+            throw new InvalidOperationException("صدور و تأیید این سفارش به دلیل وجود اقلام با وضعیت رزرو نامعلوم در سپیدار، نیازمند تأیید صریح بررسی دستی است.");
+        }
+
         // Direct PO issuance: freeze immutable snapshots of prices, quantities, and descriptions
         po.Status = PurchaseOrderStatus.Issued;
         po.IssuedByUsername = username;
@@ -265,7 +298,7 @@ public class PurchaseOrderService : IPurchaseOrderService
             line.SupplierNameSnapshot = po.Supplier?.DisplayName ?? "UNKNOWN";
         }
 
-        po.Audits.Add(new PurchaseOrderAudit
+        var audit = new PurchaseOrderAudit
         {
             PurchaseOrderId = po.Id,
             Action = "DirectlyIssuedByProcurement",
@@ -277,7 +310,8 @@ public class PurchaseOrderService : IPurchaseOrderService
                 po.GrandTotal,
                 Note = "Direct PO issued by Procurement without manager approval"
             })
-        });
+        };
+        _dbContext.PurchaseOrderAudits.Add(audit);
 
         await _dbContext.SaveChangesAsync(ct);
         return (await GetOrderByIdAsync(po.Id, ct))!;
@@ -320,14 +354,15 @@ public class PurchaseOrderService : IPurchaseOrderService
         po.UpdatedBy = username;
         po.ConcurrencyToken = Guid.NewGuid().ToString();
 
-        po.Audits.Add(new PurchaseOrderAudit
+        var cancelAudit = new PurchaseOrderAudit
         {
             PurchaseOrderId = po.Id,
             Action = "Cancelled",
             PerformedBy = username,
             TimestampUtc = DateTime.UtcNow,
             DetailsJson = JsonSerializer.Serialize(new { Reason = req.Reason })
-        });
+        };
+        _dbContext.PurchaseOrderAudits.Add(cancelAudit);
 
         await _dbContext.SaveChangesAsync(ct);
         return (await GetOrderByIdAsync(po.Id, ct))!;
@@ -397,5 +432,16 @@ public class PurchaseOrderService : IPurchaseOrderService
                 DetailsJson = a.DetailsJson
             }).OrderByDescending(a => a.TimestampUtc).ToList()
         };
+    }
+
+    private static bool IsReserveUnproven(InventorySnapshot? snap)
+    {
+        if (snap == null) return false;
+        // If explicitly marked RES-PROVEN, reserve is proven by ERP
+        if (snap.SourceSnapshotKey?.EndsWith(":RES-PROVEN", StringComparison.OrdinalIgnoreCase) == true) return false;
+        // If explicitly marked RES-UNPROVEN, reserve is unproven regardless of OnHand quantity (positive, zero, or negative)
+        if (snap.SourceSnapshotKey?.EndsWith(":RES-UNPROVEN", StringComparison.OrdinalIgnoreCase) == true) return true;
+        // For untagged/legacy snapshots, if ReservableQuantity is zero or less, it is unproven
+        return snap.ReservableQuantity <= 0m;
     }
 }

@@ -32,6 +32,20 @@ public class ReportsController : ControllerBase
         _logger = logger;
     }
 
+    private ActionResult? CheckAuthentication()
+    {
+        if (!_currentUserService.IsAuthenticated)
+        {
+            return Unauthorized(new ProblemDetails
+            {
+                Status = 401,
+                Title = "عدم احراز هویت",
+                Detail = "دسترسی به این منبع نیازمند احراز هویت است."
+            });
+        }
+        return null;
+    }
+
     private bool HasPermission(string permission)
     {
         return _currentUserService.Roles.Contains(Roles.Admin) ||
@@ -51,6 +65,7 @@ public class ReportsController : ControllerBase
     [HttpGet("procurement-summary")]
     public async Task<ActionResult<ProcurementSummaryReportDto>> GetProcurementSummary([FromQuery] ReportFilterParams filters, CancellationToken cancellationToken)
     {
+        if (CheckAuthentication() is { } auth) return auth;
         if (!HasPermission(Permissions.ReportsProcurement) && !HasPermission(Permissions.ReportsView))
             return Forbidden("شما مجوز مشاهده گزارشات خلاصه تدارکات را ندارید.");
 
@@ -61,6 +76,7 @@ public class ReportsController : ControllerBase
     [HttpGet("purchase-order-trends")]
     public async Task<ActionResult<List<PurchaseOrderTrendItemDto>>> GetPurchaseOrderTrends([FromQuery] ReportFilterParams filters, CancellationToken cancellationToken)
     {
+        if (CheckAuthentication() is { } auth) return auth;
         if (!HasPermission(Permissions.ReportsView))
             return Forbidden("شما مجوز مشاهده روندهای خرید را ندارید.");
 
@@ -71,6 +87,7 @@ public class ReportsController : ControllerBase
     [HttpGet("supplier-performance")]
     public async Task<ActionResult<List<SupplierPerformanceReportItemDto>>> GetSupplierPerformance([FromQuery] ReportFilterParams filters, CancellationToken cancellationToken)
     {
+        if (CheckAuthentication() is { } auth) return auth;
         if (!HasPermission(Permissions.ReportsView) && !HasPermission(Permissions.SuppliersView))
             return Forbidden("شما مجوز مشاهده عملکرد تأمین‌کنندگان را ندارید.");
 
@@ -81,6 +98,7 @@ public class ReportsController : ControllerBase
     [HttpGet("material-consumption")]
     public async Task<ActionResult<List<MaterialConsumptionReportItemDto>>> GetMaterialConsumption([FromQuery] ReportFilterParams filters, CancellationToken cancellationToken)
     {
+        if (CheckAuthentication() is { } auth) return auth;
         if (!HasPermission(Permissions.ReportsWarehouse) && !HasPermission(Permissions.ReportsView) && !HasPermission(Permissions.InventoryView))
             return Forbidden("شما مجوز مشاهده مصرف کالاها را ندارید.");
 
@@ -91,6 +109,7 @@ public class ReportsController : ControllerBase
     [HttpGet("inventory-health")]
     public async Task<ActionResult<InventoryHealthReportDto>> GetInventoryHealth([FromQuery] ReportFilterParams filters, CancellationToken cancellationToken)
     {
+        if (CheckAuthentication() is { } auth) return auth;
         if (!HasPermission(Permissions.ReportsWarehouse) && !HasPermission(Permissions.ReportsView) && !HasPermission(Permissions.InventoryView))
             return Forbidden("شما مجوز مشاهده سلامت انبار را ندارید.");
 
@@ -101,6 +120,7 @@ public class ReportsController : ControllerBase
     [HttpGet("finance-reconciliation")]
     public async Task<ActionResult<FinanceReconciliationReportDto>> GetFinanceReconciliation([FromQuery] ReportFilterParams filters, CancellationToken cancellationToken)
     {
+        if (CheckAuthentication() is { } auth) return auth;
         if (!HasPermission(Permissions.ReportsFinance) && !HasPermission(Permissions.ReportsView) && !HasPermission(Permissions.FinanceView))
             return Forbidden("شما مجوز مشاهده گزارشات انطباق مالی را ندارید.");
 
@@ -111,6 +131,7 @@ public class ReportsController : ControllerBase
     [HttpGet("telephony-activity")]
     public async Task<ActionResult<TelephonyActivityReportDto>> GetTelephonyActivity([FromQuery] ReportFilterParams filters, CancellationToken cancellationToken)
     {
+        if (CheckAuthentication() is { } auth) return auth;
         if (!HasPermission(Permissions.CallsView) && !HasPermission(Permissions.ReportsView))
             return Forbidden("شما مجوز مشاهده آمار تماس‌ها را ندارید.");
 
@@ -121,6 +142,7 @@ public class ReportsController : ControllerBase
     [HttpGet("integration-health")]
     public async Task<ActionResult<IntegrationHealthReportDto>> GetIntegrationHealth(CancellationToken cancellationToken)
     {
+        if (CheckAuthentication() is { } auth) return auth;
         if (!HasPermission(Permissions.ReportsAdmin) && !HasPermission(Permissions.AdminSettings) && !HasPermission(Permissions.ReportsView))
             return Forbidden("شما مجوز مشاهده سلامت اتصالات سیستم را ندارید.");
 
@@ -131,6 +153,8 @@ public class ReportsController : ControllerBase
     [HttpGet("role-dashboard/{role}")]
     public async Task<ActionResult<RoleDashboardDto>> GetRoleDashboard(string role, [FromQuery] ReportFilterParams filters, CancellationToken cancellationToken)
     {
+        if (CheckAuthentication() is { } auth) return auth;
+
         var targetRole = role.Trim();
         var userRoles = _currentUserService.Roles;
         var isAdmin = userRoles.Contains(Roles.Admin);
@@ -173,6 +197,7 @@ public class ReportsController : ControllerBase
     [HttpGet("export")]
     public async Task<IActionResult> ExportReportGet([FromQuery] ExportRequestDto request, CancellationToken cancellationToken)
     {
+        if (CheckAuthentication() is { } auth) return auth;
         if (!HasPermission(Permissions.ReportsExport))
             return Forbidden("شما مجوز خروجی داده‌های گزارشات را ندارید.");
 
@@ -199,6 +224,7 @@ public class ReportsController : ControllerBase
     [HttpPost("export")]
     public async Task<IActionResult> ExportReportPost([FromBody] ExportRequestDto request, CancellationToken cancellationToken)
     {
+        if (CheckAuthentication() is { } auth) return auth;
         if (!HasPermission(Permissions.ReportsExport))
             return Forbidden("شما مجوز خروجی داده‌های گزارشات را ندارید.");
 

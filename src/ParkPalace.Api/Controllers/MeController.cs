@@ -35,7 +35,9 @@ public class MeController : ControllerBase
             DisplayName = _currentUserService.DisplayName ?? _currentUserService.Username ?? string.Empty,
             AdSid = _currentUserService.AdSid,
             IsAuthenticated = true,
+            ActiveRole = _currentUserService.ActiveRole,
             Roles = _currentUserService.Roles.ToList(),
+            AvailableRoles = _currentUserService.AvailableRoles.ToList(),
             Permissions = _currentUserService.Permissions.ToList()
         };
 

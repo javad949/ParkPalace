@@ -1,0 +1,7 @@
+﻿{
+  "Status": "UNEXECUTABLE",
+  "FailureReason": "PILOT_CSV_FILE_MISSING: Fiscal years CSV file not found (searched: '*fiscal_year*.csv').",
+  "WarehouseCode": "WH-MAIN",
+  "SourceWarehouseId": "1",
+  "TargetFiscalYearTitle": "1405"
+}

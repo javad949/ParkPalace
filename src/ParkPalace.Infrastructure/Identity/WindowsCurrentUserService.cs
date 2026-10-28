@@ -1,9 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using ParkPalace.Application.Interfaces;
 using ParkPalace.Domain.Entities;
+using RoleConst = ParkPalace.Domain.Constants.Roles;
+using PermConst = ParkPalace.Domain.Constants.Permissions;
 
 namespace ParkPalace.Infrastructure.Identity;
 
@@ -17,7 +22,9 @@ public class WindowsCurrentUserService : ICurrentUserService
     private string? _username;
     private string? _displayName;
     private string? _adSid;
+    private string _activeRole = RoleConst.Admin;
     private List<string> _roles = new();
+    private List<string> _availableRoles = new();
     private List<string> _permissions = new();
 
     public WindowsCurrentUserService(IHttpContextAccessor httpContextAccessor, ICrmDbContext dbContext)
@@ -52,24 +59,115 @@ public class WindowsCurrentUserService : ICurrentUserService
                      ?? _username;
         }
 
-        // Correlate with CRM AppUser table
+        var accountName = _username.Contains('\\') ? _username.Split('\\')[1] : _username;
+        var saharDomainUser = $"SAHAR\\{accountName}";
+        var crmDomainUser = $"CRM\\{accountName}";
+
+        // Correlate with CRM AppUser table (prioritizing exact username match)
         var user = _dbContext.Users
             .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
                     .ThenInclude(r => r.RolePermissions)
                         .ThenInclude(rp => rp.Permission)
-            .FirstOrDefault(u => u.AdObjectSid == _adSid || u.Username == _username);
+            .FirstOrDefault(u => u.Username == _username);
+
+        if (user == null)
+        {
+            user = _dbContext.Users
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                        .ThenInclude(r => r.RolePermissions)
+                            .ThenInclude(rp => rp.Permission)
+                .FirstOrDefault(u => 
+                    (!string.IsNullOrEmpty(_adSid) && u.AdObjectSid == _adSid) || 
+                    u.Username == crmDomainUser ||
+                    u.Username == saharDomainUser ||
+                    u.Username == accountName);
+        }
 
         if (user != null && user.IsEnabled)
         {
             _userId = user.Id;
             _displayName = user.DisplayName;
-            _roles = user.UserRoles.Select(ur => ur.Role.Name).Distinct().ToList();
-            _permissions = user.UserRoles
-                .SelectMany(ur => ur.Role.RolePermissions)
-                .Select(rp => rp.Permission.Code)
-                .Distinct()
-                .ToList();
+            var assignedRoles = user.UserRoles.Select(ur => ur.Role.Name).Distinct().ToList();
+
+            var isSuperAdmin = assignedRoles.Contains(RoleConst.Admin);
+            if (isSuperAdmin)
+            {
+                // SuperAdmin possesses system audit capability across all authorized operational roles
+                _availableRoles = new List<string>
+                {
+                    RoleConst.Admin,
+                    RoleConst.Procurement,
+                    RoleConst.Manager,
+                    RoleConst.Warehouse,
+                    RoleConst.Finance
+                };
+            }
+            else
+            {
+                // Standard users are strictly restricted to their explicitly assigned database roles
+                _availableRoles = assignedRoles.ToList();
+            }
+
+            // Determine active role based on request header (X-Active-Role or X-Dev-Role)
+            string? requestedRole = null;
+            if (httpContext.Request.Headers.TryGetValue("X-Active-Role", out var reqRoleHeader))
+            {
+                requestedRole = reqRoleHeader.ToString().Trim();
+            }
+            else if (httpContext.Request.Headers.TryGetValue("X-Dev-Role", out var devRoleHeader))
+            {
+                requestedRole = devRoleHeader.ToString().Trim();
+            }
+
+            string activeRole;
+            if (string.Equals(requestedRole, "None", StringComparison.OrdinalIgnoreCase))
+            {
+                activeRole = "None";
+            }
+            else if (!string.IsNullOrEmpty(requestedRole) && _availableRoles.Contains(requestedRole, StringComparer.OrdinalIgnoreCase))
+            {
+                activeRole = _availableRoles.First(r => r.Equals(requestedRole, StringComparison.OrdinalIgnoreCase));
+            }
+            else
+            {
+                // Default role: Admin if user has Admin, else first assigned role
+                activeRole = assignedRoles.Contains(RoleConst.Admin)
+                    ? RoleConst.Admin
+                    : (assignedRoles.FirstOrDefault() ?? "None");
+            }
+
+            _activeRole = activeRole;
+            _roles = activeRole == "None" ? new List<string>() : new List<string> { activeRole };
+
+            // Scope effective permissions strictly to the ACTIVE role
+            if (activeRole == RoleConst.Admin)
+            {
+                _permissions = _dbContext.Permissions
+                    .Select(p => p.Code)
+                    .Distinct()
+                    .ToList();
+            }
+            else
+            {
+                var roleEntity = _dbContext.Roles
+                    .Include(r => r.RolePermissions)
+                        .ThenInclude(rp => rp.Permission)
+                    .FirstOrDefault(r => r.Name == activeRole);
+
+                if (roleEntity != null)
+                {
+                    _permissions = roleEntity.RolePermissions
+                        .Select(rp => rp.Permission.Code)
+                        .Distinct()
+                        .ToList();
+                }
+                else
+                {
+                    _permissions = new List<string>();
+                }
+            }
         }
     }
 
@@ -77,7 +175,9 @@ public class WindowsCurrentUserService : ICurrentUserService
     public string? Username { get { EnsureInitialized(); return _username; } }
     public string? DisplayName { get { EnsureInitialized(); return _displayName; } }
     public string? AdSid { get { EnsureInitialized(); return _adSid; } }
+    public string ActiveRole { get { EnsureInitialized(); return _activeRole; } }
     public IReadOnlyList<string> Roles { get { EnsureInitialized(); return _roles; } }
+    public IReadOnlyList<string> AvailableRoles { get { EnsureInitialized(); return _availableRoles; } }
     public IReadOnlyList<string> Permissions { get { EnsureInitialized(); return _permissions; } }
     public bool IsAuthenticated => _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated == true;
 

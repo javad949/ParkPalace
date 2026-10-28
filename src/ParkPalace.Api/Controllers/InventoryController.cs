@@ -153,6 +153,9 @@ public class InventoryController : ControllerBase
             decimal daily30d = await _consumptionCalculator.GetAverageDailyConsumptionAsync(mat.Id, 30, now, cancellationToken);
 
             bool isStale = snap == null || snap.IsStale || (now - snap.SnapshotTimeUtc).TotalHours > 24;
+            bool isUnitMismatch = snap != null && snap.SourceSnapshotKey != null && snap.SourceSnapshotKey.Contains(":UNIT-MISMATCH");
+            string stockStatus = isUnitMismatch ? "UnitMismatch"
+                : (belowSafety ? "Critical" : (onHand <= 0 ? "OutOfStock" : (isStale ? "Stale" : "Normal")));
 
             items.Add(new InventoryItemDto
             {
@@ -162,14 +165,16 @@ public class InventoryController : ControllerBase
                 CategoryName = mat.Category?.Name ?? "-",
                 UnitName = mat.BaseUnit?.Name ?? "کیلوگرم",
                 UnitCode = mat.BaseUnit?.Code ?? "KG",
-                OnHandQuantity = onHand,
-                ReservableQuantity = reservable,
+                OnHandQuantity = isUnitMismatch ? 0m : onHand,
+                ReservableQuantity = isUnitMismatch ? 0m : reservable,
                 SafetyStock = safetyStock,
                 MinStock = minStock,
-                DailyConsumption7d = Math.Round(daily7d, 2),
-                DailyConsumption30d = Math.Round(daily30d, 2),
-                IsBelowSafetyStock = belowSafety,
-                IsStale = isStale,
+                DailyConsumption7d = isUnitMismatch ? 0m : Math.Round(daily7d, 2),
+                DailyConsumption30d = isUnitMismatch ? 0m : Math.Round(daily30d, 2),
+                IsBelowSafetyStock = !isUnitMismatch && belowSafety,
+                IsStale = isStale || isUnitMismatch,
+                IsUnitMismatch = isUnitMismatch,
+                StockStatus = stockStatus,
                 LastSyncUtc = snap?.SnapshotTimeUtc
             });
         }
@@ -389,6 +394,25 @@ public class InventoryController : ControllerBase
                 Detail = ex.Message,
                 Status = 409
             });
+        }
+    }
+
+    [HttpPost("sync/dry-run")]
+    public async Task<ActionResult<SyncDryRunResultDto>> ExecuteDryRun([FromQuery] string warehouseCode = "WH-MAIN", CancellationToken cancellationToken = default)
+    {
+        if (!HasPermission(Permissions.InventorySync) && !HasPermission(Permissions.InventoryView))
+        {
+            return StatusCode(403, new ProblemDetails { Title = "دسترسی غیرمجاز", Status = 403 });
+        }
+
+        try
+        {
+            var result = await _syncService.ExecuteDryRunAsync(warehouseCode, cancellationToken);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ProblemDetails { Title = "خطا در اجرای آزمایشی (Dry Run)", Detail = ex.Message, Status = 400 });
         }
     }
 

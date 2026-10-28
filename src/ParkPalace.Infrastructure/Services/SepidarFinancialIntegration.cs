@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -99,15 +100,61 @@ public class SepidarLiveFinancialAdapter : ISepidarFinancialAdapter
 
     public async Task<List<SepidarCandidateInvoiceDto>> GetCandidateInvoicesAsync(DateTime? sinceDateUtc, CancellationToken ct = default)
     {
-        // When connection is not configured or network unreachable, log and return empty list
         if (string.IsNullOrWhiteSpace(_connectionString))
         {
             _logger.LogWarning("Sepidar financial connection string not configured.");
             return new List<SepidarCandidateInvoiceDto>();
         }
 
-        // Live parameterized SELECT-only implementation
-        return await Task.FromResult(new List<SepidarCandidateInvoiceDto>());
+        var results = new List<SepidarCandidateInvoiceDto>();
+        try
+        {
+            const string sql = @"
+                SELECT TOP 100
+                    CAST(vi.VoucherItemId AS NVARCHAR(50)) AS SepidarInvoiceId,
+                    CAST(v.Number AS NVARCHAR(50)) AS SepidarVoucherNumber,
+                    v.Date AS VoucherDateUtc,
+                    ISNULL(p.Name + ' ' + ISNULL(p.LastName, ''), p.Name) AS SupplierName,
+                    ISNULL(p.IdentificationCode, '') AS SupplierNationalCode,
+                    CAST(CASE WHEN vi.Credit > 0 THEN vi.Credit ELSE vi.Debit END AS DECIMAL(18,2)) AS Amount,
+                    'IRR' AS Currency,
+                    ISNULL(vi.Description, '') AS Description
+                FROM ACC.VoucherItem vi
+                INNER JOIN ACC.Voucher v ON vi.VoucherRef = v.VoucherId
+                INNER JOIN GNR.Party p ON vi.DLRef = p.DLRef
+                WHERE (vi.Credit > 0 OR vi.Debit > 0)
+                  AND (@SinceDateUtc IS NULL OR v.Date >= @SinceDateUtc)
+                ORDER BY v.Date DESC;";
+
+            using var conn = new SqlConnection(_connectionString);
+            using var cmd = new SqlCommand(sql, conn) { CommandTimeout = 30 };
+            cmd.Parameters.AddWithValue("@SinceDateUtc", (object?)sinceDateUtc ?? DBNull.Value);
+
+            await conn.OpenAsync(ct);
+            using var reader = await cmd.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct))
+            {
+                results.Add(new SepidarCandidateInvoiceDto
+                {
+                    SepidarInvoiceId = reader.GetString(0),
+                    SepidarVoucherNumber = reader.GetString(1),
+                    VoucherDateUtc = reader.GetDateTime(2),
+                    SupplierName = reader.GetString(3),
+                    SupplierNationalCode = reader.GetString(4),
+                    Amount = reader.GetDecimal(5),
+                    Currency = reader.GetString(6),
+                    ConfidenceScore = 0.85m,
+                    MatchConfidenceLevel = "Medium",
+                    MatchReason = reader.GetString(7)
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reading candidate vouchers from Sepidar: {Message}", ex.Message);
+        }
+
+        return results;
     }
 }
 
