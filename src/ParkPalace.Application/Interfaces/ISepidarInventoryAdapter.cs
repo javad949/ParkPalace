@@ -22,8 +22,8 @@ public record SepidarStockRecord(
     string ItemRef,
     string WarehouseRef,
     decimal OnHand,
-    decimal Reservable,
-    decimal Reserved,
+    decimal? Reservable,
+    decimal? Reserved,
     decimal Incoming,
     string UnitCode,
     DateTime SnapshotTimeUtc

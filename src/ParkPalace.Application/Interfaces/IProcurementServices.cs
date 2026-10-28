@@ -11,7 +11,7 @@ public interface IPurchaseOrderService
     Task<PagedResult<PurchaseOrderDto>> GetOrdersAsync(int page, int pageSize, string? status, string? search, CancellationToken ct = default);
     Task<PurchaseOrderDto?> GetOrderByIdAsync(Guid id, CancellationToken ct = default);
     Task<PurchaseOrderDto> CreateOrderAsync(CreatePurchaseOrderRequest req, string username, CancellationToken ct = default);
-    Task<PurchaseOrderDto> IssueOrderAsync(Guid id, string username, string concurrencyToken, CancellationToken ct = default);
+    Task<PurchaseOrderDto> IssueOrderAsync(Guid id, string username, string concurrencyToken, bool manualReviewConfirmed = false, CancellationToken ct = default);
     Task<PurchaseOrderDto> CancelOrderAsync(Guid id, CancelPurchaseOrderRequest req, string username, CancellationToken ct = default);
 }
 

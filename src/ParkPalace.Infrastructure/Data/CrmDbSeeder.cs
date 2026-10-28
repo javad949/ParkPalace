@@ -6,7 +6,7 @@ namespace ParkPalace.Infrastructure.Data;
 
 public static class CrmDbSeeder
 {
-    public static async Task SeedAsync(CrmDbContext context)
+    public static async Task SeedAsync(CrmDbContext context, bool isDevelopmentOrTest = false)
     {
         // 1. Seed Permissions
         var existingPerms = await context.Permissions.ToDictionaryAsync(p => p.Code);
@@ -237,5 +237,260 @@ public static class CrmDbSeeder
             context.UserExtensions.AddRange(extensions);
             await context.SaveChangesAsync();
         }
+
+        // 8. Seed Default Users & Role Mappings (Active Directory & System Administrator)
+        var saharAdminSid = "S-1-5-21-2907115954-3499431352-1050369382-500";
+        var crmAdminSid = "S-1-5-21-3272260558-1801529630-4144290918-500";
+
+        var adminRoleEntity = existingRoles[Roles.Admin];
+        var managerRoleEntity = existingRoles[Roles.Manager];
+        var procurementRoleEntity = existingRoles[Roles.Procurement];
+        var warehouseRoleEntity = existingRoles[Roles.Warehouse];
+        var financeRoleEntity = existingRoles[Roles.Finance];
+
+        var defaultUsers = new List<(string Sid, string Username, string DisplayName, string Email, Role[] UserRoles)>
+        {
+            (saharAdminSid, "SAHAR\\Administrator", "مدیر ارشد سیستم (Admin)", "administrator@sahar.loc", new[] { adminRoleEntity, managerRoleEntity }),
+            (crmAdminSid, "CRM\\Administrator", "مدیر سرور CRM (Admin)", "crm-admin@sahar.loc", new[] { adminRoleEntity, managerRoleEntity }),
+            ("SAHAR-MANAGER-SID", "SAHAR\\manager", "مدیر ناظر بازرگانی", "manager@sahar.loc", new[] { managerRoleEntity }),
+            ("SAHAR-PROCUREMENT-SID", "SAHAR\\procurement", "کارشناس تدارکات", "procurement@sahar.loc", new[] { procurementRoleEntity }),
+            ("SAHAR-WAREHOUSE-SID", "SAHAR\\warehouse", "سرپرست انبار", "warehouse@sahar.loc", new[] { warehouseRoleEntity }),
+            ("SAHAR-FINANCE-SID", "SAHAR\\finance", "کارشناس حسابداری", "finance@sahar.loc", new[] { financeRoleEntity })
+        };
+
+        foreach (var def in defaultUsers)
+        {
+            var user = await context.Users
+                .Include(u => u.UserRoles)
+                .FirstOrDefaultAsync(u => u.AdObjectSid == def.Sid || u.Username == def.Username);
+
+            if (user == null)
+            {
+                user = new AppUser
+                {
+                    AdObjectSid = def.Sid,
+                    Username = def.Username,
+                    DisplayName = def.DisplayName,
+                    Email = def.Email,
+                    IsEnabled = true
+                };
+                context.Users.Add(user);
+                await context.SaveChangesAsync();
+            }
+
+            foreach (var r in def.UserRoles)
+            {
+                if (!user.UserRoles.Any(ur => ur.RoleId == r.Id))
+                {
+                    context.UserRoles.Add(new UserRole
+                    {
+                        UserId = user.Id,
+                        RoleId = r.Id,
+                        AssignedAtUtc = DateTime.UtcNow
+                    });
+                }
+            }
+        }
+
+        await context.SaveChangesAsync();
+
+        // 9. Seed Pilot Catalog Items (Requirement 4: Test items for Damdaran Milk 1L & 250cc)
+        // CRITICAL GUARD: Never seed TEST-DAM / TEST-SEP into Production environment!
+        if (isDevelopmentOrTest)
+        {
+            await SeedPilotCatalogItemsAsync(context);
+        }
+    }
+
+    private static async Task SeedPilotCatalogItemsAsync(CrmDbContext context)
+    {
+        var countUnit = await context.UnitsOfMeasure.FirstOrDefaultAsync(u => u.Code == "COUNT");
+        var literUnit = await context.UnitsOfMeasure.FirstOrDefaultAsync(u => u.Code == "L");
+        var mlUnit = await context.UnitsOfMeasure.FirstOrDefaultAsync(u => u.Code == "ML");
+        var kgUnit = await context.UnitsOfMeasure.FirstOrDefaultAsync(u => u.Code == "KG");
+        var wh = await context.Warehouses.FirstOrDefaultAsync(w => w.Code == "WH-MAIN");
+
+        if (countUnit == null || literUnit == null || mlUnit == null) return;
+
+        // 1. Ensure Dairy Root Category
+        var dairyCat = await context.Categories.FirstOrDefaultAsync(c => c.Code == "CAT-DAIRY");
+        if (dairyCat == null)
+        {
+            dairyCat = new Category
+            {
+                Code = "CAT-DAIRY",
+                Name = "لبنیات",
+                Description = "شیر، خامه، پنیر و محصولات لبنی مصرفی کارخانه نان و قنادی",
+                SortOrder = 5,
+                IsActive = true
+            };
+            context.Categories.Add(dairyCat);
+            await context.SaveChangesAsync();
+        }
+
+        // 2. Ensure Milk Subcategory under Dairy
+        var milkCat = await context.Categories.FirstOrDefaultAsync(c => c.Code == "CAT-MILK");
+        if (milkCat == null)
+        {
+            milkCat = new Category
+            {
+                Code = "CAT-MILK",
+                Name = "شیر",
+                ParentId = dairyCat.Id,
+                Description = "انواع شیر پاستوریزه، پاکتی و فله در احجام مختلف",
+                SortOrder = 1,
+                IsActive = true
+            };
+            context.Categories.Add(milkCat);
+            await context.SaveChangesAsync();
+        }
+
+        // 3. Item 1: Damdaran Milk 1L (Test / Pilot Item)
+        var milk1L = await context.Materials.FirstOrDefaultAsync(m => m.InternalCode == "TEST-DAM-MILK-1L");
+        if (milk1L == null)
+        {
+            milk1L = new Material
+            {
+                Id = Guid.NewGuid(),
+                InternalCode = "TEST-DAM-MILK-1L",
+                Name = "شیر پاکتی دامداران ۱ لیتری",
+                Brand = "دامداران",
+                Packaging = "پاکت",
+                PackageSize = 1.0m,
+                PackageSizeUnitId = literUnit.Id,
+                CategoryId = milkCat.Id,
+                BaseUnitId = countUnit.Id,
+                PurchaseUnitId = countUnit.Id,
+                ConsumptionUnitId = literUnit.Id,
+                ProductFamily = "شیر پاکتی دامداران",
+                CategorizationStatus = "AutoConfirmed",
+                IsCustomizedByUser = false,
+                StandardizationNotes = "داده آزمایشی محلی / پایلوت کاتالوگ مستقل CRM",
+                Description = "شیر پاستوریزه ۱ لیتری پاکتی دامداران جهت مصارف بخش قنادی و شیرینی‌پزی",
+                MinStock = 50,
+                SafetyStock = 20,
+                LeadTimeDays = 1,
+                IsActive = true
+            };
+            context.Materials.Add(milk1L);
+            await context.SaveChangesAsync();
+
+            // Unconfirmed suggested conversion: 1 count = 1.0 L
+            context.MaterialUnitConversions.Add(new MaterialUnitConversion
+            {
+                Id = Guid.NewGuid(),
+                MaterialId = milk1L.Id,
+                FromUnitId = countUnit.Id,
+                ToUnitId = literUnit.Id,
+                Factor = 1.0m,
+                IsConfirmed = false, // Suggestion - requires confirmation to activate
+                Notes = "پیشنهاد خودکار از محتویات بسته (۱ لیتر) - نیازمند تأیید کاربر"
+            });
+
+            // Mapping to Sepidar test record
+            context.InventoryItemMappings.Add(new InventoryItemMapping
+            {
+                Id = Guid.NewGuid(),
+                MaterialId = milk1L.Id,
+                SepidarItemId = "TEST-SEP-701",
+                SepidarItemCode = "TEST-1001",
+                SepidarItemTitle = "شیر پاکتی دامداران-۱لیتری (آزمایشی)",
+                SepidarBaseUnit = "عددی",
+                IsActive = true,
+                LastSyncUtc = DateTime.UtcNow
+            });
+
+            // Snapshot in central warehouse: 120 counts
+            if (wh != null)
+            {
+                context.InventorySnapshots.Add(new InventorySnapshot
+                {
+                    Id = Guid.NewGuid(),
+                    WarehouseId = wh.Id,
+                    MaterialId = milk1L.Id,
+                    UnitId = countUnit.Id,
+                    OnHandQuantity = 120m,
+                    ReservableQuantity = 120m,
+                    IncomingQuantity = 0m,
+                    ReservedQuantity = 0m,
+                    SnapshotTimeUtc = DateTime.UtcNow
+                });
+            }
+        }
+
+        // 4. Item 2: Damdaran Milk 250 ML (Test / Pilot Item)
+        var milk250ML = await context.Materials.FirstOrDefaultAsync(m => m.InternalCode == "TEST-DAM-MILK-250ML");
+        if (milk250ML == null)
+        {
+            milk250ML = new Material
+            {
+                Id = Guid.NewGuid(),
+                InternalCode = "TEST-DAM-MILK-250ML",
+                Name = "شیر پاکتی دامداران ۲۵۰ سی‌سی",
+                Brand = "دامداران",
+                Packaging = "پاکت",
+                PackageSize = 250m,
+                PackageSizeUnitId = mlUnit.Id,
+                CategoryId = milkCat.Id,
+                BaseUnitId = countUnit.Id,
+                PurchaseUnitId = countUnit.Id,
+                ConsumptionUnitId = literUnit.Id,
+                ProductFamily = "شیر پاکتی دامداران",
+                CategorizationStatus = "AutoConfirmed",
+                IsCustomizedByUser = false,
+                StandardizationNotes = "داده آزمایشی محلی / پایلوت کاتالوگ مستقل CRM",
+                Description = "شیر پاستوریزه ۲۵۰ سی‌سی (میلی‌لیتر) تک‌نفره پاکتی دامداران",
+                MinStock = 100,
+                SafetyStock = 40,
+                LeadTimeDays = 1,
+                IsActive = true
+            };
+            context.Materials.Add(milk250ML);
+            await context.SaveChangesAsync();
+
+            // Unconfirmed suggested conversion: 1 count = 0.25 L
+            context.MaterialUnitConversions.Add(new MaterialUnitConversion
+            {
+                Id = Guid.NewGuid(),
+                MaterialId = milk250ML.Id,
+                FromUnitId = countUnit.Id,
+                ToUnitId = literUnit.Id,
+                Factor = 0.25m,
+                IsConfirmed = false,
+                Notes = "پیشنهاد خودکار از محتویات بسته (۲۵۰ سی‌سی معادل ۰.۲۵ لیتر) - نیازمند تأیید کاربر"
+            });
+
+            // Mapping to Sepidar test record
+            context.InventoryItemMappings.Add(new InventoryItemMapping
+            {
+                Id = Guid.NewGuid(),
+                MaterialId = milk250ML.Id,
+                SepidarItemId = "TEST-SEP-702",
+                SepidarItemCode = "TEST-1002",
+                SepidarItemTitle = "شیر پاکتی دامداران ۲۵۰ سی‌سی (آزمایشی)",
+                SepidarBaseUnit = "عددی",
+                IsActive = true,
+                LastSyncUtc = DateTime.UtcNow
+            });
+
+            // Snapshot in central warehouse: 400 counts
+            if (wh != null)
+            {
+                context.InventorySnapshots.Add(new InventorySnapshot
+                {
+                    Id = Guid.NewGuid(),
+                    WarehouseId = wh.Id,
+                    MaterialId = milk250ML.Id,
+                    UnitId = countUnit.Id,
+                    OnHandQuantity = 400m,
+                    ReservableQuantity = 400m,
+                    IncomingQuantity = 0m,
+                    ReservedQuantity = 0m,
+                    SnapshotTimeUtc = DateTime.UtcNow
+                });
+            }
+        }
+
+        await context.SaveChangesAsync();
     }
 }

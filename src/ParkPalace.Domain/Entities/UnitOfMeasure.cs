@@ -1,4 +1,4 @@
-using ParkPalace.Domain.Common;
+﻿using ParkPalace.Domain.Common;
 
 namespace ParkPalace.Domain.Entities;
 

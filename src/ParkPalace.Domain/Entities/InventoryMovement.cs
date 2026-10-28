@@ -4,6 +4,7 @@ namespace ParkPalace.Domain.Entities;
 
 public enum InventoryMovementType
 {
+    Unknown = 0,     // نوع پشتیبانی‌نشده یا فاقد نگاشت تأییدشده در سپیدار
     Consumption = 1, // حواله خروج به خط تولید نان و قنادی
     Receipt = 2,     // رسید ورود کالا از خرید
     Transfer = 3,    // انتقال بین انبارها

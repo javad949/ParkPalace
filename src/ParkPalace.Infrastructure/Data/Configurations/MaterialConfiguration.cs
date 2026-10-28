@@ -32,6 +32,26 @@ public class MaterialConfiguration : IEntityTypeConfiguration<Material>
         builder.Property(m => m.Brand)
             .HasMaxLength(100);
 
+        builder.Property(m => m.Packaging)
+            .HasMaxLength(100);
+
+        builder.Property(m => m.PackageSize)
+            .HasPrecision(18, 4);
+
+        builder.Property(m => m.ProductFamily)
+            .HasMaxLength(150);
+
+        builder.Property(m => m.CategorizationStatus)
+            .IsRequired()
+            .HasMaxLength(50)
+            .HasDefaultValue("NeedsReview");
+
+        builder.Property(m => m.IsCustomizedByUser)
+            .HasDefaultValue(false);
+
+        builder.Property(m => m.StandardizationNotes)
+            .HasMaxLength(1000);
+
         builder.Property(m => m.MinStock)
             .HasPrecision(18, 4);
 
@@ -49,6 +69,21 @@ public class MaterialConfiguration : IEntityTypeConfiguration<Material>
         builder.HasOne(m => m.BaseUnit)
             .WithMany()
             .HasForeignKey(m => m.BaseUnitId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(m => m.PackageSizeUnit)
+            .WithMany()
+            .HasForeignKey(m => m.PackageSizeUnitId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(m => m.PurchaseUnit)
+            .WithMany()
+            .HasForeignKey(m => m.PurchaseUnitId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(m => m.ConsumptionUnit)
+            .WithMany()
+            .HasForeignKey(m => m.ConsumptionUnitId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

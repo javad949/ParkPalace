@@ -8,7 +8,9 @@ public class MeResponseDto
     public string? Email { get; set; }
     public string? AdSid { get; set; }
     public bool IsAuthenticated { get; set; }
+    public string ActiveRole { get; set; } = string.Empty;
     public List<string> Roles { get; set; } = new();
+    public List<string> AvailableRoles { get; set; } = new();
     public List<string> Permissions { get; set; } = new();
 }
 

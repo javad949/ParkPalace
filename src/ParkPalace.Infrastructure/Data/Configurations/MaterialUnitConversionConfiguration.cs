@@ -16,6 +16,12 @@ public class MaterialUnitConversionConfiguration : IEntityTypeConfiguration<Mate
             .IsRequired()
             .HasPrecision(18, 6);
 
+        builder.Property(c => c.IsConfirmed)
+            .HasDefaultValue(false);
+
+        builder.Property(c => c.Notes)
+            .HasMaxLength(500);
+
         builder.Property(c => c.RowVersion)
             .IsRowVersion();
 

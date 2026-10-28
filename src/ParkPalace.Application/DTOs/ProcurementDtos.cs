@@ -89,6 +89,7 @@ public class CreatePurchaseOrderRequest
     public string? DeliveryTerms { get; set; }
     public string? Notes { get; set; }
     public bool DirectIssue { get; set; } = true; // Direct issuance by Procurement
+    public bool ManualReviewConfirmed { get; set; } = false; // Explicit confirmation when reserve is unverified
     public List<CreatePurchaseOrderLineRequest> Lines { get; set; } = new();
 }
 

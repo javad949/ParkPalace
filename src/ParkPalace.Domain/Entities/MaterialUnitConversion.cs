@@ -15,4 +15,7 @@ public class MaterialUnitConversion : BaseEntity
 
     // 1 FromUnit = Factor * ToUnit (e.g. 1 Carton = 25 KG)
     public decimal Factor { get; set; }
+
+    public bool IsConfirmed { get; set; } = false;
+    public string? Notes { get; set; }
 }
