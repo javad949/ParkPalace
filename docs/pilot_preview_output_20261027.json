@@ -1,0 +1,107 @@
+﻿{
+  "Status": "PREVIEW_SUCCESS",
+  "IsExecutable": true,
+  "FailureReason": null,
+  "RunId": null,
+  "BinaryHash": null,
+  "DataProvenance": "SIMULATED_TEST",
+  "SemanticContractVerified": false,
+  "GeneratedAtUtc": "2026-10-27T11:50:14.1374881Z",
+  "ExecutionMode": "PreviewOnly",
+  "WarehouseCode": "WH-MAIN",
+  "SourceWarehouseId": "1",
+  "FiscalYear": {
+    "FiscalYearId": 15,
+    "Title": "1405",
+    "StartDate": "2026-10-25 00:00:00Z",
+    "EndDate": "2026-10-29 00:00:00Z"
+  },
+  "Capture": {
+    "CapturedAtUtc": "2026-10-27 11:50:14Z",
+    "TotalStocksInSource": 1,
+    "TotalMovementsInSource": 1,
+    "ExcludedStockRows": 0,
+    "ExcludedMovementRows": 0
+  },
+  "Manifest": {
+    "Hash": "8AC0F75BCAD424E9AAB7D5179D89260F4ECD1DACE13191CA5AB586EC2730A2A1",
+    "ItemCount": 1,
+    "Items": [
+      {
+        "SourceItemId": "1",
+        "MaterialId": "e8c9f268-29cb-4360-ae5b-a09d6ee3ce86",
+        "UnitId": "28ff5ec6-379b-4001-9feb-f1f81347d548",
+        "UnitCode": "KG"
+      }
+    ]
+  },
+  "Plan": {
+    "Hash": "CF27361784BB0D92C1648098274EB238F69CEC84F1A5C2249FE1954988424C5C",
+    "Snapshots": {
+      "ModifiedCount": 1,
+      "UnchangedCount": 0,
+      "Changes": [
+        {
+          "Before": {
+            "Id": "b366286c-4092-4285-95a8-b4bad0a4b605",
+            "MaterialId": "e8c9f268-29cb-4360-ae5b-a09d6ee3ce86",
+            "WarehouseId": "bbe264c2-d5e3-4ed3-b07d-5d583b76a187",
+            "UnitId": "28ff5ec6-379b-4001-9feb-f1f81347d548",
+            "OnHand": 100.0000,
+            "Reservable": 70.0000,
+            "Reserved": 30.0000,
+            "Incoming": 50.0000,
+            "SnapshotTimeUtc": "2026-10-26T11:50:13.0052594",
+            "IsStale": false,
+            "SourceKey": "before",
+            "RowVersion": "00000000000007D6"
+          },
+          "After": {
+            "Id": "b366286c-4092-4285-95a8-b4bad0a4b605",
+            "MaterialId": "e8c9f268-29cb-4360-ae5b-a09d6ee3ce86",
+            "WarehouseId": "bbe264c2-d5e3-4ed3-b07d-5d583b76a187",
+            "UnitId": "28ff5ec6-379b-4001-9feb-f1f81347d548",
+            "OnHand": 250.0000,
+            "Reservable": 70.0000,
+            "Reserved": 30.0000,
+            "Incoming": 50.0000,
+            "SnapshotTimeUtc": "2026-10-27T11:50:14.073148Z",
+            "IsStale": false,
+            "SourceKey": "WH-WH-MAIN-ITEM-1:RES-UNPROVEN",
+            "RowVersion": "00000000000007D6"
+          }
+        }
+      ]
+    },
+    "Movements": {
+      "InsertedCount": 1,
+      "ModifiedCount": 0,
+      "UnchangedCount": 0,
+      "Changes": [
+        {
+          "Before": null,
+          "After": {
+            "Id": "00000000-0000-0000-0000-000000000000",
+            "MaterialId": "e8c9f268-29cb-4360-ae5b-a09d6ee3ce86",
+            "WarehouseId": "bbe264c2-d5e3-4ed3-b07d-5d583b76a187",
+            "UnitId": "28ff5ec6-379b-4001-9feb-f1f81347d548",
+            "SourceKey": "REC-10",
+            "VoucherNumber": "REC-10",
+            "Type": 2,
+            "Quantity": 100.0000,
+            "TransactionDate": "2026-10-27T10:50:13Z",
+            "PostingStatus": 4,
+            "IsCancelled": false,
+            "ReferenceDocument": "خرید آزمایشی",
+            "RowVersion": ""
+          }
+        }
+      ]
+    }
+  },
+  "Exclusions": {
+    "Count": 0,
+    "Items": []
+  },
+  "Warnings": []
+}

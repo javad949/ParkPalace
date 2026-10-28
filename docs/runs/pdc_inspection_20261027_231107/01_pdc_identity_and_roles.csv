@@ -1,0 +1,2 @@
+﻿"ComputerName","Domain","DomainRole","DomainRoleDescription","IsDomainController","OperatingSystem","OSVersion","OSBuild","ActiveDirectoryServiceInstalled","ActiveDirectoryServiceState","DnsServiceInstalled","DnsServiceState","KerberosKdcState"
+"PDC","sahar.loc","5","Primary Domain Controller (PDC)","True","Microsoft Windows Server 2022 Datacenter","10.0.20348","20348","True","Running","True","Running","Running"

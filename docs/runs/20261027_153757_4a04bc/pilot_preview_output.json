@@ -1,0 +1,109 @@
+﻿{
+  "Status": "PREVIEW_SUCCESS",
+  "IsExecutable": true,
+  "FailureReason": null,
+  "RunId": "20261027_153757_4a04bc",
+  "BinaryHash": "A7328079AA0140942E2BE0AD7F7F004E8A589F5CD6854843AE3A50F859DFD7EE",
+  "DataProvenance": "SIMULATED_TEST",
+  "SemanticContractVerified": false,
+  "GeneratedAtUtc": "2026-10-27T12:08:09.5762584Z",
+  "ExecutionMode": "PreviewOnly",
+  "WarehouseCode": "WH-MAIN",
+  "SourceWarehouseId": "1",
+  "FiscalYear": {
+    "FiscalYearId": 15,
+    "Title": "1405",
+    "StartDate": "2026-10-17 00:00:00Z",
+    "EndDate": "2026-11-06 00:00:00Z"
+  },
+  "Capture": {
+    "CapturedAtUtc": "2026-10-27 12:08:09Z",
+    "TotalStocksInSource": 1,
+    "TotalMovementsInSource": 1,
+    "ExcludedStockRows": 0,
+    "ExcludedMovementRows": 0
+  },
+  "Manifest": {
+    "Hash": "9DF172BC33CDC23B65C247862B2B5D6E1E50406226A763E1D370B0CFBEDEB106",
+    "ItemCount": 1,
+    "Items": [
+      {
+        "SourceItemId": "1",
+        "MaterialId": "faefbc64-d5c2-4c7a-99e0-fb25b2bcb858",
+        "UnitId": "0cfcb583-a739-45ce-a287-96002e9d1650",
+        "UnitCode": "KG"
+      }
+    ]
+  },
+  "Plan": {
+    "Hash": "5212ADFDF6A7DE8AE713951B84210C6ACB441634472DB2916D4638D7905719E5",
+    "Snapshots": {
+      "ModifiedCount": 1,
+      "UnchangedCount": 0,
+      "Changes": [
+        {
+          "Before": {
+            "Id": "9729822c-7f9f-4805-b899-2a8731544570",
+            "MaterialId": "faefbc64-d5c2-4c7a-99e0-fb25b2bcb858",
+            "WarehouseId": "6614f4e1-7b9d-48dd-bb44-ca3ee5c0612c",
+            "UnitId": "0cfcb583-a739-45ce-a287-96002e9d1650",
+            "OnHand": 100,
+            "Reservable": 70,
+            "Reserved": 30,
+            "Incoming": 50,
+            "SnapshotTimeUtc": "2026-10-26T12:08:08.8574045Z",
+            "IsStale": false,
+            "SourceKey": "before-test",
+            "RowVersion": ""
+          },
+          "After": {
+            "Id": "9729822c-7f9f-4805-b899-2a8731544570",
+            "MaterialId": "faefbc64-d5c2-4c7a-99e0-fb25b2bcb858",
+            "WarehouseId": "6614f4e1-7b9d-48dd-bb44-ca3ee5c0612c",
+            "UnitId": "0cfcb583-a739-45ce-a287-96002e9d1650",
+            "OnHand": 250,
+            "Reservable": 70,
+            "Reserved": 30,
+            "Incoming": 50,
+            "SnapshotTimeUtc": "2026-10-27T12:08:09.0601199Z",
+            "IsStale": false,
+            "SourceKey": "WH-WH-MAIN-ITEM-1:RES-UNPROVEN",
+            "RowVersion": ""
+          }
+        }
+      ]
+    },
+    "Movements": {
+      "InsertedCount": 1,
+      "ModifiedCount": 0,
+      "UnchangedCount": 0,
+      "Changes": [
+        {
+          "Before": null,
+          "After": {
+            "Id": "00000000-0000-0000-0000-000000000000",
+            "MaterialId": "faefbc64-d5c2-4c7a-99e0-fb25b2bcb858",
+            "WarehouseId": "6614f4e1-7b9d-48dd-bb44-ca3ee5c0612c",
+            "UnitId": "0cfcb583-a739-45ce-a287-96002e9d1650",
+            "SourceKey": "REC-10",
+            "VoucherNumber": "10",
+            "Type": 2,
+            "Quantity": 100,
+            "TransactionDate": "2026-10-27T10:08:09.0601199Z",
+            "PostingStatus": 4,
+            "IsCancelled": false,
+            "ReferenceDocument": null,
+            "RowVersion": ""
+          }
+        }
+      ]
+    }
+  },
+  "Exclusions": {
+    "Count": 0,
+    "Items": []
+  },
+  "Warnings": [
+    "کالای 'MAT-TEST-PILOT - آرد تست نانوایی (شبیه‌سازی)' دسته‌بندی ناقص دارد اما به دلیل سازگاری واحد و هویت، وارد مانیفست پایلوت شد."
+  ]
+}

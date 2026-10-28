@@ -1,0 +1,9 @@
+﻿"SectionId","SectionTitle","InspectionStatus","RowCount","ErrorMessage"
+"01_snapshot_and_rcsi_settings","تنظیمات ایزولاسیون Snapshot و RCSI پایگاه‌داده Sepidar01","موفق","1","ندارد"
+"02_full_backup_history_msdb","سابقه ثبت‌شده بکاپ کامل در msdb (صرفاً سوابق ثبت‌شده)","موفق","5","ندارد"
+"03_tempdb_context_switch","انتقال زمینه کانکشن به دیتابیس tempdb","موفق","0","ندارد"
+"03_tempdb_files_space","فضای داخل فایل‌های دیتابیس tempdb (تفکیک ROWS و LOG و حفظ مقادیر NULL)","موفق","2","ندارد"
+"04_tempdb_real_disk_volume_space","فضای آزاد واقعی درایو دیسک فیزیکی میزبان فایل‌های tempdb","قابل بررسی نبود (عدم کفایت مجوز یا خطا)","0","Exception calling ""ExecuteReader"" with ""0"" argument(s): ""VIEW SERVER STATE permission was denied on object 'server', database 'master'.
+The user does not have permission to perform this action."""
+"05_active_transactions_point_in_time","مشاهده مقطعی و لحظه‌ای تراکنش‌های فعال پایگاه‌داده Sepidar01","قابل بررسی نبود (عدم کفایت مجوز یا خطا)","0","Exception calling ""ExecuteReader"" with ""0"" argument(s): ""VIEW SERVER STATE permission was denied on object 'server', database 'master'.
+The user does not have permission to perform this action."""

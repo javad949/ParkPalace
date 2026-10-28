@@ -1,0 +1,6 @@
+﻿"CurrentDatabase","ServerInstance","SqlServerVersion","SnapshotIsolationState","IsReadCommittedSnapshotOn","RecoveryModel","CompatibilityLevel","CollationName"
+"Sepidar01","SEPIDAR\SEPIDAR","Microsoft SQL Server 2019 (RTM) - 15.0.2000.5 (X64) 
+	Sep 24 2019 13:48:23 
+	Copyright (C) 2019 Microsoft Corporation
+	Express Edition (64-bit) on Windows 10 IoT Enterprise LTSC 2021 10.0 <X64> (Build 19044: ) (Hypervisor)
+","OFF","False","SIMPLE","100","Arabic_CI_AI"

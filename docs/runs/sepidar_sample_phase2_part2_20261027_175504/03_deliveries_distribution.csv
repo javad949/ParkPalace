@@ -1,0 +1,4 @@
+﻿"DeliveryType","IsReturn","TotalDeliveriesCount","HasAccountingVoucherRefCount","NoAccountingVoucherRefCount","MinTransactionDate","MaxTransactionDate"
+"2","False","661","0","661","3/21/2026 12:00:00 AM","10/24/2026 12:00:00 AM"
+"2","True","2","0","2","10/8/2026 12:00:00 AM","10/17/2026 12:00:00 AM"
+"4","False","2","0","2","5/30/2026 12:00:00 AM","6/6/2026 12:00:00 AM"

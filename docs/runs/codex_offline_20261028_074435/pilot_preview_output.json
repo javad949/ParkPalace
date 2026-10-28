@@ -1,0 +1,213 @@
+﻿{
+  "Status": "UNEXECUTABLE_TRANSACTIONAL_SNAPSHOT_UNVERIFIED",
+  "IsExecutable": false,
+  "FailureReason": "PILOT_TRANSACTIONAL_SNAPSHOT_UNVERIFIED: نمونه‌های مجزای CSV حاصل برداشت هم‌زمان در یک تراکنش Snapshot مشترک نیستند؛ سازگاری تراکنشی تأییدنشده است. | PILOT_SEMANTIC_CONTRACT_UNVERIFIED: قرارداد واقعی سپیدار (نگاشت انواع سند، مکانیزم ابطال، وضعیت حسابداری و مرز تاریخ پایان سال مالی) هنوز در محیط عملیاتی کشف و پیاده‌سازی نشده است. تا زمان کشف میدانی و پیاده‌سازی رسمی در کد، خروجی محیط زنده همواره غیرقابل اجرا (IsExecutable=false) است و ارسال سوئیچ --verify-semantic-contract نمی‌تواند این محدودیت را دور بزند.",
+  "RunId": "codex_offline_20261028_074435",
+  "BinaryHash": "23A526AA92E8286302DF42BD5A3C1304A42C58A47286100D6741C84CF8676824",
+  "DataProvenance": "CSV_EMPIRICAL_SAMPLES",
+  "TransactionalConsistency": "UNVERIFIED_DISCRETE_CSV_SAMPLES",
+  "MissingMovementData": true,
+  "SemanticContractVerified": false,
+  "GeneratedAtUtc": "2026-10-28T07:44:41.4673893Z",
+  "ExecutionMode": "PreviewOnly",
+  "InputManifest": [
+    {
+      "Role": "FiscalYears",
+      "Path": "D:\\Antigravity\\ParkPlace\\docs\\runs\\sepidar_sample_phase2_20261027_174332\\01_fiscal_years.csv",
+      "LastModifiedUtc": "2026-10-27T14:13:50.236796Z",
+      "Sha256Hash": "8141a344984f5c4bcf1ba7f2ad07f7e8bd4e3911ee1f6bf482cc7e9172d76d2d",
+      "RowCount": 5
+    },
+    {
+      "Role": "WarehouseStatus",
+      "Path": "D:\\Antigravity\\ParkPlace\\docs\\runs\\sepidar_sample_phase2_part2_20261027_175504\\01_stock1_verified_status.csv",
+      "LastModifiedUtc": "2026-10-27T14:25:20.3851675Z",
+      "Sha256Hash": "f1a5ce2fd890212eec31926b82ebf967451355c978f529d460b7ce6b3ccd6811",
+      "RowCount": 1
+    },
+    {
+      "Role": "Units",
+      "Path": "D:\\Antigravity\\ParkPlace\\docs\\runs\\sepidar_sample_phase2_20261027_174332\\04_units.csv",
+      "LastModifiedUtc": "2026-10-27T14:13:50.2545424Z",
+      "Sha256Hash": "01ca86a13f2eada1fba1be16f9216bd20c04c6e991fd546faf9ed6dbe9d4fb05",
+      "RowCount": 2
+    },
+    {
+      "Role": "StockBalancesOnHand",
+      "Path": "D:\\Antigravity\\ParkPlace\\docs\\runs\\sepidar_sample_phase2_part3_20261027_180613\\01_kg_stock_calculation_sample.csv",
+      "LastModifiedUtc": "2026-10-27T14:36:30.8539966Z",
+      "Sha256Hash": "1e6b735de147dcc6e9618598f30263fd62e13552e1fe71cd3313f53ae69134e7",
+      "RowCount": 20
+    }
+  ],
+  "WarehouseCode": "WH-MAIN",
+  "SourceWarehouseId": "1",
+  "FiscalYear": {
+    "FiscalYearId": 10,
+    "Title": "1405",
+    "StartDate": "2026-03-21 00:00:00Z",
+    "EndDate": "2027-03-20 00:00:00Z"
+  },
+  "Capture": {
+    "CapturedAtUtc": "2026-10-28 07:44:40Z",
+    "TotalStocksInSource": 20,
+    "TotalMovementsInSource": 0,
+    "MissingMovementData": true,
+    "ExcludedStockRows": 17,
+    "ExcludedMovementRows": 0
+  },
+  "Manifest": {
+    "Hash": "0F0C407E5F5FDA4304B11CA9A35063C68F7122405B92CACA6C4DB556A442F1BA",
+    "ItemCount": 3,
+    "Items": [
+      {
+        "SourceItemId": "360",
+        "MaterialId": "b8bc11db-cc02-4f1f-8228-e1aa98d10766",
+        "UnitId": "ccb55ff8-784f-41cf-86a5-adc7192237dc",
+        "UnitCode": "KG"
+      },
+      {
+        "SourceItemId": "369",
+        "MaterialId": "c7e36847-a102-4705-8aa2-1f9e5aa9d678",
+        "UnitId": "ccb55ff8-784f-41cf-86a5-adc7192237dc",
+        "UnitCode": "KG"
+      },
+      {
+        "SourceItemId": "89",
+        "MaterialId": "3c449f7a-380f-4e46-80aa-9fe082d1bbf4",
+        "UnitId": "ccb55ff8-784f-41cf-86a5-adc7192237dc",
+        "UnitCode": "KG"
+      }
+    ]
+  },
+  "Plan": {
+    "Hash": "199DFD0F81CFA2410FED6E6BB3F72AA818EF09BF7D4F507F61D6DABAEEB2EC61",
+    "Snapshots": {
+      "ModifiedCount": 3,
+      "UnchangedCount": 0,
+      "Changes": [
+        {
+          "Before": {
+            "Id": "819197e7-7e7c-4696-9632-514daad7a47a",
+            "MaterialId": "b8bc11db-cc02-4f1f-8228-e1aa98d10766",
+            "WarehouseId": "32623b98-cf70-419d-b054-61fc5a4083a4",
+            "UnitId": "ccb55ff8-784f-41cf-86a5-adc7192237dc",
+            "OnHand": 1200,
+            "Reservable": 1100,
+            "Reserved": 100,
+            "Incoming": 0,
+            "SnapshotTimeUtc": "2026-10-27T07:44:40.5857159Z",
+            "IsStale": false,
+            "SourceKey": "SYNTHETIC_CRM_BASELINE_360",
+            "RowVersion": ""
+          },
+          "After": {
+            "Id": "819197e7-7e7c-4696-9632-514daad7a47a",
+            "MaterialId": "b8bc11db-cc02-4f1f-8228-e1aa98d10766",
+            "WarehouseId": "32623b98-cf70-419d-b054-61fc5a4083a4",
+            "UnitId": "ccb55ff8-784f-41cf-86a5-adc7192237dc",
+            "OnHand": 1510.4100,
+            "Reservable": 1100,
+            "Reserved": 100,
+            "Incoming": 0,
+            "SnapshotTimeUtc": "2026-10-28T07:44:40.8688958Z",
+            "IsStale": false,
+            "SourceKey": "WH-WH-MAIN-ITEM-360:RES-UNPROVEN",
+            "RowVersion": ""
+          }
+        },
+        {
+          "Before": {
+            "Id": "84309c6d-c23f-4e18-a672-bf7e5a74200d",
+            "MaterialId": "c7e36847-a102-4705-8aa2-1f9e5aa9d678",
+            "WarehouseId": "32623b98-cf70-419d-b054-61fc5a4083a4",
+            "UnitId": "ccb55ff8-784f-41cf-86a5-adc7192237dc",
+            "OnHand": 200,
+            "Reservable": 155,
+            "Reserved": 45,
+            "Incoming": 70,
+            "SnapshotTimeUtc": "2026-10-27T07:44:40.5856023Z",
+            "IsStale": false,
+            "SourceKey": "SYNTHETIC_CRM_BASELINE_369",
+            "RowVersion": ""
+          },
+          "After": {
+            "Id": "84309c6d-c23f-4e18-a672-bf7e5a74200d",
+            "MaterialId": "c7e36847-a102-4705-8aa2-1f9e5aa9d678",
+            "WarehouseId": "32623b98-cf70-419d-b054-61fc5a4083a4",
+            "UnitId": "ccb55ff8-784f-41cf-86a5-adc7192237dc",
+            "OnHand": -1590.0000,
+            "Reservable": 155,
+            "Reserved": 45,
+            "Incoming": 70,
+            "SnapshotTimeUtc": "2026-10-28T07:44:40.8688958Z",
+            "IsStale": false,
+            "SourceKey": "WH-WH-MAIN-ITEM-369:RES-UNPROVEN",
+            "RowVersion": ""
+          }
+        },
+        {
+          "Before": {
+            "Id": "d317ee1f-6310-48f3-b63b-340a03b04110",
+            "MaterialId": "3c449f7a-380f-4e46-80aa-9fe082d1bbf4",
+            "WarehouseId": "32623b98-cf70-419d-b054-61fc5a4083a4",
+            "UnitId": "ccb55ff8-784f-41cf-86a5-adc7192237dc",
+            "OnHand": 50,
+            "Reservable": 40,
+            "Reserved": 10,
+            "Incoming": 20,
+            "SnapshotTimeUtc": "2026-10-27T07:44:40.5856983Z",
+            "IsStale": false,
+            "SourceKey": "SYNTHETIC_CRM_BASELINE_89",
+            "RowVersion": ""
+          },
+          "After": {
+            "Id": "d317ee1f-6310-48f3-b63b-340a03b04110",
+            "MaterialId": "3c449f7a-380f-4e46-80aa-9fe082d1bbf4",
+            "WarehouseId": "32623b98-cf70-419d-b054-61fc5a4083a4",
+            "UnitId": "ccb55ff8-784f-41cf-86a5-adc7192237dc",
+            "OnHand": 107.1500,
+            "Reservable": 40,
+            "Reserved": 10,
+            "Incoming": 20,
+            "SnapshotTimeUtc": "2026-10-28T07:44:40.8688958Z",
+            "IsStale": false,
+            "SourceKey": "WH-WH-MAIN-ITEM-89:RES-UNPROVEN",
+            "RowVersion": ""
+          }
+        }
+      ]
+    },
+    "Movements": {
+      "InsertedCount": 0,
+      "ModifiedCount": 0,
+      "UnchangedCount": 0,
+      "Changes": []
+    }
+  },
+  "Exclusions": {
+    "Count": 1,
+    "Items": [
+      {
+        "SourceItemId": "9999",
+        "MaterialId": "3bfd3137-9bef-4d4b-bff1-bc1ba22b8d2d",
+        "MaterialCode": "MAT-COUNT-01",
+        "MaterialName": "قلم متفرقه با واحد عدد [ساختگی آزمایشی - SYNTHETIC_TEST_DATA]",
+        "Reason": "UNIT_NOT_KG",
+        "Details": "واحد پایه کالا در CRM 'COUNT' است و کیلوگرم نیست. پایلوت فعلی فقط از واحدهای کیلوگرم پشتیبانی می‌کند."
+      }
+    ]
+  },
+  "Warnings": [
+    "کالای 'MAT-RAW-369 - ماده اولیه ۳۶۹ [ساختگی آزمایشی - SYNTHETIC_TEST_DATA]' دسته‌بندی ناقص دارد اما به دلیل سازگاری واحد و هویت، وارد مانیفست پایلوت شد.",
+    "کالای 'MAT-RAW-89 - ماده اولیه ۸۹ [ساختگی آزمایشی - SYNTHETIC_TEST_DATA]' دسته‌بندی ناقص دارد اما به دلیل سازگاری واحد و هویت، وارد مانیفست پایلوت شد.",
+    "کالای 'MAT-RAW-360 - ماده اولیه ۳۶۰ [ساختگی آزمایشی - SYNTHETIC_TEST_DATA]' دسته‌بندی ناقص دارد اما به دلیل سازگاری واحد و هویت، وارد مانیفست پایلوت شد.",
+    "NEGATIVE_STOCK_DISCREPANCY: قلم کالا با شناسه مبدأ '369' دارای موجودی منفی 1'590.0000- کیلوگرم است. موجودی منفی بدون اصلاح خودکار یا صفرسازی حفظ گردید؛ مقادیر رزرو (45) و ورودی‌های انتظار (70) و مشخصات بومی CRM دست‌نخورده حفظ شدند.",
+    "UNVERIFIED_TRANSACTIONAL_CONSISTENCY: برداشت مبدأ فاقد ایزولاسیون تراکنشی هم‌زمان (Snapshot) است. فایل‌های CSV نمونه حاصل استخراج‌های مستقل در زمان‌های متفاوت بوده و هم‌زمانی داده‌های موجودی با گردش‌ها اثبات نشده است.",
+    "MISSING_MOVEMENT_DATA: فایل اقلام گردش انبار (Movements) در ورودی‌ها ارائه نشده است. نبود فایل گردش معادل صفر گردش یا کاردکس کامل نیست. فایل‌های شماره سند نمونه نیز فاقد قلم کالا و مقدار بوده و امکان استنتاج ردیف گردش از آن‌ها وجود ندارد.",
+    "ITEM_360_UNSUPPORTED_RISK_DISCLAIMER: حضور قلم ۳۶۰ (یا سایر اقلام) در پیش‌نمایش جدید، در نبود داده گردش، به هیچ وجه اثبات نداشتن گردش‌های پشتیبانی‌نشده (Unsupported) در واقعیت نیست (در نمونه‌برداری فاز ۲، سند شماره ۱۴۶۹ از نوع ۳ بوده که اقلام آن استخراج نشده است)."
+  ],
+  "NegativeStockWarnings": [
+    "NEGATIVE_STOCK_DISCREPANCY: قلم کالا با شناسه مبدأ '369' دارای موجودی منفی 1'590.0000- کیلوگرم است. موجودی منفی بدون اصلاح خودکار یا صفرسازی حفظ گردید؛ مقادیر رزرو (45) و ورودی‌های انتظار (70) و مشخصات بومی CRM دست‌نخورده حفظ شدند."
+  ]
+}

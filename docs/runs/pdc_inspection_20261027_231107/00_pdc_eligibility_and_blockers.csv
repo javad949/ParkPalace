@@ -1,0 +1,2 @@
+﻿"IsEligible","BlockersCount","Blockers"
+"False","2","سرور هدف (192.168.1.250) کنترل‌کننده دامنه (Active Directory Domain Controller / Primary Domain Controller (PDC)) است. میزبانی پایگاه‌داده و اجرای مانور روی Domain Controller به دلایل امنیتی و پایداری شبکه با ریسک بسیار بالا همراه است. | هیچ نمونه SQL Server فعالی روی سرور PDC در دسترس نیست یا اتصال از طریق پورت استاندارد برقرار نگردید."

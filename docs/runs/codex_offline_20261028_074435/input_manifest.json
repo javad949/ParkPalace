@@ -1,0 +1,39 @@
+{
+  "Purpose": "Explicit offline diagnostic inputs; different extraction runs, no common transactional snapshot",
+  "CrmBaseline": "SYNTHETIC",
+  "MovementData": "MISSING",
+  "Files": [
+    {
+      "Role": "FiscalYears",
+      "Path": "D:\\Antigravity\\ParkPlace\\docs\\runs\\sepidar_sample_phase2_20261027_174332\\01_fiscal_years.csv",
+      "ReportedExtractionUtc": "2026-10-27T14:13:20Z",
+      "ExtractionTimeEvidence": "D:\\Antigravity\\ParkPlace\\docs\\runs\\sepidar_sample_phase2_20261027_174332\\run_summary.md",
+      "Sha256": "8141A344984F5C4BCF1BA7F2AD07F7E8BD4E3911EE1F6BF482CC7E9172D76D2D",
+      "LastModifiedUtc": "2026-10-27T14:13:50.2367960Z"
+    },
+    {
+      "Role": "Units",
+      "Path": "D:\\Antigravity\\ParkPlace\\docs\\runs\\sepidar_sample_phase2_20261027_174332\\04_units.csv",
+      "ReportedExtractionUtc": "2026-10-27T14:13:20Z",
+      "ExtractionTimeEvidence": "D:\\Antigravity\\ParkPlace\\docs\\runs\\sepidar_sample_phase2_20261027_174332\\run_summary.md",
+      "Sha256": "01CA86A13F2EADA1FBA1BE16F9216BD20C04C6E991FD546FAF9ED6DBE9D4FB05",
+      "LastModifiedUtc": "2026-10-27T14:13:50.2545424Z"
+    },
+    {
+      "Role": "Stocks",
+      "Path": "D:\\Antigravity\\ParkPlace\\docs\\runs\\sepidar_sample_phase2_part2_20261027_175504\\01_stock1_verified_status.csv",
+      "ReportedExtractionUtc": "2026-10-27T14:24:50Z",
+      "ExtractionTimeEvidence": "D:\\Antigravity\\ParkPlace\\docs\\runs\\sepidar_sample_phase2_part2_20261027_175504\\run_summary.md",
+      "Sha256": "F1A5CE2FD890212EEC31926B82EBF967451355C978F529D460B7CE6B3CCD6811",
+      "LastModifiedUtc": "2026-10-27T14:25:20.3851675Z"
+    },
+    {
+      "Role": "StockSummary",
+      "Path": "D:\\Antigravity\\ParkPlace\\docs\\runs\\sepidar_sample_phase2_part3_20261027_180613\\01_kg_stock_calculation_sample.csv",
+      "ReportedExtractionUtc": "2026-10-27T14:36:01Z",
+      "ExtractionTimeEvidence": "D:\\Antigravity\\ParkPlace\\docs\\runs\\sepidar_sample_phase2_part3_20261027_180613\\run_summary.md",
+      "Sha256": "1E6B735DE147DCC6E9618598F30263FD62E13552E1FE71CD3313F53AE69134E7",
+      "LastModifiedUtc": "2026-10-27T14:36:30.8539966Z"
+    }
+  ]
+}

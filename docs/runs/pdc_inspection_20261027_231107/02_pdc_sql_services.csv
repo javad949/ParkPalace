@@ -1,0 +1,4 @@
+﻿"ServiceName","DisplayName","State","StartMode","StartName"
+"MSSQLSERVER","SQL Server (MSSQLSERVER)","Running","Auto","NT Service\MSSQLSERVER"
+"SQLBrowser","SQL Server Browser","Stopped","Disabled","NT AUTHORITY\LOCALSERVICE"
+"SQLSERVERAGENT","SQL Server Agent (MSSQLSERVER)","Stopped","Manual","NT Service\SQLSERVERAGENT"

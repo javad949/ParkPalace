@@ -1,0 +1,6 @@
+﻿"SectionId","SectionTitle","InspectionStatus","RowCount","ErrorMessage"
+"01_server_time_and_culture_diagnostics","تشخیص ساعت سرور سپیدار، تطبیق با UTC و تنظیمات سرور","موفق","1","ندارد"
+"02_full_backup_history_iso","سوابق ثبت‌شده بکاپ کامل در msdb با فرمت ISO 8601 و اعداد مستقل از فرهنگ محلی","موفق","10","ندارد"
+"03_tempdb_context_switch","تغییر زمینه اتصال به دیتابیس tempdb","موفق","0","ندارد"
+"03_tempdb_real_disk_volume_space","فضای آزاد واقعی درایو دیسک فیزیکی میزبان فایل‌های tempdb","موفق","1","ندارد"
+"04_active_transactions_point_in_time","مشاهده مقطعی و لحظه‌ای تراکنش‌های فعال پایگاه‌داده Sepidar01","موفق","0","ندارد"

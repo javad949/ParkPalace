@@ -1,0 +1,177 @@
+﻿{
+  "Status": "UNEXECUTABLE_SEMANTIC_CONTRACT_UNVERIFIED",
+  "IsExecutable": false,
+  "FailureReason": "PILOT_SEMANTIC_CONTRACT_UNVERIFIED: قرارداد واقعی سپیدار (نگاشت انواع سند، مکانیزم ابطال، وضعیت حسابداری و مرز تاریخ پایان سال مالی) هنوز در محیط عملیاتی کشف و پیاده‌سازی نشده است. تا زمان کشف میدانی و پیاده‌سازی رسمی در کد، خروجی محیط زنده همواره غیرقابل اجرا (IsExecutable=false) است و ارسال سوئیچ --verify-semantic-contract نمی‌تواند این محدودیت را دور بزند.",
+  "RunId": "pilot_preview_assumed_scenario_20261027_185200",
+  "BinaryHash": "84F9E750BB1EF6372FB1C2086D792878D784C84F4BB536B3427ECCA7678AA2FA",
+  "DataProvenance": "ASSUMED_LOCAL_SCENARIO",
+  "SemanticContractVerified": false,
+  "GeneratedAtUtc": "2026-10-27T15:23:09.4234322Z",
+  "ExecutionMode": "PreviewOnly",
+  "WarehouseCode": "WH-MAIN",
+  "SourceWarehouseId": "1",
+  "FiscalYear": {
+    "FiscalYearId": 10,
+    "Title": "1405",
+    "StartDate": "2026-03-21 00:00:00Z",
+    "EndDate": "2027-03-20 00:00:00Z"
+  },
+  "Capture": {
+    "CapturedAtUtc": "2026-10-27 15:23:08Z",
+    "TotalStocksInSource": 2,
+    "TotalMovementsInSource": 2,
+    "ExcludedStockRows": 0,
+    "ExcludedMovementRows": 0
+  },
+  "Manifest": {
+    "Hash": "9FAEFF36AA2303A9DADB6E8425D51ED6592AFABAF00A58749FF0917B5ECC2549",
+    "ItemCount": 2,
+    "Items": [
+      {
+        "SourceItemId": "369",
+        "MaterialId": "30286b90-89e9-47c2-b0a6-8e4bfb273f63",
+        "UnitId": "e67c39fc-3a02-4c74-a334-1e2e6b9c0935",
+        "UnitCode": "KG"
+      },
+      {
+        "SourceItemId": "89",
+        "MaterialId": "6c41753b-0d1a-4f08-9cae-6d62a5d0894e",
+        "UnitId": "e67c39fc-3a02-4c74-a334-1e2e6b9c0935",
+        "UnitCode": "KG"
+      }
+    ]
+  },
+  "Plan": {
+    "Hash": "F39C92D033EA8EA263C820F7F219E854A46DDB6B1D6263589928EC9FE09E3CBC",
+    "Snapshots": {
+      "ModifiedCount": 2,
+      "UnchangedCount": 0,
+      "Changes": [
+        {
+          "Before": {
+            "Id": "faa71b6f-d681-4eeb-862a-9bae5e6dfe4e",
+            "MaterialId": "30286b90-89e9-47c2-b0a6-8e4bfb273f63",
+            "WarehouseId": "88d7c5ee-5e13-48dd-b3e8-912dc1df81d7",
+            "UnitId": "e67c39fc-3a02-4c74-a334-1e2e6b9c0935",
+            "OnHand": 200,
+            "Reservable": 155,
+            "Reserved": 45,
+            "Incoming": 70,
+            "SnapshotTimeUtc": "2026-10-26T15:23:07.9961844Z",
+            "IsStale": false,
+            "SourceKey": "before-pilot-369",
+            "RowVersion": ""
+          },
+          "After": {
+            "Id": "faa71b6f-d681-4eeb-862a-9bae5e6dfe4e",
+            "MaterialId": "30286b90-89e9-47c2-b0a6-8e4bfb273f63",
+            "WarehouseId": "88d7c5ee-5e13-48dd-b3e8-912dc1df81d7",
+            "UnitId": "e67c39fc-3a02-4c74-a334-1e2e6b9c0935",
+            "OnHand": -1590.0000,
+            "Reservable": 155,
+            "Reserved": 45,
+            "Incoming": 70,
+            "SnapshotTimeUtc": "2026-10-27T15:23:08.404335Z",
+            "IsStale": false,
+            "SourceKey": "WH-WH-MAIN-ITEM-369:RES-UNPROVEN",
+            "RowVersion": ""
+          }
+        },
+        {
+          "Before": {
+            "Id": "fde69d25-d21c-49d3-880f-f4611256a74e",
+            "MaterialId": "6c41753b-0d1a-4f08-9cae-6d62a5d0894e",
+            "WarehouseId": "88d7c5ee-5e13-48dd-b3e8-912dc1df81d7",
+            "UnitId": "e67c39fc-3a02-4c74-a334-1e2e6b9c0935",
+            "OnHand": 50,
+            "Reservable": 40,
+            "Reserved": 10,
+            "Incoming": 20,
+            "SnapshotTimeUtc": "2026-10-26T15:23:07.9963828Z",
+            "IsStale": false,
+            "SourceKey": "before-pilot-89",
+            "RowVersion": ""
+          },
+          "After": {
+            "Id": "fde69d25-d21c-49d3-880f-f4611256a74e",
+            "MaterialId": "6c41753b-0d1a-4f08-9cae-6d62a5d0894e",
+            "WarehouseId": "88d7c5ee-5e13-48dd-b3e8-912dc1df81d7",
+            "UnitId": "e67c39fc-3a02-4c74-a334-1e2e6b9c0935",
+            "OnHand": 107.1500,
+            "Reservable": 40,
+            "Reserved": 10,
+            "Incoming": 20,
+            "SnapshotTimeUtc": "2026-10-27T15:23:08.404335Z",
+            "IsStale": false,
+            "SourceKey": "WH-WH-MAIN-ITEM-89:RES-UNPROVEN",
+            "RowVersion": ""
+          }
+        }
+      ]
+    },
+    "Movements": {
+      "InsertedCount": 2,
+      "ModifiedCount": 0,
+      "UnchangedCount": 0,
+      "Changes": [
+        {
+          "Before": null,
+          "After": {
+            "Id": "00000000-0000-0000-0000-000000000000",
+            "MaterialId": "30286b90-89e9-47c2-b0a6-8e4bfb273f63",
+            "WarehouseId": "88d7c5ee-5e13-48dd-b3e8-912dc1df81d7",
+            "UnitId": "e67c39fc-3a02-4c74-a334-1e2e6b9c0935",
+            "SourceKey": "DEL-5645",
+            "VoucherNumber": "14050745",
+            "Type": 1,
+            "Quantity": 50,
+            "TransactionDate": "2026-10-24T00:00:00Z",
+            "PostingStatus": 4,
+            "IsCancelled": false,
+            "ReferenceDocument": null,
+            "RowVersion": ""
+          }
+        },
+        {
+          "Before": null,
+          "After": {
+            "Id": "00000000-0000-0000-0000-000000000000",
+            "MaterialId": "6c41753b-0d1a-4f08-9cae-6d62a5d0894e",
+            "WarehouseId": "88d7c5ee-5e13-48dd-b3e8-912dc1df81d7",
+            "UnitId": "e67c39fc-3a02-4c74-a334-1e2e6b9c0935",
+            "SourceKey": "REC-11207",
+            "VoucherNumber": "1471",
+            "Type": 2,
+            "Quantity": 100,
+            "TransactionDate": "2026-09-15T00:00:00Z",
+            "PostingStatus": 4,
+            "IsCancelled": false,
+            "ReferenceDocument": null,
+            "RowVersion": ""
+          }
+        }
+      ]
+    }
+  },
+  "Exclusions": {
+    "Count": 1,
+    "Items": [
+      {
+        "SourceItemId": "9999",
+        "MaterialId": "6f6ca8eb-eae6-4a52-8742-f9740ebbc053",
+        "MaterialCode": "MAT-COUNT-01",
+        "MaterialName": "قلم متفرقه با واحد عدد",
+        "Reason": "UNIT_NOT_KG",
+        "Details": "واحد پایه کالا در CRM 'COUNT' است و کیلوگرم نیست. پایلوت فعلی فقط از واحدهای کیلوگرم پشتیبانی می‌کند."
+      }
+    ]
+  },
+  "Warnings": [
+    "کالای 'MAT-RAW-369 - ماده اولیه کد ۳۶۹' دسته‌بندی ناقص دارد اما به دلیل سازگاری واحد و هویت، وارد مانیفست پایلوت شد.",
+    "کالای 'MAT-RAW-89 - ماده اولیه کد ۸۹' دسته‌بندی ناقص دارد اما به دلیل سازگاری واحد و هویت، وارد مانیفست پایلوت شد.",
+    "NEGATIVE_STOCK_DISCREPANCY: قلم کالا با شناسه مبدأ '369' دارای موجودی منفی 1,590.0000- کیلوگرم است. موجودی منفی بدون اصلاح خودکار یا صفرسازی حفظ گردید؛ مقادیر رزرو (45) و ورودی‌های انتظار (70) و مشخصات بومی CRM دست‌نخورده حفظ شدند."
+  ],
+  "NegativeStockWarnings": [
+    "NEGATIVE_STOCK_DISCREPANCY: قلم کالا با شناسه مبدأ '369' دارای موجودی منفی 1,590.0000- کیلوگرم است. موجودی منفی بدون اصلاح خودکار یا صفرسازی حفظ گردید؛ مقادیر رزرو (45) و ورودی‌های انتظار (70) و مشخصات بومی CRM دست‌نخورده حفظ شدند."
+  ]
+}
