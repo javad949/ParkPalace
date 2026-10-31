@@ -64,6 +64,8 @@ public interface ICrmDbContext
     DbSet<CallNote> CallNotes { get; }
     DbSet<CallAudit> CallAudits { get; }
     DbSet<UserExtension> UserExtensions { get; }
+    DbSet<TelephonyGroup> TelephonyGroups { get; }
+    DbSet<TelephonyGroupMember> TelephonyGroupMembers { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

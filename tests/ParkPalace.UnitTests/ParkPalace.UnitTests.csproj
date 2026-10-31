@@ -13,6 +13,7 @@
     <ProjectReference Include="..\..\src\ParkPalace.Domain\ParkPalace.Domain.csproj" />
     <ProjectReference Include="..\..\src\ParkPalace.Application\ParkPalace.Application.csproj" />
     <ProjectReference Include="..\..\src\ParkPalace.Infrastructure\ParkPalace.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\ParkPalace.Api\ParkPalace.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

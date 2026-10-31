@@ -70,6 +70,8 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<CallNote> CallNotes => Set<CallNote>();
     public DbSet<CallAudit> CallAudits => Set<CallAudit>();
     public DbSet<UserExtension> UserExtensions => Set<UserExtension>();
+    public DbSet<TelephonyGroup> TelephonyGroups => Set<TelephonyGroup>();
+    public DbSet<TelephonyGroupMember> TelephonyGroupMembers => Set<TelephonyGroupMember>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

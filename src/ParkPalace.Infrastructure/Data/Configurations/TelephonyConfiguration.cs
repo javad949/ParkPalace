@@ -115,3 +115,47 @@ public class UserExtensionConfiguration : IEntityTypeConfiguration<UserExtension
             .OnDelete(DeleteBehavior.SetNull);
     }
 }
+
+public class TelephonyGroupConfiguration : IEntityTypeConfiguration<TelephonyGroup>
+{
+    public void Configure(EntityTypeBuilder<TelephonyGroup> builder)
+    {
+        builder.ToTable("TelephonyGroups", "crm");
+        builder.HasKey(g => g.Id);
+
+        builder.Property(g => g.Name).HasMaxLength(100).IsRequired();
+        builder.Property(g => g.Description).HasMaxLength(500);
+        builder.Property(g => g.IsActive).IsRequired().HasDefaultValue(true);
+        builder.Property(g => g.SupervisorExtension).HasMaxLength(50);
+        builder.Property(g => g.SupervisorDisplayName).HasMaxLength(200);
+
+        builder.HasOne(g => g.SupervisorUser)
+            .WithMany()
+            .HasForeignKey(g => g.SupervisorUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasMany(g => g.Members)
+            .WithOne(m => m.Group)
+            .HasForeignKey(m => m.GroupId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public class TelephonyGroupMemberConfiguration : IEntityTypeConfiguration<TelephonyGroupMember>
+{
+    public void Configure(EntityTypeBuilder<TelephonyGroupMember> builder)
+    {
+        builder.ToTable("TelephonyGroupMembers", "crm");
+        builder.HasKey(m => m.Id);
+
+        builder.Property(m => m.Extension).HasMaxLength(50).IsRequired();
+        builder.Property(m => m.DisplayName).HasMaxLength(200);
+
+        builder.HasIndex(m => new { m.GroupId, m.Extension }).IsUnique();
+
+        builder.HasOne(m => m.User)
+            .WithMany()
+            .HasForeignKey(m => m.UserId)
+            .OnDelete(DeleteBehavior.SetNull);
+    }
+}
