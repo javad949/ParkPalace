@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ParkPalace.Application.DTOs;
 using ParkPalace.Application.Interfaces;
@@ -13,12 +14,15 @@ namespace ParkPalace.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/calls")]
+[Route("v1/calls")]
 public class CallsController : ControllerBase
 {
     private readonly ICallManagerService _callManagerService;
     private readonly IRecordingService _recordingService;
     private readonly ITelephonyAdapter _telephonyAdapter;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ICrmDbContext _dbContext;
+    private readonly ITelephonyAccessControlService _accessControlService;
     private readonly ILogger<CallsController> _logger;
 
     public CallsController(
@@ -26,19 +30,36 @@ public class CallsController : ControllerBase
         IRecordingService recordingService,
         ITelephonyAdapter telephonyAdapter,
         ICurrentUserService currentUserService,
+        ICrmDbContext dbContext,
+        ITelephonyAccessControlService accessControlService,
         ILogger<CallsController> logger)
     {
         _callManagerService = callManagerService;
         _recordingService = recordingService;
         _telephonyAdapter = telephonyAdapter;
         _currentUserService = currentUserService;
+        _dbContext = dbContext;
+        _accessControlService = accessControlService;
         _logger = logger;
+    }
+
+    private async Task<TelephonyAccessScope> GetCurrentScopeAsync()
+    {
+        return await _accessControlService.GetUserAccessScopeAsync(_currentUserService.UserId, _currentUserService.Username);
     }
 
     private bool HasPermission(string permission)
     {
-        return _currentUserService.Roles.Contains(Roles.Admin) ||
-               _currentUserService.Permissions.Contains(permission);
+        if (string.Equals(_currentUserService.ActiveRole, Roles.Admin, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (_currentUserService.Roles.Contains(Roles.Admin, StringComparer.OrdinalIgnoreCase))
+            return true;
+
+        if (_currentUserService.AvailableRoles.Contains(Roles.Admin, StringComparer.OrdinalIgnoreCase))
+            return true;
+
+        return _currentUserService.HasPermission(permission);
     }
 
     private ObjectResult Forbidden(string detail = "شما مجوز دسترسی به این بخش را ندارید.")
@@ -65,22 +86,34 @@ public class CallsController : ControllerBase
             return Forbidden("شما مجوز مشاهده تاریخچه تماس‌ها را ندارید.");
         }
 
-        var isSupervisor = HasPermission(Permissions.CallsSupervise) || 
-                           _currentUserService.IsInRole(Roles.Admin) || 
-                           _currentUserService.IsInRole(Roles.Manager);
-
-        var filterExt = extension;
-        if (!isSupervisor && string.IsNullOrWhiteSpace(filterExt) && !_currentUserService.IsInRole(Roles.Procurement))
+        var scope = await GetCurrentScopeAsync();
+        
+        string? filterExt = extension;
+        if (!scope.HasGlobalAccess)
         {
-            var userExtensions = await _callManagerService.GetUserExtensionsAsync();
-            var myExt = userExtensions.Find(e => e.Username.Equals(_currentUserService.Username, StringComparison.OrdinalIgnoreCase))?.Extension;
-            if (!string.IsNullOrWhiteSpace(myExt))
+            if (scope.AllowedExtensions.Count == 0)
             {
-                filterExt = myExt;
+                return Ok(new List<CallRecordDto>());
+            }
+
+            if (!string.IsNullOrWhiteSpace(filterExt))
+            {
+                if (!scope.AllowedExtensions.Contains(filterExt.Trim()))
+                {
+                    return Forbidden("شما تنها به تماس‌های داخلی خود و اعضای گروه تحت نظارت دسترسی دارید.");
+                }
             }
         }
 
-        var calls = await _callManagerService.GetCallsAsync(skip, take, filterExt, direction, status, unknownOnly);
+        var calls = await _callManagerService.GetCallsAsync(
+            skip, 
+            take, 
+            filterExt, 
+            direction, 
+            status, 
+            unknownOnly, 
+            scope.HasGlobalAccess ? null : scope.AllowedExtensions.ToList());
+
         return Ok(calls);
     }
 
@@ -96,6 +129,12 @@ public class CallsController : ControllerBase
         if (call == null)
         {
             return NotFound(new { message = $"Call with ID {id} not found." });
+        }
+
+        var scope = await GetCurrentScopeAsync();
+        if (!_accessControlService.CanAccessCall(scope, call.Extension, call.CallerNumber, call.DestinationNumber))
+        {
+            return Forbidden("شما تنها به تماس‌های داخلی خود و اعضای گروه تحت نظارت دسترسی دارید.");
         }
 
         return Ok(call);
@@ -114,7 +153,11 @@ public class CallsController : ControllerBase
             return BadRequest(new { message = "NoteText cannot be empty." });
         }
 
-        var note = await _callManagerService.AddCallNoteAsync(id, request, _currentUserService.Username, _currentUserService.UserId);
+        var username = !string.IsNullOrWhiteSpace(_currentUserService.Username) 
+            ? _currentUserService.Username 
+            : (User?.Identity?.Name ?? "CRM\\Administrator");
+
+        var note = await _callManagerService.AddCallNoteAsync(id, request, username, _currentUserService.UserId);
         return Ok(note);
     }
 
@@ -126,8 +169,27 @@ public class CallsController : ControllerBase
             return Forbidden("شما مجوز انتساب شماره ناشناس به تأمین‌کننده را ندارید.");
         }
 
-        var updated = await _callManagerService.ClassifyUnknownCallAsync(id, request, _currentUserService.Username);
-        return Ok(updated);
+        try
+        {
+            var username = !string.IsNullOrWhiteSpace(_currentUserService.Username) 
+                ? _currentUserService.Username 
+                : (User?.Identity?.Name ?? "CRM\\Administrator");
+            var updated = await _callManagerService.ClassifyUnknownCallAsync(id, request, username);
+            return Ok(updated);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+        {
+            var inner = dbEx.InnerException?.Message ?? dbEx.Message;
+            return StatusCode(500, new { message = "خطای پایگاه داده در ثبت اطلاعات", details = inner });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message, details = ex.InnerException?.Message });
+        }
     }
 
     [HttpGet("match")]
@@ -174,23 +236,63 @@ public class CallsController : ControllerBase
             return Forbidden();
         }
 
-        var note = await _callManagerService.UpdateFollowUpStatusAsync(noteId, status, _currentUserService.Username);
+        var username = !string.IsNullOrWhiteSpace(_currentUserService.Username) 
+            ? _currentUserService.Username 
+            : (User?.Identity?.Name ?? "CRM\\Administrator");
+
+        var note = await _callManagerService.UpdateFollowUpStatusAsync(noteId, status, username);
         return Ok(note);
     }
 
     [HttpGet("{id:guid}/recording")]
     public async Task<IActionResult> StreamRecording(Guid id)
     {
-        if (!HasPermission(Permissions.CallsRecordingsListen))
+        if (!HasPermission(Permissions.CallsRecordingsListen) && !HasPermission(Permissions.CallsView))
         {
             _logger.LogWarning("Unauthorized recording playback attempt by {Username} for Call {CallId}", _currentUserService.Username, id);
             return Forbidden("شما مجوز شنود مکالمات ضبط‌شده را ندارید.");
+        }
+
+        var call = await _callManagerService.GetCallByIdAsync(id);
+        if (call == null)
+        {
+            return NotFound(new { message = "Call not found." });
+        }
+
+        var scope = await GetCurrentScopeAsync();
+        if (!_accessControlService.CanAccessCall(scope, call.Extension, call.CallerNumber, call.DestinationNumber))
+        {
+            _logger.LogWarning("Forbidden recording playback attempt by {Username} for Call {CallId} (Ext: {Ext}, Caller: {Caller}, Dest: {Dest})",
+                _currentUserService.Username, id, call.Extension, call.CallerNumber, call.DestinationNumber);
+            return Forbidden("شما تنها به فایل‌های ضبط‌شده داخلی خود و اعضای گروه تحت نظارت دسترسی دارید.");
         }
 
         var result = await _recordingService.GetCallAudioStreamAsync(id);
         if (result == null)
         {
             return NotFound(new { message = "Recording not found or unavailable." });
+        }
+
+        // Audit recording access
+        try
+        {
+            var username = !string.IsNullOrWhiteSpace(_currentUserService.Username) 
+                ? _currentUserService.Username 
+                : (User?.Identity?.Name ?? "Unknown");
+
+            _dbContext.CallAudits.Add(new CallAudit
+            {
+                CallRecordId = id,
+                Action = "RecordingAccessed",
+                PerformedBy = username,
+                TimestampUtc = DateTime.UtcNow,
+                DetailsJson = System.Text.Json.JsonSerializer.Serialize(new { call.Extension, call.CallerNumber, call.DestinationNumber })
+            });
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to write audit log for recording playback on call {CallId}", id);
         }
 
         return File(result.Value.Stream, result.Value.ContentType, result.Value.FileName, enableRangeProcessing: true);
@@ -211,7 +313,11 @@ public class CallsController : ControllerBase
             return Forbidden("شما مجوز تطبیق اسناد CDR تلفنی را ندارید.");
         }
 
-        var reconciled = await _callManagerService.ReconcileCdrRecordsAsync(cdrBatch, _currentUserService.Username);
+        var username = !string.IsNullOrWhiteSpace(_currentUserService.Username) 
+            ? _currentUserService.Username 
+            : (User?.Identity?.Name ?? "System");
+
+        var reconciled = await _callManagerService.ReconcileCdrRecordsAsync(cdrBatch, username);
         return Ok(new { reconciledCount = reconciled });
     }
 
@@ -236,6 +342,34 @@ public class CallsController : ControllerBase
         }
 
         var result = await _callManagerService.SaveUserExtensionAsync(dto);
+        await _accessControlService.SyncActiveConnectionsAsync();
         return Ok(result);
+    }
+
+    [HttpGet("active")]
+    public async Task<ActionResult<CallerPopupDto?>> GetActiveCall([FromQuery] string? extension = null)
+    {
+        var scope = await GetCurrentScopeAsync();
+
+        var targetExt = extension?.Trim();
+        if (string.IsNullOrWhiteSpace(targetExt))
+        {
+            targetExt = scope.VerifiedUserExtension;
+        }
+        else
+        {
+            if (!scope.HasGlobalAccess && !scope.AllowedExtensions.Contains(targetExt))
+            {
+                return Forbidden("شما به تماس فعال این داخلی دسترسی ندارید.");
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(targetExt))
+        {
+            return Ok(null);
+        }
+
+        var active = await _callManagerService.GetActiveCallForExtensionAsync(targetExt);
+        return Ok(active);
     }
 }

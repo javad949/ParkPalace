@@ -4,68 +4,101 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using ParkPalace.Application.DTOs;
 using ParkPalace.Application.Interfaces;
-using ParkPalace.Domain.Constants;
 
 namespace ParkPalace.Api.Hubs;
-
-public interface ITelephonyClient
-{
-    Task ReceiveCallPopup(CallerPopupDto popup);
-    Task CallStatusChanged(CallRecordDto call);
-    Task CallEnded(string uniqueId);
-    Task ReceiveNotification(string message);
-}
 
 public class TelephonyHub : Hub<ITelephonyClient>
 {
     private readonly ICurrentUserService _currentUserService;
+    private readonly ITelephonyAccessControlService _accessControlService;
+    private readonly ITelephonyConnectionTracker _connectionTracker;
     private readonly ILogger<TelephonyHub> _logger;
 
-    public TelephonyHub(ICurrentUserService currentUserService, ILogger<TelephonyHub> logger)
+    public TelephonyHub(
+        ICurrentUserService currentUserService,
+        ITelephonyAccessControlService accessControlService,
+        ITelephonyConnectionTracker connectionTracker,
+        ILogger<TelephonyHub> logger)
     {
         _currentUserService = currentUserService;
+        _accessControlService = accessControlService;
+        _connectionTracker = connectionTracker;
         _logger = logger;
     }
 
-    public async Task RegisterExtension(string extension)
+    public async Task RegisterExtension(string? extension)
     {
         var username = _currentUserService.Username;
-        var hasSupervise = _currentUserService.HasPermission(Permissions.CallsSupervise);
+        var userId = _currentUserService.UserId;
 
-        if (!_currentUserService.HasPermission(Permissions.CallsView))
+        // 1. Resolve server-side verified access scope
+        var scope = await _accessControlService.GetUserAccessScopeAsync(userId, username);
+
+        // 2. Validate client-supplied parameter
+        var requestedExt = extension?.Trim();
+        if (!string.IsNullOrEmpty(requestedExt))
         {
-            _logger.LogWarning("Unauthorized attempt to register extension {Extension} by {Username}", extension, username);
-            throw new HubException("Access denied: missing CallsView permission.");
+            if (!scope.HasGlobalAccess)
+            {
+                if (string.IsNullOrEmpty(scope.VerifiedUserExtension) ||
+                    !string.Equals(scope.VerifiedUserExtension, requestedExt, StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("Security rejection: User {Username} attempted to register unassigned extension {RequestedExt} (Verified: {VerifiedExt})",
+                        username, requestedExt, scope.VerifiedUserExtension);
+                    throw new HubException("شما مجاز به ثبت این شماره داخلی نیستید.");
+                }
+            }
         }
 
-        if (!string.IsNullOrWhiteSpace(extension))
+        // 3. Clear existing groups on this connection to prevent privilege retention
+        var existingConn = _connectionTracker.GetConnection(Context.ConnectionId);
+        if (existingConn != null)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"ext_{extension.Trim()}");
-            _logger.LogInformation("User {Username} registered connection {ConnectionId} for extension {Extension}", username, Context.ConnectionId, extension);
+            foreach (var grp in existingConn.JoinedGroups)
+            {
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, grp);
+            }
         }
 
-        if (hasSupervise)
+        // 4. Join only authorized groups determined by server-side scope
+        foreach (var grp in scope.HubGroups)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, "supervisors");
-            _logger.LogInformation("User {Username} registered to supervisory group", username);
+            await Groups.AddToGroupAsync(Context.ConnectionId, grp);
         }
+
+        // 5. Track connection for dynamic revocation and lifecycle tracking
+        _connectionTracker.TrackConnection(
+            Context.ConnectionId,
+            userId,
+            username,
+            scope.VerifiedUserExtension,
+            scope.HubGroups);
+
+        _logger.LogInformation("Connection {ConnectionId} for user {Username} registered with groups: {Groups}",
+            Context.ConnectionId, username, string.Join(", ", scope.HubGroups));
     }
 
-    public async Task UnregisterExtension(string extension)
+    public async Task UnregisterExtension(string? extension)
     {
-        if (!string.IsNullOrWhiteSpace(extension))
+        var existingConn = _connectionTracker.GetConnection(Context.ConnectionId);
+        if (existingConn != null)
         {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"ext_{extension.Trim()}");
+            foreach (var grp in existingConn.JoinedGroups)
+            {
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, grp);
+            }
         }
+        _connectionTracker.UntrackConnection(Context.ConnectionId);
     }
 
     public override async Task OnConnectedAsync()
     {
-        var username = _currentUserService.Username;
-        if (_currentUserService.HasPermission(Permissions.CallsSupervise))
-        {
-            await Groups.AddToGroupAsync(Context.ConnectionId, "supervisors");
-        }
         await base.OnConnectedAsync();
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        _connectionTracker.UntrackConnection(Context.ConnectionId);
+        await base.OnDisconnectedAsync(exception);
     }
 }

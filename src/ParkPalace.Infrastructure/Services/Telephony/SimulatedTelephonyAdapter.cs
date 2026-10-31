@@ -271,4 +271,18 @@ public class SimulatedTelephonyAdapter : ITelephonyAdapter
             return $"q-{uniqueId}.wav";
         }
     }
+
+    public Task<List<AvailableExtensionDto>> GetAvailableExtensionsAsync(CancellationToken cancellationToken = default)
+    {
+        var rawExts = new[] { "101", "102", "103", "104", "105", "106", "107", "108", "109", "110", "199", "201", "202", "203", "204", "205", "210", "220", "222", "225", "230", "250", "301", "302" };
+        var list = rawExts.Select(e => new AvailableExtensionDto
+        {
+            Extension = e,
+            DisplayName = $"داخلی {e}",
+            DeviceType = "SIP",
+            Status = "Available"
+        }).ToList();
+
+        return Task.FromResult(list);
+    }
 }

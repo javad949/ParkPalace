@@ -11,13 +11,16 @@ namespace ParkPalace.Api.Services;
 public class SignalRTelephonyNotificationService : ITelephonyNotificationService
 {
     private readonly IHubContext<TelephonyHub, ITelephonyClient> _hubContext;
+    private readonly ITelephonyAccessControlService _accessControlService;
     private readonly ILogger<SignalRTelephonyNotificationService> _logger;
 
     public SignalRTelephonyNotificationService(
         IHubContext<TelephonyHub, ITelephonyClient> hubContext,
+        ITelephonyAccessControlService accessControlService,
         ILogger<SignalRTelephonyNotificationService> logger)
     {
         _hubContext = hubContext;
+        _accessControlService = accessControlService;
         _logger = logger;
     }
 
@@ -25,15 +28,13 @@ public class SignalRTelephonyNotificationService : ITelephonyNotificationService
     {
         try
         {
-            if (!string.IsNullOrWhiteSpace(extension))
+            var targetGroups = await _accessControlService.GetNotificationTargetGroupsForExtensionAsync(extension);
+            if (targetGroups.Count > 0)
             {
-                var groupName = $"ext_{extension.Trim()}";
-                _logger.LogInformation("Broadcasting call popup for UniqueId {UniqueId} to {GroupName}", popup.UniqueId, groupName);
-                await _hubContext.Clients.Group(groupName).ReceiveCallPopup(popup);
+                _logger.LogInformation("Broadcasting call popup for UniqueId {UniqueId} (Ext: {Ext}) to groups: {Groups}", 
+                    popup.UniqueId, extension, string.Join(", ", targetGroups));
+                await _hubContext.Clients.Groups(targetGroups).ReceiveCallPopup(popup);
             }
-
-            // Always notify supervisors as well
-            await _hubContext.Clients.Group("supervisors").ReceiveCallPopup(popup);
         }
         catch (Exception ex)
         {
@@ -45,13 +46,13 @@ public class SignalRTelephonyNotificationService : ITelephonyNotificationService
     {
         try
         {
-            if (!string.IsNullOrWhiteSpace(call.Extension))
+            var targetGroups = await _accessControlService.GetNotificationTargetGroupsForExtensionAsync(call.Extension);
+            if (targetGroups.Count > 0)
             {
-                var groupName = $"ext_{call.Extension.Trim()}";
-                await _hubContext.Clients.Group(groupName).CallStatusChanged(call);
+                _logger.LogInformation("Broadcasting call status changed for UniqueId {UniqueId} (Ext: {Ext}, Status: {Status}) to groups: {Groups}", 
+                    call.UniqueId, call.Extension, call.Status, string.Join(", ", targetGroups));
+                await _hubContext.Clients.Groups(targetGroups).CallStatusChanged(call);
             }
-
-            await _hubContext.Clients.Group("supervisors").CallStatusChanged(call);
         }
         catch (Exception ex)
         {
@@ -59,11 +60,17 @@ public class SignalRTelephonyNotificationService : ITelephonyNotificationService
         }
     }
 
-    public async Task BroadcastCallEndedAsync(string uniqueId)
+    public async Task BroadcastCallEndedAsync(string uniqueId, string? extension)
     {
         try
         {
-            await _hubContext.Clients.All.CallEnded(uniqueId);
+            var targetGroups = await _accessControlService.GetNotificationTargetGroupsForExtensionAsync(extension);
+            if (targetGroups.Count > 0)
+            {
+                _logger.LogInformation("Broadcasting call ended for UniqueId {UniqueId} (Ext: {Ext}) to groups: {Groups}", 
+                    uniqueId, extension, string.Join(", ", targetGroups));
+                await _hubContext.Clients.Groups(targetGroups).CallEnded(uniqueId);
+            }
         }
         catch (Exception ex)
         {

@@ -37,7 +37,7 @@ public class Phase6UnitTests
             return Task.CompletedTask;
         }
 
-        public Task BroadcastCallEndedAsync(string uniqueId)
+        public Task BroadcastCallEndedAsync(string uniqueId, string? extension)
         {
             EndedCalls.Add(uniqueId);
             return Task.CompletedTask;

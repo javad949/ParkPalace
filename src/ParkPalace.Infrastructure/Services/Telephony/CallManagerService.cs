@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -205,20 +205,27 @@ public class CallManagerService : ICallManagerService
 
             if (existingCall.Status is CallStatus.Completed or CallStatus.Missed or CallStatus.Busy or CallStatus.Failed)
             {
-                await _notificationService.BroadcastCallEndedAsync(existingCall.UniqueId);
+                await _notificationService.BroadcastCallEndedAsync(existingCall.UniqueId, existingCall.Extension);
             }
 
             return dto;
         }
     }
 
-    public async Task<List<CallRecordDto>> GetCallsAsync(int skip = 0, int take = 50, string? extension = null, CallDirection? direction = null, CallStatus? status = null, bool? unknownOnly = null)
+    public async Task<List<CallRecordDto>> GetCallsAsync(int skip = 0, int take = 50, string? extension = null, CallDirection? direction = null, CallStatus? status = null, bool? unknownOnly = null, List<string>? allowedExtensions = null)
     {
         var query = _dbContext.CallRecords
             .Include(c => c.Party)
             .Include(c => c.Contact)
             .Include(c => c.Notes)
             .AsNoTracking();
+
+        if (allowedExtensions != null)
+        {
+            query = query.Where(c => (c.Extension != null && allowedExtensions.Contains(c.Extension)) || 
+                                     allowedExtensions.Contains(c.CallerNumber) || 
+                                     allowedExtensions.Contains(c.DestinationNumber));
+        }
 
         if (!string.IsNullOrWhiteSpace(extension))
         {
@@ -290,7 +297,7 @@ public class CallManagerService : ICallManagerService
         {
             CallRecordId = call.Id,
             Action = "NoteAdded",
-            PerformedBy = username,
+            PerformedBy = !string.IsNullOrWhiteSpace(username) ? username : "Administrator",
             TimestampUtc = DateTime.UtcNow,
             DetailsJson = JsonSerializer.Serialize(new
             {
@@ -331,16 +338,113 @@ public class CallManagerService : ICallManagerService
             throw new KeyNotFoundException($"Call with ID {callId} not found.");
         }
 
-        var party = await _dbContext.Parties.FirstOrDefaultAsync(p => p.Id == request.PartyId);
-        if (party == null)
-        {
-            throw new KeyNotFoundException($"Party with ID {request.PartyId} not found.");
-        }
-
+        Party? party = null;
         PartyContact? contact = null;
-        if (request.ContactId.HasValue)
+
+        if (request.CreateNewParty)
         {
-            contact = await _dbContext.PartyContacts.FirstOrDefaultAsync(c => c.Id == request.ContactId.Value && c.PartyId == party.Id);
+            // Case 2: Register as new party (legal entity or natural person / supplier)
+            var partyName = !string.IsNullOrWhiteSpace(request.NewPartyName) 
+                ? request.NewPartyName.Trim() 
+                : (!string.IsNullOrWhiteSpace(call.CallerName) ? call.CallerName : $"تأمین‌کننده جدید ({call.CallerNumber})");
+
+            party = new Party
+            {
+                PartyType = request.NewPartyType ?? PartyType.LegalEntity,
+                DisplayName = partyName,
+                CrmTitle = partyName,
+                Notes = "ثبت سریع از طریق تماس ورودی مرکز تماس",
+                IsActive = true
+            };
+
+            if (!string.IsNullOrWhiteSpace(request.NewPartyCity))
+            {
+                party.Addresses.Add(new PartyAddress
+                {
+                    City = request.NewPartyCity.Trim(),
+                    Province = "تهران",
+                    AddressText = string.Empty,
+                    IsPrimary = true
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.NewContactName))
+            {
+                contact = new PartyContact
+                {
+                    PersonName = request.NewContactName.Trim(),
+                    Position = request.NewContactPosition?.Trim(),
+                    IsPrimary = true,
+                    IsActive = true
+                };
+                party.Contacts.Add(contact);
+            }
+
+            var phone = new PartyPhone
+            {
+                OriginalValue = call.CallerNumber,
+                NormalizedValue = call.NormalizedCallerNumber,
+                PhoneType = "Mobile",
+                IsPrimary = true,
+                Contact = contact
+            };
+            party.Phones.Add(phone);
+
+            _dbContext.Parties.Add(party);
+            await _dbContext.SaveChangesAsync();
+        }
+        else
+        {
+            party = await _dbContext.Parties.FirstOrDefaultAsync(p => p.Id == request.PartyId);
+            if (party == null)
+            {
+                throw new KeyNotFoundException($"Party with ID {request.PartyId} not found.");
+            }
+
+            // Case 1: Register as representative of existing party
+            if (!string.IsNullOrWhiteSpace(request.NewContactName) && !request.ContactId.HasValue)
+            {
+                contact = new PartyContact
+                {
+                    PartyId = party.Id,
+                    PersonName = request.NewContactName.Trim(),
+                    Position = request.NewContactPosition?.Trim(),
+                    IsPrimary = false,
+                    IsActive = true
+                };
+                _dbContext.PartyContacts.Add(contact);
+                await _dbContext.SaveChangesAsync();
+
+                var phone = new PartyPhone
+                {
+                    PartyId = party.Id,
+                    ContactId = contact.Id,
+                    OriginalValue = call.CallerNumber,
+                    NormalizedValue = call.NormalizedCallerNumber,
+                    PhoneType = "Mobile",
+                    IsPrimary = false
+                };
+                _dbContext.PartyPhones.Add(phone);
+            }
+            else if (request.ContactId.HasValue)
+            {
+                contact = await _dbContext.PartyContacts.FirstOrDefaultAsync(c => c.Id == request.ContactId.Value && c.PartyId == party.Id);
+            }
+
+            // Ensure caller phone number is saved under this party if missing
+            var phoneExists = await _dbContext.PartyPhones.AnyAsync(p => p.PartyId == party.Id && p.NormalizedValue == call.NormalizedCallerNumber);
+            if (!phoneExists)
+            {
+                _dbContext.PartyPhones.Add(new PartyPhone
+                {
+                    PartyId = party.Id,
+                    ContactId = contact?.Id,
+                    OriginalValue = call.CallerNumber,
+                    NormalizedValue = call.NormalizedCallerNumber,
+                    PhoneType = "Mobile",
+                    IsPrimary = false
+                });
+            }
         }
 
         call.PartyId = party.Id;
@@ -349,18 +453,22 @@ public class CallManagerService : ICallManagerService
         call.MatchConfidence = "Manual";
         call.CallerName = contact != null ? $"{party.DisplayName} ({contact.PersonName})" : party.DisplayName;
 
+        var auditUser = !string.IsNullOrWhiteSpace(username) ? username : "Administrator";
+
         var audit = new CallAudit
         {
             CallRecordId = call.Id,
             Action = "SupplierLinked",
-            PerformedBy = username,
+            PerformedBy = auditUser,
             TimestampUtc = DateTime.UtcNow,
             DetailsJson = JsonSerializer.Serialize(new
             {
                 PartyId = party.Id,
                 PartyName = party.DisplayName,
                 ContactId = contact?.Id,
-                ContactName = contact?.PersonName
+                ContactName = contact?.PersonName,
+                IsNewlyCreatedParty = request.CreateNewParty,
+                IsNewlyCreatedContact = !string.IsNullOrWhiteSpace(request.NewContactName)
             })
         };
         _dbContext.CallAudits.Add(audit);
@@ -382,7 +490,7 @@ public class CallManagerService : ICallManagerService
             {
                 CallRecordId = pastCall.Id,
                 Action = "SupplierLinkedRetrospective",
-                PerformedBy = username,
+                PerformedBy = auditUser,
                 TimestampUtc = DateTime.UtcNow,
                 DetailsJson = JsonSerializer.Serialize(new { SourceCallId = call.Id, PartyId = party.Id })
             };
@@ -523,7 +631,7 @@ public class CallManagerService : ICallManagerService
                 {
                     CallRecordId = call.Id,
                     Action = "CdrReconciled",
-                    PerformedBy = reconciledBy,
+                    PerformedBy = !string.IsNullOrWhiteSpace(reconciledBy) ? reconciledBy : "System",
                     TimestampUtc = DateTime.UtcNow,
                     DetailsJson = JsonSerializer.Serialize(new
                     {
@@ -590,7 +698,7 @@ public class CallManagerService : ICallManagerService
                 {
                     CallRecordId = newCall.Id,
                     Action = "CdrIngestedAndReconciled",
-                    PerformedBy = reconciledBy,
+                    PerformedBy = !string.IsNullOrWhiteSpace(reconciledBy) ? reconciledBy : "System",
                     TimestampUtc = DateTime.UtcNow
                 };
                 _dbContext.CallAudits.Add(audit);
@@ -652,6 +760,50 @@ public class CallManagerService : ICallManagerService
         await _dbContext.SaveChangesAsync();
         dto.Id = entity.Id;
         return dto;
+    }
+
+    public async Task<CallerPopupDto?> GetActiveCallForExtensionAsync(string extension)
+    {
+        if (string.IsNullOrWhiteSpace(extension))
+        {
+            return null;
+        }
+
+        var ext = extension.Trim();
+        var tenMinutesAgo = DateTime.UtcNow.AddMinutes(-10);
+
+        var activeCall = await _dbContext.CallRecords
+            .Where(c => c.Extension == ext && 
+                        (c.Status == CallStatus.Ringing || c.Status == CallStatus.Answered) && 
+                        c.StartTimeUtc >= tenMinutesAgo)
+            .OrderByDescending(c => c.StartTimeUtc)
+            .FirstOrDefaultAsync();
+
+        if (activeCall == null)
+        {
+            return null;
+        }
+
+        var matchedParties = await MatchPartiesByNumberAsync(activeCall.NormalizedCallerNumber);
+        var recentCalls = await GetRecentCallSummariesAsync(activeCall.NormalizedCallerNumber, activeCall.Id);
+
+        return new CallerPopupDto
+        {
+            CallId = activeCall.Id,
+            UniqueId = activeCall.UniqueId,
+            LinkedId = activeCall.LinkedId,
+            Direction = activeCall.Direction,
+            Status = activeCall.Status,
+            CallerNumber = activeCall.CallerNumber,
+            NormalizedCallerNumber = activeCall.NormalizedCallerNumber,
+            CallerName = activeCall.CallerName,
+            DestinationNumber = activeCall.DestinationNumber,
+            Extension = activeCall.Extension,
+            TimestampUtc = activeCall.StartTimeUtc,
+            MatchStatus = activeCall.MatchConfidence,
+            MatchedParties = matchedParties,
+            RecentCalls = recentCalls
+        };
     }
 
     private async Task<List<RecentCallSummaryDto>> GetRecentCallSummariesAsync(string normalizedPhone, Guid currentCallId)

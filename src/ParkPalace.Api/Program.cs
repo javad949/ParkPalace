@@ -84,9 +84,11 @@ builder.Services.AddScoped<ISepidarReconciliationService, SepidarReconciliationS
 // Phase 6 Services: Telephony, Call Management, Audio Recordings & SignalR
 builder.Services.AddSignalR();
 var telephonyProvider = builder.Configuration["Telephony:Provider"] ?? "Simulated";
-if (telephonyProvider.Equals("Issabel", StringComparison.OrdinalIgnoreCase))
+if (telephonyProvider.Equals("Issabel", StringComparison.OrdinalIgnoreCase) ||
+    telephonyProvider.Equals("IssabelARI", StringComparison.OrdinalIgnoreCase) ||
+    telephonyProvider.Equals("ARI", StringComparison.OrdinalIgnoreCase))
 {
-    builder.Services.AddSingleton<ITelephonyAdapter, ParkPalace.Infrastructure.Services.Telephony.IssabelLiveTelephonyAdapter>();
+    builder.Services.AddSingleton<ITelephonyAdapter, ParkPalace.Infrastructure.Services.Telephony.IssabelAriTelephonyAdapter>();
 }
 else
 {
@@ -94,12 +96,18 @@ else
 }
 builder.Services.AddScoped<ICallManagerService, ParkPalace.Infrastructure.Services.Telephony.CallManagerService>();
 builder.Services.AddScoped<IRecordingService, ParkPalace.Infrastructure.Services.Telephony.RecordingService>();
+builder.Services.AddSingleton<ITelephonyConnectionTracker, ParkPalace.Infrastructure.Services.Telephony.TelephonyConnectionTracker>();
+builder.Services.AddSingleton<ITelephonyHubGroupManager, ParkPalace.Api.Services.SignalRTelephonyHubGroupManager>();
+builder.Services.AddSingleton<ITelephonyAccessControlService, ParkPalace.Infrastructure.Services.Telephony.TelephonyAccessControlService>();
 builder.Services.AddSingleton<ITelephonyNotificationService, ParkPalace.Api.Services.SignalRTelephonyNotificationService>();
 builder.Services.AddHostedService<ParkPalace.Api.Services.TelephonyBackgroundService>();
 
 // Phase 7 Services: Reporting, Analytics & Exports
 builder.Services.AddScoped<IReportingService, ParkPalace.Infrastructure.Services.Reporting.ReportingService>();
 builder.Services.AddScoped<IExportService, ParkPalace.Infrastructure.Services.Reporting.ExportService>();
+
+// Active Directory & User Management
+builder.Services.AddScoped<IActiveDirectoryService, ParkPalace.Infrastructure.Services.ActiveDirectory.ActiveDirectoryService>();
 
 // 4. Controllers & JSON serialization
 builder.Services.AddControllers()
@@ -171,6 +179,7 @@ if (isWindowsAuth)
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ParkPalace.Api.Hubs.TelephonyHub>("/api/hubs/telephony");
 app.MapHub<ParkPalace.Api.Hubs.TelephonyHub>("/hubs/telephony");
 
 app.Run();

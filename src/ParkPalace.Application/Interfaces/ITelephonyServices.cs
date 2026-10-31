@@ -35,12 +35,13 @@ public interface ITelephonyAdapter
     Task StopAsync(CancellationToken cancellationToken);
     event Func<CallEventPayload, Task>? OnCallEventReceived;
     Task SimulateCallAsync(SimulateCallRequest request);
+    Task<List<AvailableExtensionDto>> GetAvailableExtensionsAsync(CancellationToken cancellationToken = default);
 }
 
 public interface ICallManagerService
 {
     Task<CallRecordDto> IngestCallEventAsync(CallEventPayload payload);
-    Task<List<CallRecordDto>> GetCallsAsync(int skip = 0, int take = 50, string? extension = null, CallDirection? direction = null, CallStatus? status = null, bool? unknownOnly = null);
+    Task<List<CallRecordDto>> GetCallsAsync(int skip = 0, int take = 50, string? extension = null, CallDirection? direction = null, CallStatus? status = null, bool? unknownOnly = null, List<string>? allowedExtensions = null);
     Task<CallRecordDto?> GetCallByIdAsync(Guid id);
     Task<CallNoteDto> AddCallNoteAsync(Guid callId, CreateCallNoteRequest request, string username, Guid? userId);
     Task<CallRecordDto> ClassifyUnknownCallAsync(Guid callId, ClassifyCallRequest request, string username);
@@ -51,6 +52,7 @@ public interface ICallManagerService
     Task<int> ReconcileCdrRecordsAsync(IEnumerable<CdrReconciliationDto> cdrRecords, string reconciledBy);
     Task<List<UserExtensionDto>> GetUserExtensionsAsync();
     Task<UserExtensionDto> SaveUserExtensionAsync(UserExtensionDto dto);
+    Task<CallerPopupDto?> GetActiveCallForExtensionAsync(string extension);
 }
 
 public interface IRecordingService
@@ -65,6 +67,14 @@ public interface ITelephonyNotificationService
 {
     Task BroadcastCallPopupAsync(string? extension, CallerPopupDto popup);
     Task BroadcastCallStatusAsync(CallRecordDto call);
-    Task BroadcastCallEndedAsync(string uniqueId);
+    Task BroadcastCallEndedAsync(string uniqueId, string? extension);
+}
+
+public interface ITelephonyClient
+{
+    Task ReceiveCallPopup(CallerPopupDto popup);
+    Task CallStatusChanged(CallRecordDto call);
+    Task CallEnded(string uniqueId);
+    Task ReceiveNotification(string message);
 }
 
