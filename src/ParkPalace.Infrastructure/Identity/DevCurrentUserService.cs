@@ -19,6 +19,7 @@ public class DevCurrentUserService : ICurrentUserService
     private string _username = "sahar\\dev_admin";
     private string _displayName = "مدیر ارشد سیستم (توسعه)";
     private string _adSid = "S-1-5-21-DEV-ADMIN-SID";
+    private string? _extension = "101";
     private string _activeRole = RoleConst.Admin;
     private List<string> _roles = new() { RoleConst.Admin };
     private List<string> _availableRoles = new() { RoleConst.Admin, RoleConst.Procurement, RoleConst.Manager, RoleConst.Warehouse, RoleConst.Finance };
@@ -60,20 +61,16 @@ public class DevCurrentUserService : ICurrentUserService
         }
 
         var accountName = _username.Contains('\\') ? _username.Split('\\')[1] : _username;
-        var saharDomainUser = $"SAHAR\\{accountName}";
-        var crmDomainUser = $"CRM\\{accountName}";
 
-        // Check if user exists in DB
-        var user = _dbContext.Users
+        // Exact username only. Short names and alternate domain prefixes must not select another account.
+        var exactUsers = _dbContext.Users
             .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
                     .ThenInclude(r => r.RolePermissions)
                         .ThenInclude(rp => rp.Permission)
-            .FirstOrDefault(u => 
-                u.Username == _username || 
-                u.Username == accountName ||
-                u.Username == saharDomainUser ||
-                u.Username == crmDomainUser);
+            .Where(u => u.Username == _username)
+            .ToList();
+        var user = exactUsers.Count == 1 ? exactUsers[0] : null;
 
         List<string> assignedRoles;
         if (user != null && user.IsEnabled)
@@ -82,6 +79,28 @@ public class DevCurrentUserService : ICurrentUserService
             _displayName = user.DisplayName;
             _adSid = user.AdObjectSid ?? "S-1-5-21-DEV-USER";
             assignedRoles = user.UserRoles.Select(ur => ur.Role.Name).Distinct().ToList();
+
+            var byUserId = _dbContext.UserExtensions
+                .Where(e => e.IsActive && e.UserId == user.Id && e.Extension != null && e.Extension != "")
+                .ToList();
+            var ext = byUserId.Count > 0 ? byUserId[0] : null;
+            if (ext == null)
+            {
+                var byExactName = _dbContext.UserExtensions
+                    .Where(e => e.IsActive
+                        && e.Username == user.Username
+                        && (e.UserId == null || e.UserId == user.Id)
+                        && e.Extension != null && e.Extension != "")
+                    .ToList();
+                if (byExactName.Count == 1)
+                {
+                    ext = byExactName[0];
+                }
+            }
+            if (ext != null)
+            {
+                _extension = ext.Extension;
+            }
         }
         else
         {
@@ -218,7 +237,7 @@ public class DevCurrentUserService : ICurrentUserService
                     PermConst.SuppliersPricesView,
                     PermConst.OrdersView, PermConst.QuotesView, PermConst.WarehouseView,
                     PermConst.ReceiptsView, PermConst.InvoicesView, PermConst.MatchingView,
-                    PermConst.FinanceView, PermConst.CallsView, PermConst.CallsSupervise, PermConst.CallsRecordingsListen,
+                    PermConst.FinanceView, PermConst.CallsView, PermConst.CallsRecordingsListen,
                     PermConst.InventoryView, PermConst.RecommendationsView,
                     PermConst.ReportsView, PermConst.ReportsManager, PermConst.ReportsProcurement, PermConst.ReportsWarehouse, PermConst.ReportsFinance, PermConst.ReportsExport
                 });
@@ -231,6 +250,7 @@ public class DevCurrentUserService : ICurrentUserService
     public string? DisplayName { get { EnsureInitialized(); return _displayName; } }
     public string? AdSid { get { EnsureInitialized(); return _adSid; } }
     public string ActiveRole { get { EnsureInitialized(); return _activeRole; } }
+    public string? Extension { get { EnsureInitialized(); return _extension; } }
     public IReadOnlyList<string> Roles { get { EnsureInitialized(); return _roles; } }
     public IReadOnlyList<string> AvailableRoles { get { EnsureInitialized(); return _availableRoles; } }
     public IReadOnlyList<string> Permissions { get { EnsureInitialized(); return _permissions; } }

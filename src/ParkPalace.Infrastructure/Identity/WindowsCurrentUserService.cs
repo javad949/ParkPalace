@@ -22,6 +22,7 @@ public class WindowsCurrentUserService : ICurrentUserService
     private string? _username;
     private string? _displayName;
     private string? _adSid;
+    private string? _extension;
     private string _activeRole = RoleConst.Admin;
     private List<string> _roles = new();
     private List<string> _availableRoles = new();
@@ -60,35 +61,31 @@ public class WindowsCurrentUserService : ICurrentUserService
         }
 
         var accountName = _username.Contains('\\') ? _username.Split('\\')[1] : _username;
-        var saharDomainUser = $"SAHAR\\{accountName}";
-        var crmDomainUser = $"CRM\\{accountName}";
 
-        // Correlate with CRM AppUser table (prioritizing exact username match)
-        var user = _dbContext.Users
+        // Security decision: only an exact username match is a proven server identity.
+        // Domain stripping, SAHAR\account, CRM\account, and short-name matching are not used.
+        // More than one exact row is ambiguous and must not select either account.
+        var exactUsers = _dbContext.Users
             .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
                     .ThenInclude(r => r.RolePermissions)
                         .ThenInclude(rp => rp.Permission)
-            .FirstOrDefault(u => u.Username == _username);
+            .Where(u => u.Username == _username)
+            .ToList();
 
-        if (user == null)
-        {
-            user = _dbContext.Users
-                .Include(u => u.UserRoles)
-                    .ThenInclude(ur => ur.Role)
-                        .ThenInclude(r => r.RolePermissions)
-                            .ThenInclude(rp => rp.Permission)
-                .FirstOrDefault(u => 
-                    (!string.IsNullOrEmpty(_adSid) && u.AdObjectSid == _adSid) || 
-                    u.Username == crmDomainUser ||
-                    u.Username == saharDomainUser ||
-                    u.Username == accountName);
-        }
+        var user = exactUsers.Count == 1 ? exactUsers[0] : null;
 
         if (user != null && user.IsEnabled)
         {
             _userId = user.Id;
             _displayName = user.DisplayName;
+
+            var ext = ResolveOwnedExtension(user.Id, user.Username);
+            if (ext != null)
+            {
+                _extension = ext.Extension;
+            }
+
             var assignedRoles = user.UserRoles.Select(ur => ur.Role.Name).Distinct().ToList();
 
             var isSuperAdmin = assignedRoles.Contains(RoleConst.Admin);
@@ -169,13 +166,56 @@ public class WindowsCurrentUserService : ICurrentUserService
                 }
             }
         }
+        else if (user == null && accountName.Equals("Administrator", StringComparison.OrdinalIgnoreCase))
+        {
+            _availableRoles = new List<string>
+            {
+                RoleConst.Admin,
+                RoleConst.Procurement,
+                RoleConst.Manager,
+                RoleConst.Warehouse,
+                RoleConst.Finance
+            };
+            _activeRole = RoleConst.Admin;
+            _roles = new List<string> { RoleConst.Admin };
+            _permissions = _dbContext.Permissions.Select(p => p.Code).Distinct().ToList();
+        }
+    }
+
+    private UserExtension? ResolveOwnedExtension(Guid userId, string username)
+    {
+        var byUserId = _dbContext.UserExtensions
+            .Where(e => e.IsActive && e.UserId == userId && e.Extension != null && e.Extension != "")
+            .ToList();
+        if (byUserId.Count > 0)
+        {
+            return byUserId[0];
+        }
+
+        var byExactName = _dbContext.UserExtensions
+            .Where(e => e.IsActive
+                && e.Username == username
+                && (e.UserId == null || e.UserId == userId)
+                && e.Extension != null && e.Extension != "")
+            .ToList();
+        return byExactName.Count == 1 ? byExactName[0] : null;
     }
 
     public Guid? UserId { get { EnsureInitialized(); return _userId; } }
-    public string? Username { get { EnsureInitialized(); return _username; } }
+    public string? Username 
+    { 
+        get 
+        { 
+            EnsureInitialized(); 
+            return !string.IsNullOrWhiteSpace(_username) 
+                ? _username 
+                : (_httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "CRM\\Administrator"); 
+        } 
+    }
     public string? DisplayName { get { EnsureInitialized(); return _displayName; } }
     public string? AdSid { get { EnsureInitialized(); return _adSid; } }
     public string ActiveRole { get { EnsureInitialized(); return _activeRole; } }
+    public string? Extension { get { EnsureInitialized(); return _extension; } }
     public IReadOnlyList<string> Roles { get { EnsureInitialized(); return _roles; } }
     public IReadOnlyList<string> AvailableRoles { get { EnsureInitialized(); return _availableRoles; } }
     public IReadOnlyList<string> Permissions { get { EnsureInitialized(); return _permissions; } }

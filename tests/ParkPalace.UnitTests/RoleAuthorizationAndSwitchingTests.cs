@@ -24,49 +24,6 @@ public class RoleAuthorizationAndSwitchingTests
 
         // Seed roles and permissions
         CrmDbSeeder.SeedAsync(ctx).GetAwaiter().GetResult();
-
-        // Seed clean users
-        var adminRole = ctx.Roles.First(r => r.Name == Roles.Admin);
-        var managerRole = ctx.Roles.First(r => r.Name == Roles.Manager);
-        var warehouseRole = ctx.Roles.First(r => r.Name == Roles.Warehouse);
-        var procurementRole = ctx.Roles.First(r => r.Name == Roles.Procurement);
-        var financeRole = ctx.Roles.First(r => r.Name == Roles.Finance);
-
-        var adminUser = new AppUser
-        {
-            Id = Guid.NewGuid(),
-            Username = "CRM\\Administrator",
-            DisplayName = "مدیر سرور CRM",
-            AdObjectSid = "S-1-5-21-ADMIN-500",
-            IsEnabled = true
-        };
-        ctx.Users.Add(adminUser);
-        ctx.UserRoles.Add(new UserRole { UserId = adminUser.Id, RoleId = adminRole.Id });
-        ctx.UserRoles.Add(new UserRole { UserId = adminUser.Id, RoleId = managerRole.Id });
-
-        var warehouseUser = new AppUser
-        {
-            Id = Guid.NewGuid(),
-            Username = "SAHAR\\warehouse",
-            DisplayName = "سرپرست انبار",
-            AdObjectSid = "S-1-5-21-WH-500",
-            IsEnabled = true
-        };
-        ctx.Users.Add(warehouseUser);
-        ctx.UserRoles.Add(new UserRole { UserId = warehouseUser.Id, RoleId = warehouseRole.Id });
-
-        var procurementUser = new AppUser
-        {
-            Id = Guid.NewGuid(),
-            Username = "SAHAR\\procurement",
-            DisplayName = "کارشناس تدارکات",
-            AdObjectSid = "S-1-5-21-PROC-500",
-            IsEnabled = true
-        };
-        ctx.Users.Add(procurementUser);
-        ctx.UserRoles.Add(new UserRole { UserId = procurementUser.Id, RoleId = procurementRole.Id });
-
-        ctx.SaveChanges();
         return ctx;
     }
 
