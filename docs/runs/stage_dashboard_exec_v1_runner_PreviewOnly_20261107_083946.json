@@ -1,0 +1,126 @@
+﻿{
+    "Gate":  "PackageVerifiedOnly",
+    "Mode":  "PreviewOnly",
+    "StartedAtUtc":  "2026-11-07T05:09:46.4106399Z",
+    "HostName":  "ORPC",
+    "PackageDir":  "D:\\Antigravity\\ParkPlace\\release\\dashboard-exec-v1\\latest",
+    "EvidenceDir":  "D:\\Antigravity\\ParkPlace\\docs\\runs",
+    "StagingSiteName":  "ParkPalaceCRM-Stage-v1024",
+    "StagingApiBase":  "http://127.0.0.1:51024",
+    "StagingDb":  "ParkPalaceCRM_Stage_20261106_123740_c98981ae",
+    "StagingRoot":  "D:\\ParkPlaceCRM\\staging\\v1024_c98981ae",
+    "ProductionSiteTouched":  false,
+    "ProductionMutated":  false,
+    "deploy_allowed_package":  false,
+    "deploy_allowed_rc3":  false,
+    "ExecuteEligible":  false,
+    "Checks":  [
+                   {
+                       "Path":  "D:\\Antigravity\\ParkPlace\\release\\dashboard-exec-v1\\latest",
+                       "Name":  "PackageDirExists",
+                       "Passed":  true
+                   },
+                   {
+                       "deploy_allowed":  false,
+                       "Name":  "ManifestDeployAllowedFalse",
+                       "Passed":  true
+                   },
+                   {
+                       "independentOf":  "v1.0.24-rc3",
+                       "Name":  "ManifestIndependentOfRc3",
+                       "Passed":  true
+                   },
+                   {
+                       "Name":  "ManifestPackageId",
+                       "packageId":  "dashboard-exec-v1",
+                       "Passed":  true
+                   },
+                   {
+                       "Path":  "D:\\Antigravity\\ParkPlace\\release\\dashboard-exec-v1\\latest\\ParkPalace_Api_dashboard-exec-v1.zip",
+                       "ExpectedSha":  "78AC0225BD250DDF2525CEC3E0C3741143EA03D7FFFEB414BFE6CE272E2BC013",
+                       "Passed":  true,
+                       "ExpectedBytes":  8263013,
+                       "Name":  "ZipMatch_ParkPalace_Api_dashboard_exec_v1_zip",
+                       "ActualBytes":  8263013,
+                       "ActualSha":  "78AC0225BD250DDF2525CEC3E0C3741143EA03D7FFFEB414BFE6CE272E2BC013"
+                   },
+                   {
+                       "Path":  "D:\\Antigravity\\ParkPlace\\release\\dashboard-exec-v1\\latest\\ParkPalace_Web_dashboard-exec-v1.zip",
+                       "ExpectedSha":  "1A00681E28BDDF1F71A577F88409DB186C2EA3041206FF081CB4C675B70919DD",
+                       "Passed":  true,
+                       "ExpectedBytes":  1616369,
+                       "Name":  "ZipMatch_ParkPalace_Web_dashboard_exec_v1_zip",
+                       "ActualBytes":  1616369,
+                       "ActualSha":  "1A00681E28BDDF1F71A577F88409DB186C2EA3041206FF081CB4C675B70919DD"
+                   },
+                   {
+                       "Name":  "PackageVerified",
+                       "Note":  "ZIP SHA256+bytes + manifest identity only",
+                       "Passed":  true
+                   },
+                   {
+                       "Path":  "D:\\ParkPlaceCRM\\api\\ParkPalace.Api.dll",
+                       "Name":  "ProductionApiDllFingerprintReadable",
+                       "Passed":  false
+                   },
+                   {
+                       "Error":  "STOP: IIS site \u0027ParkPalaceCRM-Stage-v1024\u0027 not found.",
+                       "Name":  "StagingIisDiscovery",
+                       "Passed":  false
+                   },
+                   {
+                       "Error":  "Sqlcmd: Error: Microsoft ODBC Driver 17 for SQL Server : Login failed for user \u0027ORPC\\Javad\u0027..",
+                       "Name":  "StagingDatabaseIdentity",
+                       "Passed":  false
+                   },
+                   {
+                       "Status":  0,
+                       "Url":  "http://127.0.0.1:51024/api/health",
+                       "Name":  "StagingHealthHealthy_PreInstall",
+                       "Note":  "Pre-install health of CURRENT staging (likely RC3). Not a dashboard-exec install pass.",
+                       "Passed":  false
+                   }
+               ],
+    "Notes":  [
+                  "Production Api.dll not visible (D:\\ParkPlaceCRM\\api\\ParkPalace.Api.dll).",
+                  "IIS discovery unavailable: STOP: IIS site \u0027ParkPalaceCRM-Stage-v1024\u0027 not found.",
+                  "sqlcmd staging DB check unavailable: Sqlcmd: Error: Microsoft ODBC Driver 17 for SQL Server : Login failed for user \u0027ORPC\\Javad\u0027..",
+                  "Package ZIP/manifest verified on this machine only. IIS/SQL/Health/Production fingerprint not all green — NOT an operational staging preview pass. ExecuteEligible=False."
+              ],
+    "PackageManifest":  {
+                            "packageId":  "dashboard-exec-v1",
+                            "builtAtUtc":  "2026-11-06T21:46:56.7854131Z",
+                            "independentOf":  "v1.0.24-rc3",
+                            "deploy_allowed":  false,
+                            "notes":  "Executive decision dashboard only. Do not treat as rc3 cutover. Production deploy forbidden until separate staging gates pass.",
+                            "files":  [
+                                          {
+                                              "sha256":  "78AC0225BD250DDF2525CEC3E0C3741143EA03D7FFFEB414BFE6CE272E2BC013",
+                                              "bytes":  8263013,
+                                              "relativePath":  "ParkPalace_Api_dashboard-exec-v1.zip"
+                                          },
+                                          {
+                                              "sha256":  "1A00681E28BDDF1F71A577F88409DB186C2EA3041206FF081CB4C675B70919DD",
+                                              "bytes":  1616369,
+                                              "relativePath":  "ParkPalace_Web_dashboard-exec-v1.zip"
+                                          }
+                                      ],
+                            "evidenceDocs":  [
+                                                 "docs/ParkPalace_Executive_Decision_Dashboard_Implementation_Report_20261107.md",
+                                                 "docs/ParkPalace_Executive_Decision_Dashboard_Audit_20261107.md",
+                                                 "docs/ParkPalace_Executive_Decision_Dashboard_KPI_Contracts_20261107.md",
+                                                 "docs/ParkPalace_Executive_Decision_Dashboard_Design_20261107.md"
+                                             ],
+                            "productionTouched":  false,
+                            "stagingScript":  "scripts/crm_stage_dashboard_exec_v1_runner.ps1",
+                            "stagingHttpGatesOnly":  "scripts/crm_stage_dashboard_exec_v1_gates.ps1",
+                            "stagingSiteName":  "ParkPalaceCRM-Stage-v1024",
+                            "stagingHealthUrl":  "http://127.0.0.1:51024/api/health"
+                        },
+    "PreInstallHealth":  {
+                             "Status":  0,
+                             "Body":  null,
+                             "Error":  "Unable to connect to the remote server"
+                         },
+    "FinishedAtUtc":  "2026-11-07T05:09:49.0792765Z"
+}

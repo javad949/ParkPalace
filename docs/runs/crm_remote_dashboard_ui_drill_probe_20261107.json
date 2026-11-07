@@ -1,0 +1,140 @@
+﻿{
+    "WebPhysicalPath":  "D:\\ParkPlaceCRM\\staging\\dashboard_exec_v1\\dashboardexec_web_20261107_094724",
+    "JsBundle":  "assets/index-Cq5y2cc2.js",
+    "JsHasDrillConsume":  true,
+    "JsHasOrdersDrillFilter":  false,
+    "SpaIndexOk":  true,
+    "AdminOpsDrills":  [
+                           {
+                               "contractId":  "ED-01",
+                               "code":  "overdue-po",
+                               "title":  "سفارش‌های خرید سررسیدگذشته",
+                               "status":  1,
+                               "amount":  null,
+                               "numericValue":  0,
+                               "drillTarget":  "orders",
+                               "drillQuery":  "filter=overdue"
+                           },
+                           {
+                               "contractId":  "ED-01b",
+                               "code":  "active-po",
+                               "title":  "سفارش‌های خرید فعال",
+                               "status":  1,
+                               "amount":  null,
+                               "numericValue":  0,
+                               "drillTarget":  "orders",
+                               "drillQuery":  "filter=active"
+                           },
+                           {
+                               "contractId":  "ED-02",
+                               "code":  "critical-stock",
+                               "title":  "کسری مواد (Critical)",
+                               "status":  1,
+                               "amount":  null,
+                               "numericValue":  1,
+                               "drillTarget":  "warehouse",
+                               "drillQuery":  "filter=critical"
+                           },
+                           {
+                               "contractId":  "ED-03",
+                               "code":  "open-match-exceptions",
+                               "title":  "مغایرت فاکتور باز",
+                               "status":  1,
+                               "amount":  null,
+                               "numericValue":  0,
+                               "drillTarget":  "finance",
+                               "drillQuery":  "filter=open-exceptions"
+                           },
+                           {
+                               "contractId":  "ED-04",
+                               "code":  "overdue-followups",
+                               "title":  "پیگیری‌های سررسیدگذشته",
+                               "status":  1,
+                               "amount":  null,
+                               "numericValue":  0,
+                               "drillTarget":  "calls",
+                               "drillQuery":  "filter=overdue-followups"
+                           },
+                           {
+                               "contractId":  "ED-06",
+                               "code":  "receivables",
+                               "title":  "مطالبات تجاری",
+                               "status":  3,
+                               "amount":  null,
+                               "numericValue":  null,
+                               "drillTarget":  "financeDashboard",
+                               "drillQuery":  null
+                           },
+                           {
+                               "contractId":  "ED-07",
+                               "code":  "payables",
+                               "title":  "بدهی تجاری",
+                               "status":  3,
+                               "amount":  null,
+                               "numericValue":  null,
+                               "drillTarget":  "financeDashboard",
+                               "drillQuery":  null
+                           },
+                           {
+                               "contractId":  "ED-08",
+                               "code":  "yoy-trade",
+                               "title":  "مقایسه بازه معادل سال قبل",
+                               "status":  3,
+                               "amount":  null,
+                               "numericValue":  null,
+                               "drillTarget":  "financeDashboard",
+                               "drillQuery":  null
+                           }
+                       ],
+    "DateSlicer":  {
+                       "key":  "dateRange",
+                       "label":  "بازه تاریخ شمسی",
+                       "enabled":  true,
+                       "disabledReason":  null,
+                       "appliesTo":  "ops-date"
+                   },
+    "AdminFreshness":  {
+                           "lastSuccessfulReadUtc":  null,
+                           "fiscalYearLabel":  null,
+                           "financeFreshness":  "",
+                           "financeFreshnessDetail":  "",
+                           "completenessFlags":  [
+                                                     "ops-crm-live"
+                                                 ],
+                           "opsFreshnessBadge":  "داده‌های زنده سامانه CRM پارک پالاس"
+                       },
+    "FinanceViewerHasLedger":  true,
+    "FinanceCards":  [
+                         {
+                             "contractId":  "ED-06",
+                             "status":  4,
+                             "amount":  null,
+                             "reason":  "رشته اتصال سپیدار تنظیم نشده است.",
+                             "source":  "Sepidar.ACC.VoucherItem (read-only)"
+                         },
+                         {
+                             "contractId":  "ED-07",
+                             "status":  4,
+                             "amount":  null,
+                             "reason":  "رشته اتصال سپیدار تنظیم نشده است.",
+                             "source":  "Sepidar.ACC.VoucherItem (read-only)"
+                         }
+                     ],
+    "FinanceFreshness":  {
+                             "lastSuccessfulReadUtc":  null,
+                             "fiscalYearLabel":  "1405",
+                             "financeFreshness":  "Unavailable",
+                             "financeFreshnessDetail":  "رشته اتصال سپیدار تنظیم نشده است.",
+                             "completenessFlags":  [
+                                                       "ops-crm-live",
+                                                       "sepidar-read-attempted",
+                                                       "finance-incomplete-or-unverified"
+                                                   ],
+                             "opsFreshnessBadge":  "داده‌های زنده سامانه CRM پارک پالاس"
+                         },
+    "FinanceAccessNote":  null,
+    "SepidarStatusExpectedUnavailable":  true,
+    "PSComputerName":  "crm-mgmt.sahar.loc",
+    "RunspaceId":  "75c90496-2cf1-4d98-baa7-711ecb0d7459",
+    "PSShowComputerName":  true
+}

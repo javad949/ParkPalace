@@ -31,12 +31,15 @@ import {
 } from '../../types';
 import { JalaliDatePicker } from '../JalaliDatePicker';
 import { formatJalali, formatJalaliDateTime, dateOnlyToIsoUtc } from '../../utils/jalali';
+import { consumeDrillForView, drillBannerLabel } from '../../utils/drillNavigation';
 
 interface OrdersViewProps {
   activeDevRole?: string;
   onNavigateToMaterial?: (materialId: string) => void;
   onNavigateToSupplier?: (supplierId: string) => void;
 }
+
+type OrdersListFilter = 'all' | 'overdue' | 'active';
 
 export const OrdersView: React.FC<OrdersViewProps> = ({
   activeDevRole = 'Procurement',
@@ -49,6 +52,8 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
   const [orders, setOrders] = useState<PurchaseOrderDto[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
+  const [listFilter, setListFilter] = useState<OrdersListFilter>('all');
+  const [drillNote, setDrillNote] = useState<string | null>(null);
   const [searchOrders, setSearchOrders] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<PurchaseOrderDto | null>(null);
 
@@ -104,8 +109,23 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
   const loadOrders = async () => {
     setOrdersLoading(true);
     try {
-      const res = await fetchOrders({ status: statusFilter || undefined, pageSize: 50 }, activeDevRole);
-      setOrders(res.items);
+      if (listFilter === 'overdue' || listFilter === 'active') {
+        const [issued, partial] = await Promise.all([
+          fetchOrders({ status: 'Issued', pageSize: 100 }, activeDevRole),
+          fetchOrders({ status: 'PartiallyReceived', pageSize: 100 }, activeDevRole)
+        ]);
+        let items = [...issued.items, ...partial.items];
+        if (listFilter === 'overdue') {
+          const now = Date.now();
+          items = items.filter((o) =>
+            !!o.expectedDeliveryDateUtc && new Date(o.expectedDeliveryDateUtc).getTime() < now
+          );
+        }
+        setOrders(items);
+      } else {
+        const res = await fetchOrders({ status: statusFilter || undefined, pageSize: 50 }, activeDevRole);
+        setOrders(res.items);
+      }
     } catch (err: any) {
       console.error('Failed to load orders', err);
     } finally {
@@ -139,10 +159,20 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
   };
 
   useEffect(() => {
+    const drill = consumeDrillForView('orders');
+    if (drill.filter === 'overdue' || drill.filter === 'active') {
+      setListFilter(drill.filter);
+      setStatusFilter('');
+      setActiveTab('orders');
+      setDrillNote(drillBannerLabel(drill));
+    }
+  }, []);
+
+  useEffect(() => {
     loadOrders();
     loadRecommendations();
     loadDependencies();
-  }, [activeDevRole, statusFilter]);
+  }, [activeDevRole, statusFilter, listFilter]);
 
   // Open Order Details
   const handleOpenDetails = async (orderId: string) => {
@@ -440,6 +470,32 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
       {/* TAB 1: ORDERS LIST */}
       {activeTab === 'orders' && (
         <div>
+          {drillNote && (
+            <div role="status" style={{
+              marginBottom: 12,
+              padding: '10px 12px',
+              borderRadius: 10,
+              border: '1px solid rgba(56, 189, 248, 0.35)',
+              background: 'rgba(14, 165, 233, 0.08)',
+              color: '#7dd3fc',
+              fontSize: '0.85rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: 12,
+              alignItems: 'center',
+              flexWrap: 'wrap'
+            }}>
+              <span>{drillNote} — {orders.length} ردیف</span>
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ fontSize: '0.75rem', padding: '4px 10px' }}
+                onClick={() => { setListFilter('all'); setDrillNote(null); }}
+              >
+                پاک کردن فیلتر داشبورد
+              </button>
+            </div>
+          )}
           {/* Filters Bar */}
           <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
             <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
@@ -456,9 +512,14 @@ export const OrdersView: React.FC<OrdersViewProps> = ({
 
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setListFilter('all');
+                setDrillNote(null);
+                setStatusFilter(e.target.value);
+              }}
               className="input-field"
               style={{ width: '180px' }}
+              disabled={listFilter !== 'all'}
             >
               <option value="">همه وضعیت‌ها</option>
               <option value="Draft">پیش‌نویس</option>

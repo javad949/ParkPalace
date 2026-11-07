@@ -34,6 +34,7 @@ import {
 } from '../../types';
 import { JalaliDatePicker } from '../JalaliDatePicker';
 import { formatJalali, dateOnlyToIsoUtc } from '../../utils/jalali';
+import { consumeDrillForView, drillBannerLabel } from '../../utils/drillNavigation';
 
 interface FinanceViewProps {
   activeDevRole?: string;
@@ -45,6 +46,15 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
   onNavigateToSupplier: _onNavigateToSupplier
 }) => {
   const [activeTab, setActiveTab] = useState<'invoices' | 'matching' | 'sepidar'>('invoices');
+  const [drillNote, setDrillNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    const drill = consumeDrillForView('finance');
+    if (drill.filter === 'open-exceptions') {
+      setActiveTab('matching');
+      setDrillNote(drillBannerLabel(drill));
+    }
+  }, []);
 
   // Invoices State
   const [invoices, setInvoices] = useState<SupplierInvoiceDto[]>([]);
@@ -388,6 +398,9 @@ export const FinanceView: React.FC<FinanceViewProps> = ({
       }}>
         <ShieldCheck size={24} color="#0284c7" style={{ flexShrink: 0 }} />
         <div>
+          {drillNote && (
+            <div role="status" style={{ marginBottom: 8, color: '#7dd3fc' }}>{drillNote}</div>
+          )}
           <strong style={{ color: '#0284c7' }}>اصل معماری یکپارچه‌سازی مالی سپیدار (Strict Read-Only Access):</strong>
           <p style={{ margin: '2px 0 0', color: 'var(--text-muted)' }}>
             واحد مالی ثبت رسمی اسناد حسابداری و فاکتورها را کماکان مستقیماً در نرم‌افزار سپیدار انجام می‌دهد. ماژول تطبیق CRM صرفاً با دسترسی SELECT اسناد را واکشی نموده و با پیشنهاد تطبیق هوشمند و تأیید قطعی حسابدار، آن‌ها را به اسناد CRM پیوند می‌دهد (بدون هیچ‌گونه عمل INSERT/UPDATE در سپیدار).
