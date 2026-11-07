@@ -1,0 +1,19 @@
+{
+  "track": "dashboard-exec-v1",
+  "gate": "GitHubMergedToMaster",
+  "mergedAtLocalNote": "2026-11-07 after StagingAccepted on isolated ParkPalaceCRM-Stage-DashboardExec :51025",
+  "pullRequest": "https://github.com/javad949/ParkPalace/pull/1",
+  "mergeCommitSha": "5d11855de410a5f1d022ab2e73dafb3357dd6e60",
+  "sourceBranch": "dashboard-exec-v1-staging-accept",
+  "targetBranch": "master",
+  "deploy_allowed": false,
+  "productionTouched": false,
+  "stageV1024Touched": false,
+  "isolatedSite": "ParkPalaceCRM-Stage-DashboardExec",
+  "isolatedPort": 51025,
+  "outOfScopeUntilExplicitRequest": [
+    "Production cutover",
+    "Live Sepidar enablement",
+    "deploy_allowed=true"
+  ]
+}
