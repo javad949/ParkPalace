@@ -1,0 +1,53 @@
+﻿{
+    "ExecuteReady":  false,
+    "Gate":  "ProdDashboardExecV1ProductionPreflightReady",
+    "ProductionMutated":  false,
+    "RemoteEvidence":  "D:\\ParkPlaceCRM\\docs\\runs\\prod_dashboard_exec_v1_production_preflight_20261107_134529.json",
+    "Package":  {
+                    "Dir":  "D:\\ParkPlaceCRM\\packages\\dashboard-exec-v1\\latest",
+                    "ApiZipSha":  "3A2B24F486A914B1A9CAEA47CBCD21FD566342D3DDDBAE8FB4F0B71B4634AD12",
+                    "WebZipSha":  "E1EC83E2AEDC9868AF03CBC5C9517C91617455C406F22C694F07A3B63494856F",
+                    "ApiZipMatch":  true,
+                    "WebZipMatch":  true
+                },
+    "DeployAllowed":  false,
+    "ApprovalCommandTemplate":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\crm_prod_cutover_dashboard_exec_v1_production.ps1 `\n  -ExecuteCutover `\n  -IAcknowledgeProductionCutover \u0027I_ACKNOWLEDGE_PRODUCTION_DASHBOARD_EXEC_CUTOVER\u0027 `\n  -MaintenanceWindowId \u0027\u003cWINDOW_ID\u003e\u0027 `\n  -TakeSqlBackup `\n  -WriteEvidence",
+    "Gates":  [
+                  {
+                      "Detail":  null,
+                      "Name":  "DeployAllowedFalse",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "PackageShaMatch",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "LiveSepidarPresent",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "LiveTelephonyIssabelARI",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "SiteAndPoolStarted",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "ProductionPathsExact",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "SqlReadOnlyOk",
+                      "Passed":  true
+                  }
+              ],
+    "SqlReadOnly":  "1|1|3"
+}

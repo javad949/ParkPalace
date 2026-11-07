@@ -1,0 +1,26 @@
+﻿{
+    "StartedAtUtc":  "2026-11-07T11:04:45.7736967Z",
+    "Mode":  "AdminTelephony_GrantManager_CEO_nAsghari",
+    "ProductionMutated":  true,
+    "MutationScope":  "UserRoles only: SAHAR\\n.asghari += Manager; RolePermissions unchanged",
+    "Remote":  {
+                   "ManagerSensitiveCount":  "3",
+                   "BeforeRoles":  "Admin",
+                   "VerifyManagerStream":  200,
+                   "CallId":  "0F1049EB-8A91-4DB7-A6CC-BEB551C89437",
+                   "AdminStreamBody":  "{\"title\":\"Ø¯Ø³ØªØ±Ø³ÛŒ ØºÛŒØ±Ù…Ø¬Ø§Ø²\",\"status\":403,\"detail\":\"Ø´Ù…Ø§ Ù…Ø¬ÙˆØ² Ø´Ù†ÙˆØ¯ Ù…Ú©Ø§Ù„Ù…Ø§Øª Ø¶Ø¨Ø·â€ŒØ´Ø¯Ù‡ Ø±Ø§ Ù†Ø¯Ø§Ø±ÛŒØ¯.\"}",
+                   "TitleNote":  "CEO / مدیر عامل",
+                   "HadManagerBefore":  false,
+                   "User":  "SAHAR\\n.asghari",
+                   "AdminSensitiveCount":  "0",
+                   "ManagerGranted":  true,
+                   "Passed":  true,
+                   "AfterRoles":  "Admin,Manager",
+                   "VerifyAdminStream":  403,
+                   "PSComputerName":  "crm-mgmt.sahar.loc",
+                   "RunspaceId":  "ba81da1c-27d7-402c-b155-473beeee016c",
+                   "PSShowComputerName":  true
+               },
+    "Gate":  "ProdAdminTelephonyCeoManagerGrantPassed",
+    "FinishedAtUtc":  "2026-11-07T11:04:45.7786967Z"
+}

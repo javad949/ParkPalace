@@ -1,0 +1,25 @@
+{
+  "Note": "Supplemental read-only probes merged into cutover plan; Production not mutated.",
+  "ProductionMutated": false,
+  "DeployAllowed": false,
+  "PackageApiDllSha256_fromZip": "64E20E1397B26026FBD5800050F55078D40EC33742ADDB69B7029A4CDB902134",
+  "StageIsolatedApiDllSha256": "64E20E1397B26026FBD5800050F55078D40EC33742ADDB69B7029A4CDB902134",
+  "ProdApiDllSha256": "7E693A9BDD8BC449BBFA3D037694B86EF46B533BE0DC9C410A36198386B068E0",
+  "ProdWebIndexSha256": "700DCBF3D5C2BF91C8C9EC20C1AAC9FA2DF3991D3328CA8994A44812DF44BC2C",
+  "SepidarConnectionStringsPresent": true,
+  "SepidarConnectionStringLength": 168,
+  "TelephonyProvider": "IssabelARI",
+  "SftpHostPresent": true,
+  "RecordingsPathPresent": true,
+  "SqlReadOnly": {
+    "EmpHist": 1,
+    "FinancePartyLedgerView": 1,
+    "AdminSensitiveApprox": 3,
+    "RolesDisplayNameColumn": 1,
+    "Users": 26,
+    "Calls": 1292
+  },
+  "PrimaryPreflightEvidence": "docs/runs/prod_dashboard_exec_v1_cutover_preflight_readonly_20261107_122324.json",
+  "GateObserved": "ProdDashboardExecV1CutoverPreflightReadOnlyPassed",
+  "PlanDoc": "docs/ParkPalace_DashboardExec_V1_Production_Cutover_Plan_20261107.md"
+}

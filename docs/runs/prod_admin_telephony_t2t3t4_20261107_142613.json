@@ -1,0 +1,54 @@
+﻿{
+    "StartedAtUtc":  "2026-11-07T10:56:13.7832438Z",
+    "Mode":  "AdminTelephony_T2_T3_T4",
+    "ProposalApplied":  {
+                            "DestinationRole":  "Manager",
+                            "GrantedTo":  "SAHAR\\j.asg",
+                            "RemovedFromRole":  "Admin",
+                            "CodesRemoved":  [
+                                                 "Calls.Recordings.Listen",
+                                                 "Calls.RecordingsListen",
+                                                 "Calls.Supervise"
+                                             ],
+                            "NAsghariUnchanged":  true
+                        },
+    "ProductionMutated":  true,
+    "MutationScope":  "UserRoles (j.asg+=Manager; temp Administrator Manager for smoke then removed) + Admin RolePermissions delete 3 Calls.*",
+    "Remote":  {
+                   "CallId":  "0F1049EB-8A91-4DB7-A6CC-BEB551C89437",
+                   "AfterAdminSensitiveCount":  "0",
+                   "BeforeAdminSensitiveCount":  "3",
+                   "T2":  {
+                              "JasgRolesAfter":  "Admin,Manager",
+                              "JasgHadManagerBefore":  false,
+                              "JasgManagerGranted":  true
+                          },
+                   "ManagerSensitiveCount":  "3",
+                   "AdminTempManagerUsed":  true,
+                   "BackupDir":  "D:\\ParkPlaceCRM\\backups\\admin-telephony-t2t4_20261107_142607",
+                   "T4":  {
+                              "AdminSensitiveRemaining":  "0",
+                              "Deleted":  true
+                          },
+                   "T3BeforeRemove":  {
+                                          "AdminStream":  200,
+                                          "ManagerStatus":  200,
+                                          "AdminStatus":  200,
+                                          "ManagerStream":  200,
+                                          "Passed":  true
+                                      },
+                   "PostVerify":  {
+                                      "AdminStreamBody":  "{\"title\":\"Ø¯Ø³ØªØ±Ø³ÛŒ ØºÛŒØ±Ù…Ø¬Ø§Ø²\",\"status\":403,\"detail\":\"Ø´Ù…Ø§ Ù…Ø¬ÙˆØ² Ø´Ù†ÙˆØ¯ Ù…Ú©Ø§Ù„Ù…Ø§Øª Ø¶Ø¨Ø·â€ŒØ´Ø¯Ù‡ Ø±Ø§ Ù†Ø¯Ø§Ø±ÛŒØ¯.\"}",
+                                      "AdminStatus":  200,
+                                      "AdminStream":  403,
+                                      "ManagerStatus":  200,
+                                      "ManagerStream":  200,
+                                      "Passed":  true
+                                  },
+                   "PSComputerName":  "crm-mgmt.sahar.loc",
+                   "RunspaceId":  "ba5d2c72-7c67-4090-858f-1908532041c0",
+                   "PSShowComputerName":  true
+               },
+    "Gate":  "ProdAdminTelephonyT2T3T4Passed",
+    "FinishedAtUtc":  "2026-11-07T10:56:13.7862445Z"
+}

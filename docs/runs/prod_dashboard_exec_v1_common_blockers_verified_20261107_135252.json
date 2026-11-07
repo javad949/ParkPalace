@@ -1,0 +1,22 @@
+﻿{
+    "StartedAtUtc":  "2026-11-07T10:22:52.8874412Z",
+    "Mode":  "CommonBlockersVerified",
+    "ProductionMutated":  false,
+    "ProductionSiteTouched":  false,
+    "DomainTlsHealth":  {
+                            "Url":  "https://crm.sahar.loc/api/health",
+                            "BackupSqlOk":  true,
+                            "SepidarActiveReadOnly":  true,
+                            "HasStopConfirmed":  true,
+                            "HasTrustAll":  false,
+                            "DatabaseConnected":  true,
+                            "HasRollbackVerified":  true,
+                            "HealthStatus":  200,
+                            "HasLoopbackHealth":  false,
+                            "TlsBypassUsed":  false,
+                            "PSComputerName":  "crm-mgmt.sahar.loc",
+                            "RunspaceId":  "0207b766-e092-4360-943a-34336ee84235",
+                            "PSShowComputerName":  true
+                        },
+    "Gate":  "ProdDashboardExecV1CommonBlockersCleared"
+}

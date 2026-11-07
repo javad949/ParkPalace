@@ -1,0 +1,162 @@
+﻿{
+    "StartedAtUtc":  "2026-11-07T10:53:36.4538657Z",
+    "Mode":  "AdminTelephonyT1_ReadOnlyDiscovery",
+    "ProductionMutated":  false,
+    "RolePermissionsMutated":  false,
+    "Remote":  {
+                   "AuditTables":  [
+                                       "crm|CallAudits",
+                                       "crm|PurchaseOrderAudits",
+                                       "dbo|AuditEvents"
+                                   ],
+                   "CandidateRoleNames":  [
+                                              "Manager",
+                                              "OrganizationManager"
+                                          ],
+                   "PermDefs":  [
+                                    "Msg 207, Level 16, State 1, Server CRM, Line 1",
+                                    "Invalid column name \u0027Name\u0027."
+                                ],
+                   "ProductionMutated":  false,
+                   "UsersWithListenViaAnyRole":  [
+                                                     "CRM\\Administrator|???? ???? CRM (Admin)|1|Admin|Calls.Recordings.Listen",
+                                                     "CRM\\Administrator|???? ???? CRM (Admin)|1|Admin|Calls.RecordingsListen",
+                                                     "CRM\\Administrator|???? ???? CRM (Admin)|1|Admin|Calls.Supervise",
+                                                     "SAHAR\\___VMware_Conv_SA___|___VMware_Conv_SA___|1|OrganizationManager|Calls.Recordings.Listen",
+                                                     "SAHAR\\___VMware_Conv_SA___|___VMware_Conv_SA___|1|OrganizationManager|Calls.RecordingsListen",
+                                                     "SAHAR\\a.amiri|???? ?????|1|OrganizationManager|Calls.Recordings.Listen",
+                                                     "SAHAR\\a.amiri|???? ?????|1|OrganizationManager|Calls.RecordingsListen",
+                                                     "SAHAR\\a.mohammadi|?????? ?????|1|Finance|Calls.Recordings.Listen",
+                                                     "SAHAR\\a.mohammadi|?????? ?????|1|Finance|Calls.RecordingsListen",
+                                                     "SAHAR\\a.mohammadi|?????? ?????|1|Warehouse|Calls.Recordings.Listen",
+                                                     "SAHAR\\a.mohammadi|?????? ?????|1|Warehouse|Calls.RecordingsListen",
+                                                     "SAHAR\\a.razmju|???? ?????|1|Warehouse|Calls.Recordings.Listen",
+                                                     "SAHAR\\a.razmju|???? ?????|1|Warehouse|Calls.RecordingsListen",
+                                                     "SAHAR\\a.zarrinkamar|??? ????????|1|Manager|Calls.Recordings.Listen",
+                                                     "SAHAR\\a.zarrinkamar|??? ????????|1|Manager|Calls.RecordingsListen",
+                                                     "SAHAR\\a.zarrinkamar|??? ????????|1|Manager|Calls.Supervise",
+                                                     "SAHAR\\a.zarrinkamar|??? ????????|1|Procurement|Calls.Recordings.Listen",
+                                                     "SAHAR\\a.zarrinkamar|??? ????????|1|Procurement|Calls.RecordingsListen",
+                                                     "SAHAR\\Administrator|???? ???? ????? (Admin)|1|Admin|Calls.Recordings.Listen",
+                                                     "SAHAR\\Administrator|???? ???? ????? (Admin)|1|Admin|Calls.RecordingsListen",
+                                                     "SAHAR\\Administrator|???? ???? ????? (Admin)|1|Admin|Calls.Supervise",
+                                                     "SAHAR\\finance|??????? ????????|1|Finance|Calls.Recordings.Listen",
+                                                     "SAHAR\\finance|??????? ????????|1|Finance|Calls.RecordingsListen",
+                                                     "SAHAR\\h.shashani|???? ???????|1|OrganizationManager|Calls.Recordings.Listen",
+                                                     "SAHAR\\h.shashani|???? ???????|1|OrganizationManager|Calls.RecordingsListen",
+                                                     "SAHAR\\j.asg|???? ??????????? ??????|1|Admin|Calls.Recordings.Listen",
+                                                     "SAHAR\\j.asg|???? ??????????? ??????|1|Admin|Calls.RecordingsListen",
+                                                     "SAHAR\\j.asg|???? ??????????? ??????|1|Admin|Calls.Supervise",
+                                                     "SAHAR\\manager|???? ???? ????????|1|Manager|Calls.Recordings.Listen",
+                                                     "SAHAR\\manager|???? ???? ????????|1|Manager|Calls.RecordingsListen",
+                                                     "SAHAR\\manager|???? ???? ????????|1|Manager|Calls.Supervise",
+                                                     "SAHAR\\n.asghari|???? ?????|1|Admin|Calls.Recordings.Listen",
+                                                     "SAHAR\\n.asghari|???? ?????|1|Admin|Calls.RecordingsListen",
+                                                     "SAHAR\\n.asghari|???? ?????|1|Admin|Calls.Supervise",
+                                                     "SAHAR\\n.bagheri|?????? ?????|1|Finance|Calls.Recordings.Listen",
+                                                     "SAHAR\\n.bagheri|?????? ?????|1|Finance|Calls.RecordingsListen",
+                                                     "SAHAR\\procurement|??????? ???????|1|Procurement|Calls.Recordings.Listen",
+                                                     "SAHAR\\procurement|??????? ???????|1|Procurement|Calls.RecordingsListen",
+                                                     "SAHAR\\s.alipour|???? ??????|1|Finance|Calls.Recordings.Listen",
+                                                     "SAHAR\\s.alipour|???? ??????|1|Finance|Calls.RecordingsListen",
+                                                     "SAHAR\\warehouse|?????? ?????|1|Warehouse|Calls.Recordings.Listen",
+                                                     "SAHAR\\warehouse|?????? ?????|1|Warehouse|Calls.RecordingsListen"
+                                                 ],
+                   "OrgOrManagerUsers":  [
+                                             "SAHAR\\___VMware_Conv_SA___|___VMware_Conv_SA___|1|OrganizationManager",
+                                             "SAHAR\\a.amiri|???? ?????|1|OrganizationManager",
+                                             "SAHAR\\a.zarrinkamar|??? ????????|1|Manager",
+                                             "SAHAR\\h.shashani|???? ???????|1|OrganizationManager",
+                                             "SAHAR\\manager|???? ???? ????????|1|Manager"
+                                         ],
+                   "RecentListen":  {
+                                        "Columns":  [
+                                                        "Id",
+                                                        "CallRecordId",
+                                                        "Action",
+                                                        "PerformedBy",
+                                                        "TimestampUtc",
+                                                        "DetailsJson",
+                                                        "CreatedAtUtc",
+                                                        "UpdatedAtUtc",
+                                                        "RowVersion"
+                                                    ],
+                                        "Sample":  [
+                                                       "Msg 208, Level 16, State 1, Server CRM, Line 1",
+                                                       "Invalid object name \u0027dbo.CallAudits\u0027."
+                                                   ]
+                                    },
+                   "SensitiveByRole":  [
+                                           "Admin|Calls.Recordings.Listen",
+                                           "Admin|Calls.RecordingsListen",
+                                           "Admin|Calls.Supervise",
+                                           "Finance|Calls.Recordings.Listen",
+                                           "Finance|Calls.RecordingsListen",
+                                           "Manager|Calls.Recordings.Listen",
+                                           "Manager|Calls.RecordingsListen",
+                                           "Manager|Calls.Supervise",
+                                           "OrganizationManager|Calls.Recordings.Listen",
+                                           "OrganizationManager|Calls.RecordingsListen",
+                                           "Procurement|Calls.Recordings.Listen",
+                                           "Procurement|Calls.RecordingsListen",
+                                           "Warehouse|Calls.Recordings.Listen",
+                                           "Warehouse|Calls.RecordingsListen"
+                                       ],
+                   "AdminUsers":  [
+                                      "CRM\\Administrator|???? ???? CRM (Admin)|1|Admin",
+                                      "SAHAR\\Administrator|???? ???? ????? (Admin)|1|Admin",
+                                      "SAHAR\\j.asg|???? ??????????? ??????|1|Admin",
+                                      "SAHAR\\n.asghari|???? ?????|1|Admin"
+                                  ],
+                   "RolesCatalog":  [
+                                        "Admin|43|4",
+                                        "Finance|22|4",
+                                        "Manager|27|2",
+                                        "OrganizationManager|13|3",
+                                        "Procurement|32|2",
+                                        "Warehouse|16|3"
+                                    ],
+                   "PSComputerName":  "crm-mgmt.sahar.loc",
+                   "RunspaceId":  "8b39e9be-cadf-42df-ab7c-cfaffbf6d262",
+                   "PSShowComputerName":  true
+               },
+    "Gate":  "ProdAdminTelephonyT1DiscoveryReady",
+    "FinishedAtUtc":  "2026-11-07T10:53:36.4568664Z",
+    "Analysis":  {
+                     "SensitiveListenRoles":  [
+                                                  "Admin",
+                                                  "Finance",
+                                                  "Manager",
+                                                  "OrganizationManager",
+                                                  "Procurement",
+                                                  "Warehouse"
+                                              ],
+                     "SuperviseRolesOnly":  [
+                                                "Admin",
+                                                "Manager"
+                                            ],
+                     "AdminOnlyListenUsersWouldLoseAccess":  [
+                                                                 "CRM\\Administrator",
+                                                                 "SAHAR\\Administrator",
+                                                                 "SAHAR\\j.asg",
+                                                                 "SAHAR\\n.asghari"
+                                                             ],
+                     "RecentRecordingAccessedActors":  [
+                                                           "CRM\\Administrator",
+                                                           "SAHAR\\j.asg"
+                                                       ],
+                     "ProposedDestinationRole":  "Manager",
+                     "ProposedDestinationRoleRationale":  "Already has Calls.RecordingsListen, Calls.Recordings.Listen, and Calls.Supervise. Avoids new role until least-privilege CallSupervisor is approved.",
+                     "ProposedPeopleNeedingAlternatePath":  [
+                                                                "SAHAR\\j.asg"
+                                                            ],
+                     "ProposedPeopleNeedBusinessConfirm":  [
+                                                               "SAHAR\\n.asghari"
+                                                           ],
+                     "ProposedTechnicalAdminsShouldLoseListen":  [
+                                                                     "CRM\\Administrator",
+                                                                     "SAHAR\\Administrator"
+                                                                 ],
+                     "NextBlockedUntil":  "Human confirm of role+people before T2 grant"
+                 }
+}

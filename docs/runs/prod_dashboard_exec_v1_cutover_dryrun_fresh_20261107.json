@@ -1,0 +1,87 @@
+﻿{
+    "Remote":  {
+                   "TimestampUtc":  "2026-11-07T10:00:25.9924995Z",
+                   "Mode":  "DryRunReview",
+                   "PackageId":  "dashboard-exec-v1",
+                   "DeployAllowed":  false,
+                   "ExecuteReady":  false,
+                   "ProductionExecuteAvailableInThisRevision":  false,
+                   "ProductionSiteTouched":  false,
+                   "ProductionMutated":  false,
+                   "RunnerKind":  "DryRunReview_PlusIsolatedExecutableLogic",
+                   "PlanDoc":  "docs/ParkPalace_DashboardExec_V1_Production_Cutover_Plan_20261107.md",
+                   "DayOfChecklistDoc":  "docs/ParkPalace_DashboardExec_V1_Production_Cutover_DayOf_Checklist_20261107.md",
+                   "AdminTelephonyDecisionDoc":  "docs/ParkPalace_Admin_Telephony_Sensitive_Permissions_Decision_20261107.md",
+                   "AdminCallsPermissionsOutOfScope":  true,
+                   "OfflineRollbackNote":  "Isolated success/failure drills do not replace release-window Production rollback.",
+                   "CanonicalRoutes":  {
+                                           "Health":  "/api/health",
+                                           "Me":  "/api/me",
+                                           "NotHealth":  "/api/v1/health",
+                                           "NotMe":  "/api/v1/me"
+                                       },
+                   "UniqueBackupPlan":  {
+                                            "Stamp":  "20261107_133025",
+                                            "Token":  "e53ab996",
+                                            "BackupDir":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_133025_e53ab996",
+                                            "SqlBakPath":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_133025_e53ab996\\ParkPalaceCRM_COPY_ONLY_20261107_133025_e53ab996.bak",
+                                            "ApiMirror":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_133025_e53ab996\\files_api",
+                                            "WebMirror":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_133025_e53ab996\\files_web",
+                                            "ConfigSnapshot":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_133025_e53ab996\\config_snapshot",
+                                            "PriorApiRename":  "D:\\ParkPlaceCRM\\api.bak_dashboardexec_20261107_133025_e53ab996",
+                                            "PriorWebRename":  "D:\\ParkPlaceCRM\\web.bak_dashboardexec_20261107_133025_e53ab996",
+                                            "StagingApiExtract":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_133025_e53ab996\\extract_api",
+                                            "StagingWebExtract":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_133025_e53ab996\\extract_web",
+                                            "EvidenceName":  "prod_dashboard_exec_v1_cutover_runner_20261107_133025.json"
+                                        },
+                   "ImplementationComplete":  {
+                                                  "SqlBackupFunction":  true,
+                                                  "ZipExtractAndSwap":  true,
+                                                  "PreserveLiveSettings":  true,
+                                                  "AutoRollback":  true,
+                                                  "IsolatedSuccessDrill":  true,
+                                                  "IsolatedFailureDrill":  true,
+                                                  "ProductionExecuteInThisRevision":  false
+                                              },
+                   "Package":  {
+                                   "Dir":  "D:\\ParkPlaceCRM\\packages\\dashboard-exec-v1\\latest",
+                                   "ManifestDeployAllowed":  false,
+                                   "ApiZipSha":  "3A2B24F486A914B1A9CAEA47CBCD21FD566342D3DDDBAE8FB4F0B71B4634AD12",
+                                   "WebZipSha":  "E1EC83E2AEDC9868AF03CBC5C9517C91617455C406F22C694F07A3B63494856F",
+                                   "ApiZipMatch":  true,
+                                   "WebZipMatch":  true
+                               },
+                   "ProductionFingerprint":  {
+                                                 "ApiDllSha":  "7E693A9BDD8BC449BBFA3D037694B86EF46B533BE0DC9C410A36198386B068E0",
+                                                 "LiveConfigBefore":  {
+                                                                          "Exists":  true,
+                                                                          "SepidarCsPresent":  true,
+                                                                          "SepidarCsLength":  168,
+                                                                          "CrmCsPresent":  true,
+                                                                          "TelephonyProvider":  "IssabelARI",
+                                                                          "TelephonyIsLiveHint":  true,
+                                                                          "SftpHostPresent":  true,
+                                                                          "RecordingsPathPresent":  true
+                                                                      },
+                                                 "ExpectedPostDeployApiDll":  "64E20E1397B26026FBD5800050F55078D40EC33742ADDB69B7029A4CDB902134",
+                                                 "IsProductionApiPath":  true
+                                             },
+                   "Iis":  {
+                               "Site":  "ParkPalaceCRM",
+                               "State":  "Started",
+                               "PhysicalPath":  "D:\\ParkPlaceCRM\\web",
+                               "AppPool":  "ParkPalaceCRM",
+                               "AppPoolState":  "Started"
+                           },
+                   "SqlReadOnly":  "1|1",
+                   "Gate":  "ProdDashboardExecV1CutoverDryRunReviewReady",
+                   "Message":  "DryRun review only. Executable install/rollback proven via isolated drills; Production Execute structurally locked; deploy_allowed=false.",
+                   "FinishedAtUtc":  "2026-11-07T10:00:26.5237504Z"
+               },
+    "Gate":  "ProdDashboardExecV1CutoverDryRunReviewReady",
+    "ExecuteReady":  false,
+    "CopiedFromRemote":  "D:\\ParkPlaceCRM\\docs\\runs\\prod_dashboard_exec_v1_cutover_runner_20261107_133025.json",
+    "ProductionExecuteAvailableInThisRevision":  false,
+    "ProductionMutated":  false,
+    "DeployAllowed":  false
+}

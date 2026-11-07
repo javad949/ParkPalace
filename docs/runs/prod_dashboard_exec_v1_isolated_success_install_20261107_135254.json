@@ -1,0 +1,43 @@
+﻿{
+    "TimestampUtc":  "2026-11-07T10:22:54.4978059Z",
+    "Mode":  "IsolatedSuccessDrill",
+    "DeployAllowed":  false,
+    "ExecuteReady":  false,
+    "ProductionExecuteAvailableInThisRevision":  false,
+    "ProductionSiteTouched":  false,
+    "ProductionMutated":  false,
+    "IsolatedRoot":  "D:\\Antigravity\\ParkPlace\\artifacts\\dashboard_exec_v1_cutover_drill\\drill_20261107_135253_879d47a0",
+    "UniqueBackupPlan":  {
+                             "BackupDir":  "D:\\Antigravity\\ParkPlace\\artifacts\\dashboard_exec_v1_cutover_drill\\drill_20261107_135253_879d47a0\\backups\\cutover_20261107_135254_c1508c0b",
+                             "Token":  "c1508c0b",
+                             "Stamp":  "20261107_135254"
+                         },
+    "ExecutionSteps":  [
+                           "Backup-file-mirrors",
+                           "SKIP-SQL-backup (isolated drill)",
+                           "SKIP-IIS (isolated drill)",
+                           "Rename-live-to-Prior",
+                           "Extract-ZIPs-to-staging",
+                           "Promote-staging-to-live-paths",
+                           "Restore-live-appsettings-over-package",
+                           "Assert-LiveConfigPreserved",
+                           "PostInstall-Smoke"
+                       ],
+    "ExecutionError":  null,
+    "ExecutionSucceeded":  true,
+    "ExecutionRolledBack":  false,
+    "Verification":  {
+                         "Succeeded":  true,
+                         "RolledBack":  false,
+                         "PackageMarkerPresent":  true,
+                         "PriorMarkerGone":  true,
+                         "LiveSepidarStillPresent":  true,
+                         "TelephonyStillIssabelARI":  true,
+                         "WebIndexIsPackage":  true
+                     },
+    "RunnerKind":  "ExecutableLogic_IsolatedDrillsOnly",
+    "Gate":  "ProdDashboardExecV1IsolatedSuccessInstallPassed",
+    "AdminCallsPermissionsOutOfScope":  true,
+    "Note":  "Isolated drill only. Production -ExecuteCutover is structurally unavailable in this revision.",
+    "FinishedAtUtc":  "2026-11-07T10:22:54.5028070Z"
+}

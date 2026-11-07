@@ -1,0 +1,26 @@
+{
+  "Mode": "DashboardExecV1_TrackClosed",
+  "StartedAtUtc": "2026-11-07T11:07:00Z",
+  "ProductionMutated": false,
+  "FinalVerify": {
+    "AdminSensitiveCallsCount": 0,
+    "ManagerSensitiveCallsCount": 3,
+    "PeopleRoles": [
+      "SAHAR\\j.asg|Admin,Manager",
+      "SAHAR\\n.asghari|Admin,Manager"
+    ],
+    "ApiDllSha256": "64E20E1397B26026FBD5800050F55078D40EC33742ADDB69B7029A4CDB902134",
+    "HealthStatus": 200,
+    "HealthOk": true
+  },
+  "ClosedGates": [
+    "ProdDashboardExecV1ProductionExecutePassed",
+    "ProdDashboardExecV1ProductionPostCutoverVerified",
+    "ProdDashboardExecV1ProductionE3E10Passed",
+    "ProdAdminTelephonyT2T3T4Passed",
+    "ProdAdminTelephonyCeoManagerGrantPassed"
+  ],
+  "GitTag": "dashboard-exec-v1-production-accepted",
+  "Gate": "ProdDashboardExecV1TrackClosed",
+  "FinishedAtUtc": "2026-11-07T11:07:00Z"
+}

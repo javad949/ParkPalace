@@ -1,0 +1,41 @@
+﻿{
+    "TimestampUtc":  "2026-11-07T09:49:47.2445347Z",
+    "Mode":  "IsolatedFailureDrill",
+    "DeployAllowed":  false,
+    "ExecuteReady":  false,
+    "AllowProductionExecute":  false,
+    "ProductionSiteTouched":  false,
+    "ProductionMutated":  false,
+    "IsolatedRoot":  "D:\\Antigravity\\ParkPlace\\artifacts\\dashboard_exec_v1_cutover_drill\\drill_20261107_131946_23c6acd2",
+    "UniqueBackupPlan":  {
+                             "BackupDir":  "D:\\Antigravity\\ParkPlace\\artifacts\\dashboard_exec_v1_cutover_drill\\drill_20261107_131946_23c6acd2\\backups\\cutover_20261107_131946_caa66909",
+                             "Token":  "caa66909",
+                             "Stamp":  "20261107_131946"
+                         },
+    "ExecutionSteps":  [
+                           "Backup-file-mirrors",
+                           "SKIP-SQL-backup (isolated drill)",
+                           "SKIP-IIS (isolated drill)",
+                           "Rename-live-to-Prior",
+                           "Extract-ZIPs-to-staging",
+                           "Promote-staging-to-live-paths",
+                           "Restore-live-appsettings-over-package",
+                           "Assert-LiveConfigPreserved",
+                           "PostInstall-Smoke",
+                           "AUTO-ROLLBACK"
+                       ],
+    "ExecutionError":  "Post-install smoke failed: ForceSmokeFail for isolated rollback drill",
+    "ExecutionSucceeded":  false,
+    "ExecutionRolledBack":  true,
+    "RollbackVerification":  {
+                                 "RolledBack":  true,
+                                 "ApiMarkerRestored":  true,
+                                 "PackageOnlyMarkerRemoved":  true,
+                                 "LiveSepidarStillPresent":  true,
+                                 "TelephonyStillIssabelARI":  true
+                             },
+    "RunnerKind":  "ExecutableLogicPresent_IsolatedOnly",
+    "Gate":  "ProdDashboardExecV1IsolatedFailureRollbackPassed",
+    "Note":  "Isolated drill exercises real extract/swap/preserve/rollback. Production Execute remains locked.",
+    "FinishedAtUtc":  "2026-11-07T09:49:47.2495359Z"
+}

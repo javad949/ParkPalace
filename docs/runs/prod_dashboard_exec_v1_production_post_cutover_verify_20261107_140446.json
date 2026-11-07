@@ -1,0 +1,36 @@
+﻿{
+    "StartedAtUtc":  "2026-11-07T10:34:46.3787091Z",
+    "Mode":  "ProductionPostCutoverVerifyReadOnly",
+    "ProductionMutated":  false,
+    "Checklist":  {
+                      "C1_EvidenceRegistered":  true,
+                      "C2_DeployAllowedFalse":  true,
+                      "C3_AdminCallsTripletUntouched":  true,
+                      "E1_Health":  true,
+                      "E2_Me":  true,
+                      "DllMatch":  true,
+                      "LiveConfigPreserved":  true
+                  },
+    "Remote":  {
+                   "ApiDllSha":  "64E20E1397B26026FBD5800050F55078D40EC33742ADDB69B7029A4CDB902134",
+                   "HealthDatabaseConnected":  true,
+                   "SepidarCsPresent":  true,
+                   "SiteState":  "Started",
+                   "TelephonyProvider":  "IssabelARI",
+                   "SqlFinancePartyLedgerView":  "1",
+                   "HealthSepidarActiveRO":  true,
+                   "MeStatus":  200,
+                   "ExecuteGate":  "ProdDashboardExecV1ProductionExecutePassed",
+                   "ExecuteEvidence":  "D:\\ParkPlaceCRM\\docs\\runs\\prod_dashboard_exec_v1_production_execute_20261107_140033.json",
+                   "HealthStatus":  200,
+                   "SqlAdminCallsTripletCount":  "3",
+                   "DeployAllowed":  false,
+                   "AppPoolState":  "Started",
+                   "ApiDllMatchExpected":  true,
+                   "PSComputerName":  "crm-mgmt.sahar.loc",
+                   "RunspaceId":  "67f9d614-d628-4aa8-918e-86d7a1338ef4",
+                   "PSShowComputerName":  true
+               },
+    "Gate":  "ProdDashboardExecV1ProductionPostCutoverVerified",
+    "FinishedAtUtc":  "2026-11-07T10:34:46.3813591Z"
+}

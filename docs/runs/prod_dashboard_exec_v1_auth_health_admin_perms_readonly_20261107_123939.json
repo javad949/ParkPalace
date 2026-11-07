@@ -1,0 +1,85 @@
+﻿{
+    "StartedAtUtc":  "2026-11-07T09:09:39.2509138Z",
+    "Mode":  "AuthenticatedHealthAndAdminSensitiveExactReadOnly",
+    "ProductionMutated":  false,
+    "DeployAllowed":  false,
+    "ExecuteReady":  false,
+    "HealthRouteInCode":  "api/health (+ alias health); NOT api/v1/health",
+    "Remote":  {
+                   "AdminFinanceCallsInvoiceMatchingExact":  [
+                                                                 "Calls.Config",
+                                                                 "Calls.Manage",
+                                                                 "Calls.Recordings.Listen",
+                                                                 "Calls.RecordingsListen",
+                                                                 "Calls.Supervise",
+                                                                 "Calls.View"
+                                                             ],
+                   "WhoAmI":  "crm\\administrator",
+                   "HealthProbes":  [
+                                        {
+                                            "AuthMode":  "Anonymous",
+                                            "Body":  "{\"status\":\"Healthy\",\"service\":\"ParkPalace Procurement CRM API\",\"version\":\"1.0.0\",\"serverTimeUtc\":\"2026-11-07T09:09:36.2025133Z\",\"databaseConnected\":true,\"sepidarIntegrationStatus\":\"Active (Read-Only)\"}",
+                                            "Url":  "https://crm.sahar.loc/api/health",
+                                            "StatusCode":  200
+                                        },
+                                        {
+                                            "AuthMode":  "DefaultCredentials",
+                                            "Body":  "{\"status\":\"Healthy\",\"service\":\"ParkPalace Procurement CRM API\",\"version\":\"1.0.0\",\"serverTimeUtc\":\"2026-11-07T09:09:36.2331702Z\",\"databaseConnected\":true,\"sepidarIntegrationStatus\":\"Active (Read-Only)\"}",
+                                            "Url":  "https://crm.sahar.loc/api/health",
+                                            "StatusCode":  200
+                                        },
+                                        {
+                                            "AuthMode":  "Anonymous",
+                                            "Body":  "{\"status\":\"Healthy\",\"service\":\"ParkPalace Procurement CRM API\",\"version\":\"1.0.0\",\"serverTimeUtc\":\"2026-11-07T09:09:36.264377Z\",\"databaseConnected\":true,\"sepidarIntegrationStatus\":\"Active (Read-Only)\"}",
+                                            "Url":  "https://127.0.0.1/api/health",
+                                            "StatusCode":  200
+                                        },
+                                        {
+                                            "AuthMode":  "DefaultCredentials",
+                                            "Body":  "{\"status\":\"Healthy\",\"service\":\"ParkPalace Procurement CRM API\",\"version\":\"1.0.0\",\"serverTimeUtc\":\"2026-11-07T09:09:36.2733673Z\",\"databaseConnected\":true,\"sepidarIntegrationStatus\":\"Active (Read-Only)\"}",
+                                            "Url":  "https://127.0.0.1/api/health",
+                                            "StatusCode":  200
+                                        },
+                                        {
+                                            "AuthMode":  "Anonymous",
+                                            "Error":  "The remote server returned an error: (404) Not Found.",
+                                            "Url":  "http://127.0.0.1/api/health",
+                                            "StatusCode":  404
+                                        },
+                                        {
+                                            "AuthMode":  "DefaultCredentials",
+                                            "Error":  "The remote server returned an error: (404) Not Found.",
+                                            "Url":  "http://127.0.0.1/api/health",
+                                            "StatusCode":  404
+                                        },
+                                        {
+                                            "AuthMode":  "Anonymous",
+                                            "Error":  "The remote server returned an error: (401) Unauthorized.",
+                                            "Url":  "https://crm.sahar.loc/api/v1/health",
+                                            "StatusCode":  401
+                                        },
+                                        {
+                                            "AuthMode":  "DefaultCredentials",
+                                            "Error":  "The remote server returned an error: (404) Not Found.",
+                                            "Url":  "https://crm.sahar.loc/api/v1/health",
+                                            "StatusCode":  404
+                                        }
+                                    ],
+                   "ProductionMutated":  false,
+                   "AdminUsers":  [
+                                      "CRM\\Administrator|0|0",
+                                      "SAHAR\\Administrator|0|0",
+                                      "SAHAR\\j.asg|0|0",
+                                      "SAHAR\\n.asghari|0|0"
+                                  ],
+                   "Counts":  "43|3|1",
+                   "AdminSensitiveExactRows":  [
+                                                   "Calls.Recordings.Listen|Telephony|???? ? ?????? ???????? ???? ??????? ??? ???",
+                                                   "Calls.RecordingsListen|Telephony|???? ? ?????? ???????? ???? ??????? ??? ???",
+                                                   "Calls.Supervise|Telephony|????? ??????? ? ?????????? ???????? ???? ?????"
+                                               ],
+                   "PSComputerName":  "crm-mgmt.sahar.loc",
+                   "RunspaceId":  "91c1e7d0-66b9-45bd-9cef-e3db860eaa9b",
+                   "PSShowComputerName":  true
+               }
+}

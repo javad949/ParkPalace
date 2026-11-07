@@ -1,0 +1,38 @@
+﻿{
+    "StartedAtUtc":  "2026-11-07T10:22:14.6765363Z",
+    "Mode":  "IsolatedSqlBackupVerify",
+    "ProductionMutated":  false,
+    "ProductionSiteTouched":  false,
+    "ThrowawayDb":  "ParkPalaceCRM_CutoverBackupProbe_20261107",
+    "SqlInstance":  "localhost",
+    "Remote":  {
+                   "BakPathWas":  "D:\\ParkPlaceCRM\\backups\\isolated-sql-probe\\ParkPalaceCRM_CutoverBackupProbe_20261107_99649e61.bak",
+                   "BackupSha256":  [
+                                        "11 percent processed.",
+                                        "20 percent processed.",
+                                        "31 percent processed.",
+                                        "40 percent processed.",
+                                        "52 percent processed.",
+                                        "61 percent processed.",
+                                        "70 percent processed.",
+                                        "81 percent processed.",
+                                        "90 percent processed.",
+                                        "100 percent processed.",
+                                        "Processed 368 pages for database \u0027ParkPalaceCRM_CutoverBackupProbe_20261107\u0027, file \u0027ParkPalaceCRM_CutoverBackupProbe_20261107\u0027 on file 1.",
+                                        "Processed 1 pages for database \u0027ParkPalaceCRM_CutoverBackupProbe_20261107\u0027, file \u0027ParkPalaceCRM_CutoverBackupProbe_20261107_log\u0027 on file 1.",
+                                        "BACKUP DATABASE successfully processed 369 pages in 0.055 seconds (52.299 MB/sec).",
+                                        "994556259198E8D286A17B8F0B0D4A49EB838540E010B6AED19A53A9C05DC00E"
+                                    ],
+                   "SqlTextOk":  true,
+                   "ProductionDbTouched":  false,
+                   "BackupError":  null,
+                   "BakDeleted":  true,
+                   "ThrowawayDbDropped":  true,
+                   "BackupOk":  false,
+                   "PSComputerName":  "crm-mgmt.sahar.loc",
+                   "RunspaceId":  "876ff29b-b6e1-47a3-af9b-3259a8cfdc3b",
+                   "PSShowComputerName":  true
+               },
+    "Gate":  "ProdDashboardExecV1IsolatedSqlBackupFailed",
+    "FinishedAtUtc":  "2026-11-07T10:22:17.7999608Z"
+}

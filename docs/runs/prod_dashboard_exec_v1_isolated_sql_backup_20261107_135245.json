@@ -1,0 +1,23 @@
+﻿{
+    "StartedAtUtc":  "2026-11-07T10:22:46.1580156Z",
+    "Mode":  "IsolatedSqlBackupVerify",
+    "ProductionMutated":  false,
+    "ProductionSiteTouched":  false,
+    "ThrowawayDb":  "ParkPalaceCRM_CutoverBackupProbe_20261107",
+    "SqlInstance":  "localhost",
+    "Remote":  {
+                   "BakPathWas":  "D:\\ParkPlaceCRM\\backups\\isolated-sql-probe\\ParkPalaceCRM_CutoverBackupProbe_20261107_c31a19a2.bak",
+                   "BackupSha256":  "261FCF36B59FD5DF0C21CE2F51F813A0ECFD1F69FA5669B85C0F64188DD1E98B",
+                   "SqlTextOk":  true,
+                   "ProductionDbTouched":  false,
+                   "BackupError":  null,
+                   "BakDeleted":  true,
+                   "ThrowawayDbDropped":  true,
+                   "BackupOk":  true,
+                   "PSComputerName":  "crm-mgmt.sahar.loc",
+                   "RunspaceId":  "9970f5d7-5147-4224-abdd-20474d3cf68d",
+                   "PSShowComputerName":  true
+               },
+    "Gate":  "ProdDashboardExecV1IsolatedSqlBackupPassed",
+    "FinishedAtUtc":  "2026-11-07T10:22:49.1820672Z"
+}

@@ -1,0 +1,154 @@
+﻿{
+    "TimestampUtc":  "2026-11-07T10:30:33.8220607Z",
+    "Edition":  "Production",
+    "Mode":  "ExecuteCutover",
+    "PackageId":  "dashboard-exec-v1",
+    "DeployAllowed":  false,
+    "ManifestDeployAllowed":  false,
+    "AdminCallsPermissionsOutOfScope":  true,
+    "AdminTelephonyDecisionDoc":  "docs/ParkPalace_Admin_Telephony_Sensitive_Permissions_Decision_20261107.md",
+    "DecisionPackageDoc":  "docs/ParkPalace_DashboardExec_V1_Cutover_Decision_Package_20261107.md",
+    "DayOfChecklistDoc":  "docs/ParkPalace_DashboardExec_V1_Production_Cutover_DayOf_Checklist_20261107.md",
+    "CanonicalRoutes":  {
+                            "Me":  "/api/me",
+                            "Health":  "/api/health"
+                        },
+    "UniqueBackupPlan":  {
+                             "Stamp":  "20261107_140033",
+                             "Token":  "3cad48d5",
+                             "BackupDir":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_140033_3cad48d5",
+                             "SqlBakPath":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_140033_3cad48d5\\ParkPalaceCRM_COPY_ONLY_20261107_140033_3cad48d5.bak",
+                             "ApiMirror":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_140033_3cad48d5\\files_api",
+                             "WebMirror":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_140033_3cad48d5\\files_web",
+                             "ConfigSnapshot":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_140033_3cad48d5\\config_snapshot",
+                             "PriorApiRename":  "D:\\ParkPlaceCRM\\api.bak_dashboardexec_20261107_140033_3cad48d5",
+                             "PriorWebRename":  "D:\\ParkPlaceCRM\\web.bak_dashboardexec_20261107_140033_3cad48d5",
+                             "StagingApiExtract":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_140033_3cad48d5\\extract_api",
+                             "StagingWebExtract":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_140033_3cad48d5\\extract_web",
+                             "EvidenceName":  "prod_dashboard_exec_v1_cutover_runner_20261107_140033.json"
+                         },
+    "Package":  {
+                    "Dir":  "D:\\ParkPlaceCRM\\packages\\dashboard-exec-v1\\latest",
+                    "ApiZipSha":  "3A2B24F486A914B1A9CAEA47CBCD21FD566342D3DDDBAE8FB4F0B71B4634AD12",
+                    "WebZipSha":  "E1EC83E2AEDC9868AF03CBC5C9517C91617455C406F22C694F07A3B63494856F",
+                    "ApiZipMatch":  true,
+                    "WebZipMatch":  true
+                },
+    "ProductionFingerprint":  {
+                                  "ApiPath":  "D:\\ParkPlaceCRM\\api",
+                                  "WebPath":  "D:\\ParkPlaceCRM\\web",
+                                  "ApiDllSha":  "7E693A9BDD8BC449BBFA3D037694B86EF46B533BE0DC9C410A36198386B068E0",
+                                  "ExpectedPostDeployApiDll":  "64E20E1397B26026FBD5800050F55078D40EC33742ADDB69B7029A4CDB902134",
+                                  "LiveConfigBefore":  {
+                                                           "Exists":  true,
+                                                           "SepidarCsPresent":  true,
+                                                           "SepidarCsLength":  168,
+                                                           "CrmCsPresent":  true,
+                                                           "TelephonyProvider":  "IssabelARI",
+                                                           "TelephonyIsLiveHint":  true,
+                                                           "SftpHostPresent":  true,
+                                                           "RecordingsPathPresent":  true
+                                                       },
+                                  "SiteState":  "Started",
+                                  "AppPoolState":  "Started"
+                              },
+    "Gates":  [
+                  {
+                      "Detail":  null,
+                      "Name":  "DeployAllowedFalse",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "PackageShaMatch",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "LiveSepidarPresent",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "LiveTelephonyIssabelARI",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "SiteAndPoolStarted",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "ProductionPathsExact",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "SqlReadOnlyOk",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "AckPhraseExact",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "MaintenanceWindowIdPresent",
+                      "Passed":  true
+                  },
+                  {
+                      "Detail":  null,
+                      "Name":  "PreflightStillGreen",
+                      "Passed":  true
+                  }
+              ],
+    "SqlReadOnly":  "1|1|3",
+    "MaintenanceWindowId":  "2026-11-07-dashboard-exec",
+    "Execution":  {
+                      "Steps":  [
+                                    "Backup-file-mirrors",
+                                    "BACKUP-DATABASE-COPY_ONLY",
+                                    "Stop-WebAppPool",
+                                    "AppPool-Stopped-confirmed",
+                                    "Rename-live-to-Prior",
+                                    "Extract-ZIPs-to-staging",
+                                    "Promote-staging-to-live-paths",
+                                    "Restore-live-appsettings-over-package",
+                                    "Assert-LiveConfigPreserved",
+                                    "Start-WebAppPool",
+                                    "PostInstall-Smoke"
+                                ],
+                      "Succeeded":  true,
+                      "RolledBack":  false,
+                      "Error":  null,
+                      "RollbackError":  null,
+                      "SqlBakPath":  "D:\\ParkPlaceCRM\\backups\\prod-dashboard-exec-v1\\cutover_20261107_140033_3cad48d5\\ParkPalaceCRM_COPY_ONLY_20261107_140033_3cad48d5.bak",
+                      "SqlBakSha256":  "134323C31207832F798A1D317BA2B39281F454FC33A6A22B99778AC2C0CFF931",
+                      "Smoke":  {
+                                    "Mode":  "Http",
+                                    "ApiDllSha":  "64E20E1397B26026FBD5800050F55078D40EC33742ADDB69B7029A4CDB902134",
+                                    "ApiDllMatchExpected":  true,
+                                    "Health":  {
+                                                   "Url":  "https://crm.sahar.loc/api/health",
+                                                   "StatusCode":  200,
+                                                   "BodyPreview":  "{\"status\":\"Healthy\",\"service\":\"ParkPalace Procurement CRM API\",\"version\":\"1.0.0\",\"serverTimeUtc\":\"2026-11-07T10:31:01.7341594Z\",\"databaseConnected\":true,\"sepidarIntegrationStatus\":\"Active (Read-Only)\"}",
+                                                   "DatabaseConnected":  true,
+                                                   "SepidarActiveReadOnly":  true,
+                                                   "TlsBypassUsed":  false
+                                               },
+                                    "Me":  {
+                                               "Url":  "https://crm.sahar.loc/api/me",
+                                               "StatusCode":  200
+                                           },
+                                    "Passed":  true,
+                                    "TlsBypassUsed":  false
+                                }
+                  },
+    "ProductionSiteTouched":  true,
+    "ProductionMutated":  true,
+    "Gate":  "ProdDashboardExecV1ProductionExecutePassed",
+    "FinishedAtUtc":  "2026-11-07T10:31:02.3686732Z"
+}
+

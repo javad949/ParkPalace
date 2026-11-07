@@ -1,0 +1,362 @@
+﻿{
+    "StartedAtUtc":  "2026-11-07T10:48:45.1445409Z",
+    "Mode":  "ProductionPostCutover_E3_E10",
+    "ProductionMutated":  true,
+    "MutationScope":  "dbo.UserRoles only (temporary Finance on CRM\\Administrator); RolePermissions untouched; Admin Calls.* untouched",
+    "Checks":  {
+                   "E3":  true,
+                   "E4":  true,
+                   "E5":  true,
+                   "E6":  true,
+                   "E7":  true,
+                   "E8":  true,
+                   "E9":  true,
+                   "E10":  true,
+                   "AdminRolesRestored":  true
+               },
+    "RolesAfterCleanup":  {
+                              "value":  "Admin",
+                              "PSComputerName":  "crm-mgmt.sahar.loc",
+                              "RunspaceId":  "c7fba5e1-b1df-4c9c-b162-f7071ad08f49",
+                              "PSShowComputerName":  true
+                          },
+    "Remote":  {
+                   "E9":  {
+                              "ProcurementOrdersStatus":  200,
+                              "CallsStatus":  200,
+                              "DrillTargetsPresent":  true
+                          },
+                   "E4":  {
+                              "BodyPreview":  "{\"title\":\"Ø¹Ø¯Ù… Ø¯Ø³ØªØ±Ø³ÛŒ\",\"status\":403,\"detail\":\"Ù…Ø§Ù†Ø¯Ù‡/Ø¬Ù…Ø¹ Ø·Ø±Ùâ€ŒØ­Ø³Ø§Ø¨ ÙÙ‚Ø· Ø¨Ø§ Finance.PartyLedgerView Ø¨Ø§Ø² Ø§Ø³ØªØ› AdminØŒ Finance.View ÛŒØ§ Finance.Reco",
+                              "Status":  403
+                          },
+                   "E7Cards":  [
+                                   {
+                                       "Present":  true,
+                                       "DrillTarget":  "financeDashboard",
+                                       "AmountIsNull":  false,
+                                       "ContractId":  "ED-06",
+                                       "DrillQuery":  "side=receivables",
+                                       "Code":  "receivables",
+                                       "Status":  "2",
+                                       "ReasonPreview":  "Ù†ÛŒØ§Ø²Ù…Ù†Ø¯ Ø§Ø¹ØªØ¨Ø§Ø±Ø³Ù†Ø¬ÛŒ: Ø¨Ø§Ø²Ù‡ Ù…Ø¹Ø§Ø¯Ù„ Ø³Ø§Ù„ Ù‚Ø¨Ù„ Ø¨Ø±Ø§ÛŒ Ù…Ø·Ø§Ù„Ø¨Ø§Øª: 3,748,575,652.  Ù…Ø¹ÛŒÙ†â€ŒÙ‡Ø§: 01 Ø­Ø³Ø§Ø¨",
+                                       "Amount":  2612984053.0000
+                                   },
+                                   {
+                                       "Present":  true,
+                                       "DrillTarget":  "financeDashboard",
+                                       "AmountIsNull":  false,
+                                       "ContractId":  "ED-07",
+                                       "DrillQuery":  "side=payables",
+                                       "Code":  "payables",
+                                       "Status":  "2",
+                                       "ReasonPreview":  "Ù†ÛŒØ§Ø²Ù…Ù†Ø¯ Ø§Ø¹ØªØ¨Ø§Ø±Ø³Ù†Ø¬ÛŒ: Ø¨Ø§Ø²Ù‡ Ù…Ø¹Ø§Ø¯Ù„ Ø³Ø§Ù„ Ù‚Ø¨Ù„ Ø¨Ø±Ø§ÛŒ Ø¨Ø¯Ù‡ÛŒ: 242,541,328,420.  Ù…Ø¹ÛŒÙ†â€ŒÙ‡Ø§: 01 Ø­Ø³Ø§Ø¨Ù‡Ø§",
+                                       "Amount":  1423906208619.0000
+                                   },
+                                   {
+                                       "Present":  true,
+                                       "DrillTarget":  "financeDashboard",
+                                       "AmountIsNull":  true,
+                                       "ContractId":  "ED-08",
+                                       "DrillQuery":  null,
+                                       "Code":  "yoy-trade",
+                                       "Status":  "2",
+                                       "ReasonPreview":  "Ù†ÛŒØ§Ø²Ù…Ù†Ø¯ Ø§Ø¹ØªØ¨Ø§Ø±Ø³Ù†Ø¬ÛŒ. Ù…Ø·Ø§Ù„Ø¨Ø§Øª Ø³Ø§Ù„ Ù‚Ø¨Ù„: 3,748,575,652Ø› Ø¨Ø¯Ù‡ÛŒ Ø³Ø§Ù„ Ù‚Ø¨Ù„: 242,541,328,420. Ù…Ù‚Ø§ÛŒØ³Ù‡ Ø¨Ø",
+                                       "Amount":  null
+                                   }
+                               ],
+                   "FinanceGrantedForSmoke":  true,
+                   "E8Cards":  [
+                                   {
+                                       "Present":  true,
+                                       "DrillTarget":  "financeDashboard",
+                                       "AmountIsNull":  true,
+                                       "ContractId":  "ED-11",
+                                       "DrillQuery":  null,
+                                       "Code":  "sepidar-sales",
+                                       "Status":  "3",
+                                       "ReasonPreview":  "Ù‚Ø±Ø§Ø±Ø¯Ø§Ø¯ Ùˆ Ù†Ú¯Ø§Ø´Øª Ù‚Ø·Ø¹ÛŒ Ù†ÙˆØ¹ Ø³Ù†Ø¯ ÙØ±ÙˆØ´ Ø³Ù¾ÛŒØ¯Ø§Ø± ØªØ£ÛŒÛŒØ¯ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.",
+                                       "Amount":  null
+                                   },
+                                   {
+                                       "Present":  true,
+                                       "DrillTarget":  "financeDashboard",
+                                       "AmountIsNull":  true,
+                                       "ContractId":  "ED-12",
+                                       "DrillQuery":  null,
+                                       "Code":  "sepidar-purchases",
+                                       "Status":  "3",
+                                       "ReasonPreview":  "Ø®Ø±ÛŒØ¯ Ù¾ÙˆÙ„ÛŒ Ø³Ù¾ÛŒØ¯Ø§Ø± Ù…Ø³Ø¯ÙˆØ¯ Ø§Ø³ØªØ› Ø­Ø¬Ù… Ø³ÙØ§Ø±Ø´ CRM Ø¬Ø¯Ø§Ú¯Ø§Ù†Ù‡ Ø¯Ø± Ú©Ø§Ø±Øª Ø¹Ù…Ù„ÛŒØ§ØªÛŒ Ø¢Ù…Ø¯Ù‡ Ø§Ø³Øª.",
+                                       "Amount":  null
+                                   },
+                                   {
+                                       "Present":  true,
+                                       "DrillTarget":  "financeDashboard",
+                                       "AmountIsNull":  true,
+                                       "ContractId":  "ED-13",
+                                       "DrillQuery":  null,
+                                       "Code":  "receipts",
+                                       "Status":  "3",
+                                       "ReasonPreview":  "Ú¯Ø±Ø¯Ø´ Ù†Ù‚Ø¯ Ùˆ Ø¨Ø§Ù†Ú© Ø¨Ø§ Ù…Ø§Ù†Ø¯Ù‡ Ø­Ø³Ø§Ø¨ Ø¯Ø±ÛŒØ§ÙØªÙ†ÛŒ ÛŒÚ©ÛŒ Ù†ÛŒØ³Øª Ùˆ Ø¬Ø¯Ø§Ú¯Ø§Ù†Ù‡ Ø®ÙˆØ§Ù†Ø¯Ù‡ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.",
+                                       "Amount":  null
+                                   },
+                                   {
+                                       "Present":  true,
+                                       "DrillTarget":  "financeDashboard",
+                                       "AmountIsNull":  true,
+                                       "ContractId":  "ED-14",
+                                       "DrillQuery":  null,
+                                       "Code":  "payments",
+                                       "Status":  "3",
+                                       "ReasonPreview":  "Ú¯Ø±Ø¯Ø´ Ù†Ù‚Ø¯ Ùˆ Ø¨Ø§Ù†Ú© Ø¨Ø§ Ù…Ø§Ù†Ø¯Ù‡ Ø­Ø³Ø§Ø¨ Ù¾Ø±Ø¯Ø§Ø®ØªÙ†ÛŒ ÛŒÚ©ÛŒ Ù†ÛŒØ³Øª Ùˆ Ø¬Ø¯Ø§Ú¯Ø§Ù†Ù‡ Ø®ÙˆØ§Ù†Ø¯Ù‡ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.",
+                                       "Amount":  null
+                                   },
+                                   {
+                                       "Present":  true,
+                                       "DrillTarget":  "financeDashboard",
+                                       "AmountIsNull":  true,
+                                       "ContractId":  "ED-15",
+                                       "DrillQuery":  null,
+                                       "Code":  "overdue",
+                                       "Status":  "3",
+                                       "ReasonPreview":  "Ø±ÙˆÛŒ ACC.Voucher Ø³ØªÙˆÙ† Ø³Ø±Ø±Ø³ÛŒØ¯ Ù†ÛŒØ³Øª. Ø§ÛŒÙ† Ú©Ø§Ø±Øª ØµÙØ± Ù†Ø´Ø§Ù† Ø¯Ø§Ø¯Ù‡ Ù†Ù…ÛŒâ€ŒØ´ÙˆØ¯.",
+                                       "Amount":  null
+                                   }
+                               ],
+                   "E10":  {
+                               "CallsListStatus":  200,
+                               "AdminCallsTripletCount":  "3"
+                           },
+                   "HadFinanceBefore":  false,
+                   "E3":  {
+                              "Summary":  {
+                                              "HasPartyLedgerView":  false,
+                                              "ActiveRoles":  [
+                                                                  "Admin"
+                                                              ],
+                                              "CanViewOps":  true,
+                                              "AnyAmountOnStubFinanceCards":  false,
+                                              "Cards":  [
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  true,
+                                                                "ContractId":  "ED-06",
+                                                                "DrillQuery":  null,
+                                                                "Code":  "receivables",
+                                                                "Status":  "3",
+                                                                "ReasonPreview":  "Ø¨Ø¯ÙˆÙ† Finance.PartyLedgerView Ø±Ù‚Ù… Ø³Ù¾ÛŒØ¯Ø§Ø± Ù†Ù…Ø§ÛŒØ´ Ø¯Ø§Ø¯Ù‡ Ù†Ù…ÛŒâ€ŒØ´ÙˆØ¯.",
+                                                                "Amount":  null
+                                                            },
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  true,
+                                                                "ContractId":  "ED-07",
+                                                                "DrillQuery":  null,
+                                                                "Code":  "payables",
+                                                                "Status":  "3",
+                                                                "ReasonPreview":  "Ø¨Ø¯ÙˆÙ† Finance.PartyLedgerView Ø±Ù‚Ù… Ø³Ù¾ÛŒØ¯Ø§Ø± Ù†Ù…Ø§ÛŒØ´ Ø¯Ø§Ø¯Ù‡ Ù†Ù…ÛŒâ€ŒØ´ÙˆØ¯.",
+                                                                "Amount":  null
+                                                            },
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  true,
+                                                                "ContractId":  "ED-08",
+                                                                "DrillQuery":  null,
+                                                                "Code":  "yoy-trade",
+                                                                "Status":  "3",
+                                                                "ReasonPreview":  "Ø¨Ø¯ÙˆÙ† Ù…Ø¬ÙˆØ² Ù…Ø§Ù„ÛŒ Ù…Ù‚Ø§ÛŒØ³Ù‡ Ù†Ù…Ø§ÛŒØ´ Ø¯Ø§Ø¯Ù‡ Ù†Ù…ÛŒâ€ŒØ´ÙˆØ¯.",
+                                                                "Amount":  null
+                                                            },
+                                                            {
+                                                                "Present":  false,
+                                                                "ContractId":  "ED-09"
+                                                            },
+                                                            {
+                                                                "Present":  false,
+                                                                "ContractId":  "ED-10"
+                                                            },
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  true,
+                                                                "ContractId":  "ED-11",
+                                                                "DrillQuery":  null,
+                                                                "Code":  "sepidar-sales",
+                                                                "Status":  "3",
+                                                                "ReasonPreview":  "Ù…Ø³Ø¯ÙˆØ¯ â€” Ù†Ú¯Ø§Ø´Øª ÙØ±ÙˆØ´ ØªØ£ÛŒÛŒØ¯ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.",
+                                                                "Amount":  null
+                                                            },
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  true,
+                                                                "ContractId":  "ED-12",
+                                                                "DrillQuery":  null,
+                                                                "Code":  "sepidar-purchases",
+                                                                "Status":  "3",
+                                                                "ReasonPreview":  "Ù…Ø³Ø¯ÙˆØ¯ â€” Ø®Ø±ÛŒØ¯ Ù¾ÙˆÙ„ÛŒ Ø³Ù¾ÛŒØ¯Ø§Ø± ØªØ£ÛŒÛŒØ¯ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.",
+                                                                "Amount":  null
+                                                            },
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  true,
+                                                                "ContractId":  "ED-13",
+                                                                "DrillQuery":  null,
+                                                                "Code":  "receipts",
+                                                                "Status":  "3",
+                                                                "ReasonPreview":  "Ù…Ø³Ø¯ÙˆØ¯ â€” Ø³Ù†Ø¯ Ø¯Ø±ÛŒØ§ÙØª Ù†Ù‚Ø¯ ØªØ£ÛŒÛŒØ¯ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.",
+                                                                "Amount":  null
+                                                            },
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  true,
+                                                                "ContractId":  "ED-14",
+                                                                "DrillQuery":  null,
+                                                                "Code":  "payments",
+                                                                "Status":  "3",
+                                                                "ReasonPreview":  "Ù…Ø³Ø¯ÙˆØ¯ â€” Ø³Ù†Ø¯ Ù¾Ø±Ø¯Ø§Ø®Øª Ù†Ù‚Ø¯ ØªØ£ÛŒÛŒØ¯ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.",
+                                                                "Amount":  null
+                                                            },
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  true,
+                                                                "ContractId":  "ED-15",
+                                                                "DrillQuery":  null,
+                                                                "Code":  "overdue",
+                                                                "Status":  "3",
+                                                                "ReasonPreview":  "Ù…Ø³Ø¯ÙˆØ¯ â€” Ø³ØªÙˆÙ† Ø³Ø±Ø±Ø³ÛŒØ¯ ØªØ£ÛŒÛŒØ¯ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.",
+                                                                "Amount":  null
+                                                            }
+                                                        ],
+                                              "PermissionsNote":  "Ø§Ø±Ù‚Ø§Ù… Ø³Ù¾ÛŒØ¯Ø§Ø± Ù…Ø®ÙÛŒ Ø§Ø³ØªØ› Admin ÙÙ†ÛŒ Ø¨Ø¯ÙˆÙ† Ù…Ø¬ÙˆØ² Ù…Ø§Ù„ÛŒ ØµØ±ÛŒØ­ Ø±Ù‚Ù… Ù†Ù…ÛŒâ€ŒØ¨ÛŒÙ†Ø¯."
+                                          },
+                              "Status":  200
+                          },
+                   "E6":  {
+                              "ExecutiveStatus":  200,
+                              "FinanceDashPreview":  "{\"generatedAtUtc\":\"2026-11-07T10:48:40.0985878Z\",\"sepidarReadAttempted\":true,\"freshness\":\"LiveRead\",\"freshnessDetail\":\"Ø±Ù‚Ù…ØŒ Ø¬Ù…Ø¹ Ø±Ø¯ÛŒÙâ€ŒÙ‡Ø§ÛŒ ACC.VoucherItem Ø§Ø³Øª Ø±ÙˆÛŒ Ù…Ø¹ÛŒÙ†â€ŒÙ‡Ø§ÛŒÛŒ Ú©Ù‡ Ø¹Ù†ÙˆØ§Ù† Ø",
+                              "Summary":  {
+                                              "HasPartyLedgerView":  true,
+                                              "ActiveRoles":  [
+                                                                  "Finance"
+                                                              ],
+                                              "CanViewOps":  true,
+                                              "AnyAmountOnStubFinanceCards":  true,
+                                              "Cards":  [
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  false,
+                                                                "ContractId":  "ED-06",
+                                                                "DrillQuery":  "side=receivables",
+                                                                "Code":  "receivables",
+                                                                "Status":  "2",
+                                                                "ReasonPreview":  "Ù†ÛŒØ§Ø²Ù…Ù†Ø¯ Ø§Ø¹ØªØ¨Ø§Ø±Ø³Ù†Ø¬ÛŒ: Ø¨Ø§Ø²Ù‡ Ù…Ø¹Ø§Ø¯Ù„ Ø³Ø§Ù„ Ù‚Ø¨Ù„ Ø¨Ø±Ø§ÛŒ Ù…Ø·Ø§Ù„Ø¨Ø§Øª: 3,748,575,652.  Ù…Ø¹ÛŒÙ†â€ŒÙ‡Ø§: 01 Ø­Ø³Ø§Ø¨",
+                                                                "Amount":  2612984053.0000
+                                                            },
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  false,
+                                                                "ContractId":  "ED-07",
+                                                                "DrillQuery":  "side=payables",
+                                                                "Code":  "payables",
+                                                                "Status":  "2",
+                                                                "ReasonPreview":  "Ù†ÛŒØ§Ø²Ù…Ù†Ø¯ Ø§Ø¹ØªØ¨Ø§Ø±Ø³Ù†Ø¬ÛŒ: Ø¨Ø§Ø²Ù‡ Ù…Ø¹Ø§Ø¯Ù„ Ø³Ø§Ù„ Ù‚Ø¨Ù„ Ø¨Ø±Ø§ÛŒ Ø¨Ø¯Ù‡ÛŒ: 242,541,328,420.  Ù…Ø¹ÛŒÙ†â€ŒÙ‡Ø§: 01 Ø­Ø³Ø§Ø¨Ù‡Ø§",
+                                                                "Amount":  1423906208619.0000
+                                                            },
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  true,
+                                                                "ContractId":  "ED-08",
+                                                                "DrillQuery":  null,
+                                                                "Code":  "yoy-trade",
+                                                                "Status":  "2",
+                                                                "ReasonPreview":  "Ù†ÛŒØ§Ø²Ù…Ù†Ø¯ Ø§Ø¹ØªØ¨Ø§Ø±Ø³Ù†Ø¬ÛŒ. Ù…Ø·Ø§Ù„Ø¨Ø§Øª Ø³Ø§Ù„ Ù‚Ø¨Ù„: 3,748,575,652Ø› Ø¨Ø¯Ù‡ÛŒ Ø³Ø§Ù„ Ù‚Ø¨Ù„: 242,541,328,420. Ù…Ù‚Ø§ÛŒØ³Ù‡ Ø¨Ø",
+                                                                "Amount":  null
+                                                            },
+                                                            {
+                                                                "Present":  false,
+                                                                "ContractId":  "ED-09"
+                                                            },
+                                                            {
+                                                                "Present":  false,
+                                                                "ContractId":  "ED-10"
+                                                            },
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  true,
+                                                                "ContractId":  "ED-11",
+                                                                "DrillQuery":  null,
+                                                                "Code":  "sepidar-sales",
+                                                                "Status":  "3",
+                                                                "ReasonPreview":  "Ù‚Ø±Ø§Ø±Ø¯Ø§Ø¯ Ùˆ Ù†Ú¯Ø§Ø´Øª Ù‚Ø·Ø¹ÛŒ Ù†ÙˆØ¹ Ø³Ù†Ø¯ ÙØ±ÙˆØ´ Ø³Ù¾ÛŒØ¯Ø§Ø± ØªØ£ÛŒÛŒØ¯ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.",
+                                                                "Amount":  null
+                                                            },
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  true,
+                                                                "ContractId":  "ED-12",
+                                                                "DrillQuery":  null,
+                                                                "Code":  "sepidar-purchases",
+                                                                "Status":  "3",
+                                                                "ReasonPreview":  "Ø®Ø±ÛŒØ¯ Ù¾ÙˆÙ„ÛŒ Ø³Ù¾ÛŒØ¯Ø§Ø± Ù…Ø³Ø¯ÙˆØ¯ Ø§Ø³ØªØ› Ø­Ø¬Ù… Ø³ÙØ§Ø±Ø´ CRM Ø¬Ø¯Ø§Ú¯Ø§Ù†Ù‡ Ø¯Ø± Ú©Ø§Ø±Øª Ø¹Ù…Ù„ÛŒØ§ØªÛŒ Ø¢Ù…Ø¯Ù‡ Ø§Ø³Øª.",
+                                                                "Amount":  null
+                                                            },
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  true,
+                                                                "ContractId":  "ED-13",
+                                                                "DrillQuery":  null,
+                                                                "Code":  "receipts",
+                                                                "Status":  "3",
+                                                                "ReasonPreview":  "Ú¯Ø±Ø¯Ø´ Ù†Ù‚Ø¯ Ùˆ Ø¨Ø§Ù†Ú© Ø¨Ø§ Ù…Ø§Ù†Ø¯Ù‡ Ø­Ø³Ø§Ø¨ Ø¯Ø±ÛŒØ§ÙØªÙ†ÛŒ ÛŒÚ©ÛŒ Ù†ÛŒØ³Øª Ùˆ Ø¬Ø¯Ø§Ú¯Ø§Ù†Ù‡ Ø®ÙˆØ§Ù†Ø¯Ù‡ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.",
+                                                                "Amount":  null
+                                                            },
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  true,
+                                                                "ContractId":  "ED-14",
+                                                                "DrillQuery":  null,
+                                                                "Code":  "payments",
+                                                                "Status":  "3",
+                                                                "ReasonPreview":  "Ú¯Ø±Ø¯Ø´ Ù†Ù‚Ø¯ Ùˆ Ø¨Ø§Ù†Ú© Ø¨Ø§ Ù…Ø§Ù†Ø¯Ù‡ Ø­Ø³Ø§Ø¨ Ù¾Ø±Ø¯Ø§Ø®ØªÙ†ÛŒ ÛŒÚ©ÛŒ Ù†ÛŒØ³Øª Ùˆ Ø¬Ø¯Ø§Ú¯Ø§Ù†Ù‡ Ø®ÙˆØ§Ù†Ø¯Ù‡ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.",
+                                                                "Amount":  null
+                                                            },
+                                                            {
+                                                                "Present":  true,
+                                                                "DrillTarget":  "financeDashboard",
+                                                                "AmountIsNull":  true,
+                                                                "ContractId":  "ED-15",
+                                                                "DrillQuery":  null,
+                                                                "Code":  "overdue",
+                                                                "Status":  "3",
+                                                                "ReasonPreview":  "Ø±ÙˆÛŒ ACC.Voucher Ø³ØªÙˆÙ† Ø³Ø±Ø±Ø³ÛŒØ¯ Ù†ÛŒØ³Øª. Ø§ÛŒÙ† Ú©Ø§Ø±Øª ØµÙØ± Ù†Ø´Ø§Ù† Ø¯Ø§Ø¯Ù‡ Ù†Ù…ÛŒâ€ŒØ´ÙˆØ¯.",
+                                                                "Amount":  null
+                                                            }
+                                                        ],
+                                              "PermissionsNote":  "Ø§Ø±Ù‚Ø§Ù… Ø³Ù¾ÛŒØ¯Ø§Ø± Ø¨Ø§ Finance.PartyLedgerView Ùˆ Ø¨Ø±Ú†Ø³Ø¨ Ù†ÛŒØ§Ø²Ù…Ù†Ø¯ Ø§Ø¹ØªØ¨Ø§Ø±Ø³Ù†Ø¬ÛŒ."
+                                          },
+                              "FinanceDashboardStatus":  200
+                          },
+                   "E5":  {
+                              "Status":  403
+                          },
+                   "PSComputerName":  "crm-mgmt.sahar.loc",
+                   "RunspaceId":  "c7fba5e1-b1df-4c9c-b162-f7071ad08f49",
+                   "PSShowComputerName":  true
+               },
+    "Gate":  "ProdDashboardExecV1ProductionE3E10Passed",
+    "FinishedAtUtc":  "2026-11-07T10:48:45.1499715Z"
+}

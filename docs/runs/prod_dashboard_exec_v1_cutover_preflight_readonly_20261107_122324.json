@@ -1,0 +1,133 @@
+﻿{
+    "StartedAtUtc":  "2026-11-07T08:53:25.4998706Z",
+    "Mode":  "ProductionCutoverPreflightReadOnly",
+    "ProductionMutated":  false,
+    "ProductionSiteTouched":  false,
+    "DeployAllowed":  false,
+    "TransferMethod":  "WinRM HTTPS crm-mgmt.sahar.loc:5987",
+    "AcceptedPackage":  {
+                            "packageId":  "dashboard-exec-v1",
+                            "deploy_allowed":  false,
+                            "productionTouched":  false,
+                            "apiZipSha256":  "3A2B24F486A914B1A9CAEA47CBCD21FD566342D3DDDBAE8FB4F0B71B4634AD12",
+                            "webZipSha256":  "E1EC83E2AEDC9868AF03CBC5C9517C91617455C406F22C694F07A3B63494856F",
+                            "expectedApiZipSha":  "3A2B24F486A914B1A9CAEA47CBCD21FD566342D3DDDBAE8FB4F0B71B4634AD12",
+                            "expectedWebZipSha":  "E1EC83E2AEDC9868AF03CBC5C9517C91617455C406F22C694F07A3B63494856F"
+                        },
+    "Remote":  {
+                   "HealthProbe":  {
+                                       "StatusCode":  null,
+                                       "Error":  "The remote server returned an error: (401) Unauthorized."
+                                   },
+                   "Site":  {
+                                "AppPool":  "ParkPalaceCRM",
+                                "AppPoolState":  "Started",
+                                "Name":  "ParkPalaceCRM",
+                                "PhysicalPath":  "D:\\ParkPlaceCRM\\web",
+                                "State":  "Started"
+                            },
+                   "ProductionPaths":  {
+                                           "WebIndexSha256":  "700DCBF3D5C2BF91C8C9EC20C1AAC9FA2DF3991D3328CA8994A44812DF44BC2C",
+                                           "ApiDllExists":  true,
+                                           "WebIndexExists":  true,
+                                           "ApiPath":  "D:\\ParkPlaceCRM\\api",
+                                           "ApiDllLastWriteUtc":  "2026-11-06T21:18:18.6753213Z",
+                                           "ApiDllSha256":  "7E693A9BDD8BC449BBFA3D037694B86EF46B533BE0DC9C410A36198386B068E0",
+                                           "ApiDllBytes":  425472,
+                                           "WebPath":  "D:\\ParkPlaceCRM\\web"
+                                       },
+                   "SqlReadOnly":  "1|1|3|1|26|1292",
+                   "FilesWrittenUnderProduction":  [
+
+                                                   ],
+                   "LiveConfigPresence":  {
+                                              "appsettings_json":  {
+                                                                       "TelephonyProviderIsLiveHint":  true,
+                                                                       "TelephonyProvider":  "IssabelARI",
+                                                                       "SepidarLooksLikeServer":  true,
+                                                                       "RecordingsPathPresent":  false,
+                                                                       "SepidarConnectionStringPresent":  true,
+                                                                       "SftpHostPresent":  false,
+                                                                       "SepidarConnectionStringLength":  168
+                                                                   },
+                                              "appsettings_Production_json":  {
+                                                                                  "TelephonyProviderIsLiveHint":  true,
+                                                                                  "TelephonyProvider":  "IssabelARI",
+                                                                                  "SepidarLooksLikeServer":  true,
+                                                                                  "RecordingsPathPresent":  true,
+                                                                                  "SepidarConnectionStringPresent":  true,
+                                                                                  "SftpHostPresent":  true,
+                                                                                  "SepidarConnectionStringLength":  168
+                                                                              },
+                                              "Note":  "Values not returned; only presence / provider name for preserve planning."
+                                          },
+                   "ProductionMutated":  false,
+                   "PackageOnCrm":  {
+                                        "WebZipSha256":  "E1EC83E2AEDC9868AF03CBC5C9517C91617455C406F22C694F07A3B63494856F",
+                                        "ManifestDeployAllowed":  false,
+                                        "DirExists":  true,
+                                        "ApiZipSha256":  "3A2B24F486A914B1A9CAEA47CBCD21FD566342D3DDDBAE8FB4F0B71B4634AD12"
+                                    },
+                   "RecentIsolatedStageApis":  [
+                                                   {
+                                                       "Path":  "D:\\ParkPlaceCRM\\staging\\dashboard_exec_v1\\dashboardexec_api_20261107_094724",
+                                                       "ApiDllSha256":  "64E20E1397B26026FBD5800050F55078D40EC33742ADDB69B7029A4CDB902134",
+                                                       "LastWriteTimeUtc":  "2026-11-07T06:17:31.5159142Z"
+                                                   },
+                                                   {
+                                                       "Path":  "D:\\ParkPlaceCRM\\staging\\dashboard_exec_v1\\dashboardexec_api_20261107_093539",
+                                                       "ApiDllSha256":  "64E20E1397B26026FBD5800050F55078D40EC33742ADDB69B7029A4CDB902134",
+                                                       "LastWriteTimeUtc":  "2026-11-07T06:05:49.6564293Z"
+                                                   },
+                                                   {
+                                                       "Path":  "D:\\ParkPlaceCRM\\staging\\dashboard_exec_v1\\dashboardexec_api_20261107_093433",
+                                                       "ApiDllSha256":  "64E20E1397B26026FBD5800050F55078D40EC33742ADDB69B7029A4CDB902134",
+                                                       "LastWriteTimeUtc":  "2026-11-07T06:04:40.3123386Z"
+                                                   }
+                                               ],
+                   "PSComputerName":  "crm-mgmt.sahar.loc",
+                   "RunspaceId":  "9bed37fd-b360-458c-8feb-2918164bf138",
+                   "PSShowComputerName":  true
+               },
+    "Comparison":  {
+                       "LocalApiZipMatchesManifest":  true,
+                       "LocalWebZipMatchesManifest":  true,
+                       "CrmApiZipMatchesAccepted":  true,
+                       "CrmWebZipMatchesAccepted":  true,
+                       "ProdApiDllDiffersFromStageLatest":  true,
+                       "ProdApiDllSha256":  "7E693A9BDD8BC449BBFA3D037694B86EF46B533BE0DC9C410A36198386B068E0",
+                       "StageLatestApiDllSha256":  "64E20E1397B26026FBD5800050F55078D40EC33742ADDB69B7029A4CDB902134"
+                   },
+    "Checks":  [
+                   {
+                       "Name":  "DeployAllowedRemainsFalse",
+                       "Passed":  true
+                   },
+                   {
+                       "Name":  "LocalPackageShaMatchManifest",
+                       "Passed":  true
+                   },
+                   {
+                       "Name":  "ProductionSiteStarted",
+                       "Passed":  true
+                   },
+                   {
+                       "Name":  "ProductionApiDllPresent",
+                       "Passed":  true
+                   },
+                   {
+                       "Name":  "LiveSepidarConnectionPresent",
+                       "Passed":  true
+                   },
+                   {
+                       "Name":  "LiveTelephonyNotSimulated",
+                       "Passed":  true
+                   },
+                   {
+                       "Name":  "NoProductionMutation",
+                       "Passed":  true
+                   }
+               ],
+    "Gate":  "ProdDashboardExecV1CutoverPreflightReadOnlyPassed",
+    "FinishedAtUtc":  "2026-11-07T08:53:26.5846370Z"
+}

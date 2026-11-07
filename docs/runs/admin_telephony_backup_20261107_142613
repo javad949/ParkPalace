@@ -1,0 +1,7 @@
+﻿-- Restore Admin Calls.* sensitive links if needed
+SET NOCOUNT ON;
+DECLARE @Admin uniqueidentifier = '76DA33D1-4EAE-4AC9-8DD6-D46BD536889C';
+INSERT INTO dbo.RolePermissions (RoleId, PermissionId)
+SELECT @Admin, p.Id FROM dbo.Permissions p
+WHERE p.Code IN (N'Calls.Recordings.Listen',N'Calls.RecordingsListen',N'Calls.Supervise')
+  AND NOT EXISTS (SELECT 1 FROM dbo.RolePermissions rp WHERE rp.RoleId=@Admin AND rp.PermissionId=p.Id);
