@@ -158,6 +158,19 @@ Provision/Preview پیشین: `docs/runs/crm_remote_isolated_dashboard_stage_202
 
 **خارج از محدودهٔ این پذیرش:** cutover Production، روشن‌کردن سپیدار زنده، تغییر `deploy_allowed`.
 
+## ادغام مخزن GitHub — closeout (۱۴۰۵/۰۸/۱۶)
+
+| فیلد | مقدار |
+|------|--------|
+| PR | https://github.com/javad949/ParkPalace/pull/1 |
+| وضعیت | merged |
+| SHA روی `master` | `5d11855de410a5f1d022ab2e73dafb3357dd6e60` |
+| شاخهٔ منبع | `dashboard-exec-v1-staging-accept` |
+| `deploy_allowed` | همچنان `false` |
+| Production | دست‌نخورده |
+
+مسیر پذیرش staging ایزولهٔ `dashboard-exec-v1` در مخزن بسته شد. گام بعدی عملیاتی فقط با درخواست صریح برای cutover / سپیدار زنده / تغییر پرچم بسته تعریف می‌شود.
+
 ## KPI / آزمون واحد (مرجع قبلی)
 
 - واحد فیلترشده: 15 Passed (ExecutiveDashboard + FinancialDashboardRules)
