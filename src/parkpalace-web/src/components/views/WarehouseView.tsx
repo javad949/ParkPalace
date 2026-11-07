@@ -47,6 +47,7 @@ import {
   PurchaseOrderDto
 } from '../../types';
 import { formatJalali, formatJalaliDateTime } from '../../utils/jalali';
+import { consumeDrillForView, drillBannerLabel } from '../../utils/drillNavigation';
 
 interface WarehouseViewProps {
   activeDevRole?: string;
@@ -72,6 +73,7 @@ export const WarehouseView: React.FC<WarehouseViewProps> = ({
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [onlyCritical, setOnlyCritical] = useState(false);
+  const [drillNote, setDrillNote] = useState<string | null>(null);
 
   // Detail Modal / Drawer
   const [selectedItem, setSelectedItem] = useState<InventoryItemDetailDto | null>(null);
@@ -98,6 +100,15 @@ export const WarehouseView: React.FC<WarehouseViewProps> = ({
 
   // Phase 5: Goods Receipts Tab State
   const [mainTab, setMainTab] = useState<'inventory' | 'receipts'>('inventory');
+
+  useEffect(() => {
+    const drill = consumeDrillForView('warehouse');
+    if (drill.filter === 'critical') {
+      setOnlyCritical(true);
+      setMainTab('inventory');
+      setDrillNote(drillBannerLabel(drill));
+    }
+  }, []);
   const [receipts, setReceipts] = useState<GoodsReceiptDto[]>([]);
   const [receiptsLoading, setReceiptsLoading] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
@@ -546,11 +557,28 @@ export const WarehouseView: React.FC<WarehouseViewProps> = ({
           <input
             type="checkbox"
             checked={onlyCritical}
-            onChange={(e) => { setOnlyCritical(e.target.checked); setPage(1); }}
+            onChange={(e) => {
+              setOnlyCritical(e.target.checked);
+              setPage(1);
+              if (!e.target.checked) setDrillNote(null);
+            }}
           />
           فقط اقلام دارای کسری (زیر نقطه اطمینان)
         </label>
       </div>
+      {drillNote && (
+        <div role="status" style={{
+          marginBottom: 12,
+          padding: '10px 12px',
+          borderRadius: 10,
+          border: '1px solid rgba(56, 189, 248, 0.35)',
+          background: 'rgba(14, 165, 233, 0.08)',
+          color: '#7dd3fc',
+          fontSize: '0.85rem'
+        }}>
+          {drillNote}
+        </div>
+      )}
 
       {/* Inventory Items Table */}
       <div style={{ overflowX: 'auto', background: 'var(--bg-sidebar)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>

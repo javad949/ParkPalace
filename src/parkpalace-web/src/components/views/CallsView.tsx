@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Headphones, 
   PhoneIncoming, 
@@ -12,53 +12,85 @@ import {
   Search, 
   Check, 
   X, 
-  RefreshCw, 
   ShieldCheck, 
   Radio,
-  ExternalLink
+  ExternalLink,
+  DollarSign,
+  RefreshCw,
+  Edit2
 } from 'lucide-react';
 import { 
   CallRecordDto, 
   CallNoteDto, 
   PartyDto, 
+  UserExtensionDto,
   CreateCallNoteRequest, 
+  ClassifyCallRequest,
+  UpdateCallerAssociationRequest,
+  SepidarPartyFinancialHistoryDto,
   SimulateCallRequest, 
   CdrReconciliationDto, 
   FollowUpStatus 
 } from '../../types';
 import { 
   fetchCalls, 
+  fetchUserExtensions,
+  fetchEmployeePicker,
+  fetchExtensionPicker,
   addCallNote, 
   classifyCall, 
+  updateCallerAssociation,
+  fetchPartyFinancialHistory,
   fetchUnknownCalls, 
   fetchFollowUps, 
   updateFollowUpStatus, 
   getCallRecordingUrl, 
   simulateCall, 
   reconcileCdrBatch, 
-  fetchSuppliers 
+  fetchSuppliers,
+  type EmployeePickerItem,
+  type ExtensionPickerItem
 } from '../../services/api';
 import { JalaliDatePicker } from '../JalaliDatePicker';
 import { formatJalali, formatJalaliDateTime, dateOnlyToIsoUtc } from '../../utils/jalali';
+import { consumeDrillForView, drillBannerLabel } from '../../utils/drillNavigation';
+import { getCallPerspective } from '../../utils/callPresentation';
 
 interface CallsViewProps {
   devRole?: string;
+  previewUserId?: string;
+  viewerExtension?: string;
   onNavigateToSupplier?: (supplierId: string) => void;
 }
 
 export const CallsView: React.FC<CallsViewProps> = ({ 
   devRole = 'Procurement', 
+  previewUserId = '',
+  viewerExtension,
   onNavigateToSupplier 
 }) => {
   const [activeTab, setActiveTab] = useState<'log' | 'unknown' | 'followups' | 'cdr' | 'simulator'>('log');
+  const [drillNote, setDrillNote] = useState<string | null>(null);
   
-  // Call Log state
+  // Call Log state with 5 required classification filters
   const [calls, setCalls] = useState<CallRecordDto[]>([]);
+  const [totalCallsCount, setTotalCallsCount] = useState<number>(0);
   const [isLoadingCalls, setIsLoadingCalls] = useState(false);
+  const [callsError, setCallsError] = useState('');
+  const callsRequestId = useRef(0);
   const [searchNumber, setSearchNumber] = useState('');
-  const [filterDirection, setFilterDirection] = useState<string>('all');
+  const [filterClassification, setFilterClassification] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterExtension, setFilterExtension] = useState<string>('');
+  const [filterEmployeeId, setFilterEmployeeId] = useState<string>('');
+  const showExtensionColumn = (devRole === 'Admin' || devRole === 'Manager' || devRole === 'OrganizationManager') && !previewUserId;
+  const showEmployeeFilter = (devRole === 'Manager' || devRole === 'OrganizationManager' || devRole === 'Admin') && !previewUserId;
+  const showAdvancedTabs = devRole !== 'None' && !previewUserId;
+  const [availableExtensions, setAvailableExtensions] = useState<UserExtensionDto[]>([]);
+  const [extensionPicker, setExtensionPicker] = useState<ExtensionPickerItem[]>([]);
+  const [employeePicker, setEmployeePicker] = useState<EmployeePickerItem[]>([]);
+  const [filterStartDate, setFilterStartDate] = useState<string>('');
+  const [filterEndDate, setFilterEndDate] = useState<string>('');
   
   // Selected Call for Modal / Detail
   const [selectedCall, setSelectedCall] = useState<CallRecordDto | null>(null);
@@ -74,6 +106,33 @@ export const CallsView: React.FC<CallsViewProps> = ({
   const [suppliersList, setSuppliersList] = useState<PartyDto[]>([]);
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>('');
   const [isClassifying, setIsClassifying] = useState(false);
+
+  // 4 Caller Identification Modes
+  const [classifyMode, setClassifyMode] = useState<'link_existing' | 'standalone_contact' | 'representative' | 'new_party'>('link_existing');
+  const [standaloneName, setStandaloneName] = useState('');
+  const [standalonePosition, setStandalonePosition] = useState('');
+  const [partyCategory, setPartyCategory] = useState<number>(4);
+  const [newPartyName, setNewPartyName] = useState('');
+  const [newPartyType, setNewPartyType] = useState<number>(2); // 2: LegalEntity, 1: Individual
+  const [newContactName, setNewContactName] = useState('');
+  const [newContactPosition, setNewContactPosition] = useState('');
+  const [repName, setRepName] = useState('');
+  const [repPosition, setRepPosition] = useState('');
+  const [assignedDepartment, setAssignedDepartment] = useState('');
+
+  // Caller Association Correction State
+  const [editingAssociationCall, setEditingAssociationCall] = useState<CallRecordDto | null>(null);
+  const [reassignPartyId, setReassignPartyId] = useState<string>('');
+  const [reassignDept, setReassignDept] = useState<string>('');
+  const [reassignReason, setReassignReason] = useState<string>('');
+  const [isSavingAssociation, setIsSavingAssociation] = useState(false);
+
+  // Sepidar Financial History State
+  const [financialPartyId, setFinancialPartyId] = useState<string | null>(null);
+  const [financialPartyName, setFinancialPartyName] = useState<string>('');
+  const [financialHistory, setFinancialHistory] = useState<SepidarPartyFinancialHistoryDto | null>(null);
+  const [loadingFinancial, setLoadingFinancial] = useState(false);
+  const [financialError, setFinancialError] = useState<string | null>(null);
 
   // Follow-ups state
   const [followUps, setFollowUps] = useState<CallNoteDto[]>([]);
@@ -92,18 +151,52 @@ export const CallsView: React.FC<CallsViewProps> = ({
   const [isReconcilingCdr, setIsReconcilingCdr] = useState(false);
 
   const loadCalls = async () => {
+    const requestId = ++callsRequestId.current;
     setIsLoadingCalls(true);
+    setCallsError('');
     try {
       const params: any = { take: 50 };
+      if (previewUserId) params.previewUserId = previewUserId;
       if (filterExtension) params.extension = filterExtension;
-      if (filterDirection !== 'all') params.direction = parseInt(filterDirection, 10);
+      if (filterEmployeeId) params.employeeId = filterEmployeeId;
+      if (filterClassification !== 'all') params.classification = filterClassification;
       if (filterStatus !== 'all') params.status = parseInt(filterStatus, 10);
+      if (filterStartDate) params.fromDate = dateOnlyToIsoUtc(filterStartDate);
+      if (filterEndDate) params.toDate = dateOnlyToIsoUtc(filterEndDate);
+
       const data = await fetchCalls(params, devRole);
+      if (requestId !== callsRequestId.current) return;
       setCalls(data);
+      if (typeof data.totalCount === 'number') {
+        setTotalCallsCount(data.totalCount);
+      } else {
+        setTotalCallsCount(data.length);
+      }
     } catch (err: any) {
+      if (requestId !== callsRequestId.current) return;
       console.error(err);
+      setCalls([]);
+      setTotalCallsCount(0);
+      setCallsError(err.message || 'دریافت تماس‌ها ناموفق بود.');
     } finally {
-      setIsLoadingCalls(false);
+      if (requestId === callsRequestId.current) setIsLoadingCalls(false);
+    }
+  };
+
+  const loadExtensions = async () => {
+    try {
+      const [exts, picker, employees] = await Promise.all([
+        fetchUserExtensions(devRole).catch(() => [] as UserExtensionDto[]),
+        fetchExtensionPicker({ includeInactive: true }, devRole).catch(() => [] as ExtensionPickerItem[]),
+        showEmployeeFilter
+          ? fetchEmployeePicker({ includeInactive: true }, devRole).catch(() => [] as EmployeePickerItem[])
+          : Promise.resolve([] as EmployeePickerItem[])
+      ]);
+      setAvailableExtensions(exts);
+      setExtensionPicker(picker);
+      setEmployeePicker(employees);
+    } catch (err) {
+      console.error('Failed to load user extensions:', err);
     }
   };
 
@@ -137,11 +230,34 @@ export const CallsView: React.FC<CallsViewProps> = ({
     }
   };
 
+  const drillAppliedRef = useRef(false);
   useEffect(() => {
-    loadCalls();
+    callsRequestId.current++;
+    setCalls([]);
+    setTotalCallsCount(0);
+    setFilterExtension('');
+    setFilterEmployeeId('');
+    if (!drillAppliedRef.current) {
+      drillAppliedRef.current = true;
+      const drill = consumeDrillForView('calls');
+      if (drill.filter === 'overdue-followups') {
+        setActiveTab('followups');
+        setDrillNote(drillBannerLabel(drill));
+        return;
+      }
+    }
+    setActiveTab('log');
+  }, [previewUserId, devRole]);
+
+  useEffect(() => {
+    loadExtensions();
     loadFollowUps();
     loadSuppliers();
-  }, [devRole, filterDirection, filterStatus, filterExtension]);
+  }, [devRole]);
+
+  useEffect(() => {
+    loadCalls();
+  }, [devRole, previewUserId, filterClassification, filterStatus, filterExtension, filterEmployeeId, filterStartDate, filterEndDate]);
 
   useEffect(() => {
     if (activeTab === 'unknown') {
@@ -180,18 +296,104 @@ export const CallsView: React.FC<CallsViewProps> = ({
   };
 
   const handleClassify = async () => {
-    if (!classifyingCall || !selectedSupplierId) return;
+    if (!classifyingCall) return;
     setIsClassifying(true);
     try {
-      await classifyCall(classifyingCall.id, { partyId: selectedSupplierId }, devRole);
+      const req: ClassifyCallRequest = {
+        assignedDepartment: assignedDepartment.trim() || undefined
+      };
+
+      if (classifyMode === 'link_existing') {
+        if (!selectedSupplierId) {
+          alert('لطفاً یک طرف حساب را انتخاب کنید.');
+          setIsClassifying(false);
+          return;
+        }
+        req.partyId = selectedSupplierId;
+      } else if (classifyMode === 'standalone_contact') {
+        if (!standaloneName.trim()) {
+          alert('لطفاً نام مخاطب حقیقی را وارد کنید.');
+          setIsClassifying(false);
+          return;
+        }
+        req.createStandaloneContact = true;
+        req.standaloneName = standaloneName.trim();
+        req.standalonePosition = standalonePosition.trim() || undefined;
+      } else if (classifyMode === 'representative') {
+        if (!selectedSupplierId || !repName.trim()) {
+          alert('لطفاً طرف حساب و نام نماینده را وارد کنید.');
+          setIsClassifying(false);
+          return;
+        }
+        req.partyId = selectedSupplierId;
+        req.newContactName = repName.trim();
+        req.newContactPosition = repPosition.trim() || undefined;
+      } else if (classifyMode === 'new_party') {
+        if (!newPartyName.trim()) {
+          alert('لطفاً نام طرف حساب جدید را وارد کنید.');
+          setIsClassifying(false);
+          return;
+        }
+        req.createNewParty = true;
+        req.newPartyName = newPartyName.trim();
+        req.newPartyType = newPartyType;
+        req.partyCategory = partyCategory as any;
+        req.newContactName = newContactName.trim() || undefined;
+        req.newContactPosition = newContactPosition.trim() || undefined;
+      }
+
+      await classifyCall(classifyingCall.id, req, devRole);
       setClassifyingCall(null);
       setSelectedSupplierId('');
+      setStandaloneName('');
+      setNewPartyName('');
+      setRepName('');
+      setAssignedDepartment('');
       loadUnknownCalls();
       loadCalls();
     } catch (err: any) {
-      alert(err.message || 'خطا در انتساب تأمین‌کننده');
+      alert(err.message || 'خطا در انتساب و شناسایی تماس‌گیرنده');
     } finally {
       setIsClassifying(false);
+    }
+  };
+
+  const handleSaveCallerAssociation = async () => {
+    if (!editingAssociationCall) return;
+    setIsSavingAssociation(true);
+    try {
+      const req: UpdateCallerAssociationRequest = {
+        partyId: reassignPartyId || undefined,
+        assignedDepartment: reassignDept.trim() || undefined,
+        reason: reassignReason.trim() || 'اصلاح انتساب توسط کاربر'
+      };
+      const updated = await updateCallerAssociation(editingAssociationCall.id, req, devRole);
+      setEditingAssociationCall(null);
+      setReassignReason('');
+      if (selectedCall?.id === updated.id) {
+        setSelectedCall(updated);
+      }
+      loadCalls();
+      loadUnknownCalls();
+    } catch (err: any) {
+      alert(err.message || 'خطا در اصلاح انتساب تماس');
+    } finally {
+      setIsSavingAssociation(false);
+    }
+  };
+
+  const handleOpenFinancialHistory = async (partyId: string, partyName: string) => {
+    setFinancialPartyId(partyId);
+    setFinancialPartyName(partyName);
+    setLoadingFinancial(true);
+    setFinancialError(null);
+    try {
+      const data = await fetchPartyFinancialHistory(partyId, undefined, devRole);
+      setFinancialHistory(data);
+    } catch (err: any) {
+      setFinancialError(err.message || 'خطا در دریافت اطلاعات مالی از سپیدار');
+    } finally {
+      setLoadingFinancial(false);
     }
   };
 
@@ -271,8 +473,11 @@ export const CallsView: React.FC<CallsViewProps> = ({
     if (!searchNumber) return true;
     const term = searchNumber.trim().toLowerCase();
     return (
-      c.callerNumber.toLowerCase().includes(term) ||
+      (c.callerNumber || '').toLowerCase().includes(term) ||
+      (c.destinationNumber || '').toLowerCase().includes(term) ||
+      getCallPerspective(c, viewerExtension).number.toLowerCase().includes(term) ||
       (c.callerName && c.callerName.toLowerCase().includes(term)) ||
+      (c.internalCallerName && c.internalCallerName.toLowerCase().includes(term)) ||
       (c.partyName && c.partyName.toLowerCase().includes(term))
     );
   });
@@ -280,19 +485,15 @@ export const CallsView: React.FC<CallsViewProps> = ({
   const getStatusBadge = (status: number) => {
     switch (status) {
       case 0:
-        return <span className="badge badge-warning">زنگ خوردن</span>;
+        return <span className="badge badge-warning">در حال تماس</span>;
       case 1:
-        return <span className="badge badge-info">پاسخ داده شد</span>;
-      case 2:
-        return <span className="badge badge-danger">بی‌پاسخ</span>;
-      case 3:
-        return <span className="badge badge-danger">اشغال</span>;
-      case 4:
-        return <span className="badge badge-danger">ناموفق</span>;
       case 5:
-        return <span className="badge badge-primary">انتقال‌یافته</span>;
       case 6:
-        return <span className="badge badge-success">پایان‌یافته</span>;
+        return <span className="badge badge-success">پاسخ داده‌شده</span>;
+      case 2:
+      case 3:
+      case 4:
+        return <span className="badge badge-danger">بی‌پاسخ</span>;
       default:
         return <span className="badge badge-secondary">نامشخص</span>;
     }
@@ -330,6 +531,20 @@ export const CallsView: React.FC<CallsViewProps> = ({
         </div>
       </div>
 
+      {drillNote && (
+        <div role="status" style={{
+          marginBottom: 14,
+          padding: '10px 12px',
+          borderRadius: 10,
+          border: '1px solid rgba(56, 189, 248, 0.35)',
+          background: 'rgba(14, 165, 233, 0.08)',
+          color: '#7dd3fc',
+          fontSize: '0.85rem'
+        }}>
+          {drillNote}
+        </div>
+      )}
+
       {/* Tabs Bar */}
       <div className="tabs-header" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '20px' }}>
         <button
@@ -344,7 +559,7 @@ export const CallsView: React.FC<CallsViewProps> = ({
         <button
           className={`tab-btn ${activeTab === 'unknown' ? 'active' : ''}`}
           onClick={() => setActiveTab('unknown')}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          style={{ display: showAdvancedTabs ? 'flex' : 'none', alignItems: 'center', gap: '6px' }}
         >
           <AlertCircle size={16} />
           <span>تماس‌های ناشناس ({unknownCalls.length})</span>
@@ -353,7 +568,7 @@ export const CallsView: React.FC<CallsViewProps> = ({
         <button
           className={`tab-btn ${activeTab === 'followups' ? 'active' : ''}`}
           onClick={() => setActiveTab('followups')}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          style={{ display: showAdvancedTabs ? 'flex' : 'none', alignItems: 'center', gap: '6px' }}
         >
           <CheckCircle size={16} />
           <span>وظایف پیگیری ({followUps.length})</span>
@@ -362,7 +577,7 @@ export const CallsView: React.FC<CallsViewProps> = ({
         <button
           className={`tab-btn ${activeTab === 'cdr' ? 'active' : ''}`}
           onClick={() => setActiveTab('cdr')}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          style={{ display: showAdvancedTabs ? 'flex' : 'none', alignItems: 'center', gap: '6px' }}
         >
           <ShieldCheck size={16} />
           <span>تطبیق اسناد CDR/CEL</span>
@@ -371,7 +586,7 @@ export const CallsView: React.FC<CallsViewProps> = ({
         <button
           className={`tab-btn ${activeTab === 'simulator' ? 'active' : ''}`}
           onClick={() => setActiveTab('simulator')}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          style={{ display: showAdvancedTabs ? 'flex' : 'none', alignItems: 'center', gap: '6px' }}
         >
           <Radio size={16} />
           <span>شبیه‌ساز و تست تماس (PBX Simulator)</span>
@@ -403,8 +618,8 @@ export const CallsView: React.FC<CallsViewProps> = ({
             </div>
 
             <select
-              value={filterDirection}
-              onChange={e => setFilterDirection(e.target.value)}
+              value={filterClassification}
+              onChange={e => setFilterClassification(e.target.value)}
               style={{
                 background: '#0f172a',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -414,9 +629,11 @@ export const CallsView: React.FC<CallsViewProps> = ({
                 fontSize: '0.85rem'
               }}
             >
-              <option value="all">همه جهت‌ها</option>
-              <option value="0">ورودی (Incoming)</option>
-              <option value="1">خروجی (Outgoing)</option>
+              <option value="all">۱. همه تماس‌های مجاز</option>
+              <option value="inbound_trunk">۲. تماس‌های ورودی ترانک (SIP/91002628)</option>
+              <option value="outbound_trunk">۳. تماس‌های خروجی ترانک (SIP/91002628)</option>
+              <option value="internal_inbound">۴. تماس‌های ورودی داخلی</option>
+              <option value="internal_outbound">۵. تماس‌های خروجی داخلی</option>
             </select>
 
             <select
@@ -432,20 +649,16 @@ export const CallsView: React.FC<CallsViewProps> = ({
               }}
             >
               <option value="all">همه وضعیت‌ها</option>
-              <option value="1">پاسخ داده شده</option>
-              <option value="6">تکمیل شده</option>
-              <option value="2">بی‌پاسخ (Missed)</option>
-              <option value="3">اشغال (Busy)</option>
-              <option value="5">انتقال‌یافته</option>
+              <option value="1">پاسخ داده‌شده</option>
+              <option value="2">بی‌پاسخ</option>
             </select>
 
-            <input
-              type="text"
-              placeholder="فیلتر داخلی (۱۰۱...)"
+            {/* Extension selector: number + CRM display name */}
+            {showExtensionColumn && <select
               value={filterExtension}
               onChange={e => setFilterExtension(e.target.value)}
               style={{
-                width: '120px',
+                minWidth: '180px',
                 background: '#0f172a',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 color: '#f8fafc',
@@ -453,7 +666,52 @@ export const CallsView: React.FC<CallsViewProps> = ({
                 borderRadius: '8px',
                 fontSize: '0.85rem'
               }}
-            />
+            >
+              <option value="">همه داخلی‌های مجاز</option>
+              {(extensionPicker.length > 0 ? extensionPicker : availableExtensions.map(e => ({
+                extension: e.extension,
+                displayName: e.username || e.extension,
+                isActive: e.isActive
+              }))).map(e => (
+                <option key={e.extension} value={e.extension}>
+                  {e.extension} — {e.displayName}{('isActive' in e && e.isActive === false) ? ' (غیرفعال)' : ''}
+                </option>
+              ))}
+            </select>}
+
+            {showEmployeeFilter && <select
+              value={filterEmployeeId}
+              onChange={e => setFilterEmployeeId(e.target.value)}
+              style={{
+                minWidth: '200px',
+                background: '#0f172a',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#f8fafc',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                fontSize: '0.85rem'
+              }}
+            >
+              <option value="">همه کارمندان مجاز</option>
+              {employeePicker.map(e => (
+                <option key={e.employeeId} value={e.employeeId}>
+                  {e.displayName} — {e.statusLabel}
+                </option>
+              ))}
+            </select>}
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <JalaliDatePicker
+                value={filterStartDate}
+                onChange={setFilterStartDate}
+                placeholder="از تاریخ"
+              />
+              <JalaliDatePicker
+                value={filterEndDate}
+                onChange={setFilterEndDate}
+                placeholder="تا تاریخ"
+              />
+            </div>
 
             <button
               onClick={loadCalls}
@@ -464,17 +722,25 @@ export const CallsView: React.FC<CallsViewProps> = ({
               <RefreshCw size={14} />
               <span>تازه‌سازی</span>
             </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#94a3b8', marginRight: 'auto' }}>
+              <span>تعداد کل نتایج:</span>
+              <span style={{ fontWeight: 700, color: '#38bdf8', background: 'rgba(56, 189, 248, 0.1)', padding: '2px 8px', borderRadius: '12px' }}>
+                {totalCallsCount}
+              </span>
+            </div>
           </div>
 
           {/* Table */}
+          {callsError && <div role="alert" style={{ color: '#f87171', marginBottom: '8px' }}>{callsError}</div>}
           <div className="table-responsive">
             <table className="data-table">
               <thead>
                 <tr>
                   <th style={{ width: '40px' }}>جهت</th>
-                  <th>شماره تماس</th>
+                  <th>شماره / مخاطب</th>
                   <th>تأمین‌کننده / مخاطب</th>
-                  <th>داخلی</th>
+                  {showExtensionColumn && <th>داخلی</th>}
                   <th>زمان تماس</th>
                   <th>مدت</th>
                   <th>وضعیت</th>
@@ -486,60 +752,113 @@ export const CallsView: React.FC<CallsViewProps> = ({
               <tbody>
                 {isLoadingCalls ? (
                   <tr>
-                    <td colSpan={10} style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+                    <td colSpan={showExtensionColumn ? 10 : 9} style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
                       در حال بارگذاری لاگ تماس‌ها...
                     </td>
                   </tr>
                 ) : filteredCalls.length === 0 ? (
                   <tr>
-                    <td colSpan={10} style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+                    <td colSpan={showExtensionColumn ? 10 : 9} style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
                       هیچ رکوردی برای نمایش یافت نشد.
                     </td>
                   </tr>
                 ) : (
-                  filteredCalls.map(c => (
-                    <tr key={c.id}>
-                      <td style={{ textAlign: 'center' }}>
-                        {c.direction === 0 ? (
-                          <span title="تماس ورودی">
-                            <PhoneIncoming size={16} color="#4ade80" />
-                          </span>
-                        ) : (
-                          <span title="تماس خروجی">
-                            <PhoneOutgoing size={16} color="#38bdf8" />
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{c.callerNumber}</td>
-                      <td>
-                        {c.partyName ? (
-                          <div>
-                            <div 
-                              onClick={() => c.partyId && onNavigateToSupplier && onNavigateToSupplier(c.partyId)}
-                              style={{ 
-                                fontWeight: 600, 
-                                color: '#f8fafc', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                gap: '4px',
-                                cursor: onNavigateToSupplier ? 'pointer' : 'default'
-                              }}
-                            >
-                              <Building2 size={13} color="#38bdf8" />
-                              <span>{c.partyName}</span>
-                              {onNavigateToSupplier && <ExternalLink size={11} color="#38bdf8" />}
+                  filteredCalls.map(c => {
+                    const isInternal = c.scope === 2 || c.direction === 2;
+                    const isTrunk = c.scope === 1;
+                    const isUnknownScope = !isInternal && !isTrunk;
+                    const perspective = getCallPerspective(c, viewerExtension);
+                    return (
+                      <tr key={c.id}>
+                        <td style={{ textAlign: 'center' }}>
+                          {isInternal ? (
+                            <span title={perspective.direction}>
+                              {perspective.outgoing
+                                ? <PhoneOutgoing size={16} color="#c084fc" />
+                                : <PhoneIncoming size={16} color="#a855f7" />}
+                            </span>
+                          ) : isTrunk ? (
+                            c.direction === 0 ? (
+                              <span title="تماس ورودی ترانک SIP/91002628">
+                                <PhoneIncoming size={16} color="#4ade80" />
+                              </span>
+                            ) : (
+                              <span title="تماس خروجی ترانک SIP/91002628">
+                                <PhoneOutgoing size={16} color="#38bdf8" />
+                              </span>
+                            )
+                          ) : (
+                            <span title={`حوزه نامشخص / ترانک متفرقه (${c.direction === 0 ? 'ورودی' : 'خروجی'})`}>
+                              <AlertCircle size={16} color="#f59e0b" />
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                          <span dir="ltr" title={perspective.direction}>{perspective.number || 'نامشخص'}</span>
+                        </td>
+                        <td>
+                          {isInternal ? (
+                            <span style={{
+                              fontSize: '0.75rem', 
+                              color: '#c084fc', 
+                              background: 'rgba(168, 85, 247, 0.12)', 
+                              padding: '2px 8px', 
+                              borderRadius: '4px',
+                              border: '1px solid rgba(168, 85, 247, 0.25)' 
+                            }}>
+                              تماس داخلی (<strong style={{ color: '#fbbf24', fontWeight: 800 }}>{perspective.name?.trim() || 'بدون پرونده تأمین‌کننده'}</strong>)
+                            </span>
+                          ) : isUnknownScope ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                              <span style={{ 
+                                fontSize: '0.72rem', 
+                                color: '#f59e0b', 
+                                background: 'rgba(245, 158, 11, 0.12)', 
+                                padding: '2px 6px', 
+                                borderRadius: '4px',
+                                border: '1px solid rgba(245, 158, 11, 0.25)',
+                                width: 'fit-content'
+                              }}>
+                                حوزه نامشخص / سایر ترانک‌ها
+                              </span>
+                              {c.partyName ? (
+                                <div style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>{c.partyName}</div>
+                              ) : (
+                                <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>طرف تماس نامشخص</span>
+                              )}
                             </div>
-                            {c.contactName && (
-                              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                                {c.contactName} {c.contactPosition ? `(${c.contactPosition})` : ''}
+                          ) : c.partyName ? (
+                            <div>
+                              <div 
+                                onClick={() => c.partyId && onNavigateToSupplier && onNavigateToSupplier(c.partyId)}
+                                style={{ 
+                                  fontWeight: 600, 
+                                  color: '#f8fafc', 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: '4px',
+                                  cursor: onNavigateToSupplier ? 'pointer' : 'default'
+                                }}
+                              >
+                                <Building2 size={13} color="#38bdf8" />
+                                <span>{c.partyName}</span>
+                                {onNavigateToSupplier && <ExternalLink size={11} color="#38bdf8" />}
                               </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>ناشناس</span>
-                        )}
-                      </td>
-                      <td>{c.extension || '-'}</td>
+                              {c.contactName && (
+                                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                                  {c.contactName} {c.contactPosition ? `(${c.contactPosition})` : ''}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>ناشناس</span>
+                          )}
+                        </td>
+                        {showExtensionColumn && <td>
+                          {isInternal ? (
+                            <span dir="ltr" style={{ fontFamily: 'monospace' }}>{c.callerNumber} → {c.destinationNumber}</span>
+                          ) : (c.extension || '-')}
+                        </td>}
                       <td style={{ fontSize: '0.8rem' }}>
                         {formatJalaliDateTime(c.startTimeUtc)}
                       </td>
@@ -555,8 +874,30 @@ export const CallsView: React.FC<CallsViewProps> = ({
                             style={{ height: '30px', maxWidth: '170px' }}
                             preload="none"
                           />
+                        ) : (c.recordingFileName && c.recordingFileName.trim() !== '') ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <audio 
+                              controls 
+                              src={getCallRecordingUrl(c.id)}
+                              style={{ height: '30px', maxWidth: '150px' }}
+                              preload="none"
+                            />
+                            <span 
+                              title={`نام فایل در CDR ثبت شده است (${c.recordingFileName})؛ دریافت از سرور هنگام پخش آزمایش می‌شود.`}
+                              style={{ 
+                                fontSize: '0.7rem', 
+                                padding: '2px 6px', 
+                                borderRadius: '4px', 
+                                background: 'rgba(56, 189, 248, 0.15)', 
+                                color: '#38bdf8',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              در انتظار دریافت
+                            </span>
+                          </div>
                         ) : (
-                          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>فاقد ضبط</span>
+                          <span title="نام فایل صوتی هنوز از CDR ایزابل به CRM نرسیده است" style={{ fontSize: '0.75rem', color: '#94a3b8' }}>ضبط تأیید نشده</span>
                         )}
                       </td>
                       <td>
@@ -580,8 +921,9 @@ export const CallsView: React.FC<CallsViewProps> = ({
                         </button>
                       </td>
                     </tr>
-                  ))
-                )}
+                  );
+                })
+              )}
               </tbody>
             </table>
           </div>
@@ -594,7 +936,7 @@ export const CallsView: React.FC<CallsViewProps> = ({
           <div style={{ marginBottom: '16px' }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 600 }}>صف تماس‌های ناشناس نیازمند شناسایی</h3>
             <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
-              شماره‌هایی که در سیستم CRM به هیچ تأمین‌کننده‌ای متصل نیستند. با انتساب یک شماره به تأمین‌کننده، کلیه سوابق تماس‌های گذشته با این شماره نیز به‌صورت عطف‌به‌ماسبق به‌روزرسانی خواهند شد.
+              شماره‌ای که هنوز به مخاطب یا پرونده‌ای وصل نشده است. شناسایی، مخاطب می‌سازد یا به شرکت موجود وصل می‌کند و تأمین‌کننده نمی‌سازد مگر نوع پرونده را خودتان تأمین‌کننده انتخاب کنید.
             </p>
           </div>
 
@@ -633,7 +975,7 @@ export const CallsView: React.FC<CallsViewProps> = ({
                         className="btn btn-sm btn-primary"
                         style={{ fontSize: '0.8rem' }}
                       >
-                        انتساب به تأمین‌کننده
+                        شناسایی مخاطب
                       </button>
                     </td>
                   </tr>
@@ -908,15 +1250,17 @@ export const CallsView: React.FC<CallsViewProps> = ({
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px', background: '#0f172a', padding: '12px', borderRadius: '8px' }}>
               <div>
                 <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>شماره تماس:</span>
-                <div style={{ fontWeight: 700, fontFamily: 'monospace' }}>{selectedCall.callerNumber}</div>
+                <div style={{ fontWeight: 700, fontFamily: 'monospace' }} dir="ltr">
+                  {getCallPerspective(selectedCall, viewerExtension).number || 'نامشخص'}
+                </div>
               </div>
               <div>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>تأمین‌کننده:</span>
-                <div style={{ fontWeight: 600 }}>{selectedCall.partyName || 'ناشناس'}</div>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{selectedCall.scope === 2 || selectedCall.direction === 2 ? 'کارمند طرف تماس:' : 'تأمین‌کننده:'}</span>
+                <div style={{ fontWeight: 600 }}>{selectedCall.scope === 2 || selectedCall.direction === 2 ? <>تماس داخلی (<strong style={{ color: '#fbbf24', fontWeight: 800 }}>{getCallPerspective(selectedCall, viewerExtension).name?.trim() || 'بدون پرونده تأمین‌کننده'}</strong>)</> : (selectedCall.partyName || 'ناشناس')}</div>
               </div>
               <div>
                 <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>جهت تماس:</span>
-                <div>{selectedCall.direction === 0 ? 'ورودی' : 'خروجی'}</div>
+                <div>{getCallPerspective(selectedCall, viewerExtension).direction}</div>
               </div>
               <div>
                 <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>وضعیت تماس:</span>
@@ -936,22 +1280,83 @@ export const CallsView: React.FC<CallsViewProps> = ({
                   {selectedCall.uniqueId} {selectedCall.linkedId ? `| پیوند: ${selectedCall.linkedId}` : ''}
                 </div>
               </div>
+
+              <div style={{ display: 'flex', gap: '8px', gridColumn: 'span 2', marginTop: '6px' }}>
+                <button
+                  className="btn btn-sm btn-secondary"
+                  onClick={() => {
+                    setEditingAssociationCall(selectedCall);
+                    setReassignPartyId(selectedCall.partyId || '');
+                    setReassignDept(selectedCall.assignedDepartment || '');
+                    setReassignReason('');
+                  }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem' }}
+                >
+                  <Edit2 size={13} />
+                  <span>اصلاح انتساب طرف‌حساب</span>
+                </button>
+
+                {(devRole === 'Finance' || devRole === 'Admin') && selectedCall.partyId && (
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => handleOpenFinancialHistory(selectedCall.partyId!, selectedCall.partyName || 'طرف حساب')}
+                    style={{
+                      background: 'rgba(34, 197, 94, 0.15)',
+                      border: '1px solid rgba(34, 197, 94, 0.35)',
+                      color: '#4ade80',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      fontSize: '0.78rem'
+                    }}
+                  >
+                    <DollarSign size={13} />
+                    <span>گردش مالی در سپیدار</span>
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Recording Audio Player */}
-            {selectedCall.hasRecording && (
-              <div style={{ marginBottom: '16px', background: '#0f172a', padding: '12px', borderRadius: '8px' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                  <Volume2 size={16} color="#4ade80" />
-                  <span>پخش مکالمه ضبط شده (استریم امن API):</span>
-                </span>
-                <audio 
-                  controls 
-                  src={getCallRecordingUrl(selectedCall.id)}
-                  style={{ width: '100%', height: '36px' }}
-                />
-              </div>
-            )}
+            {/* Recording Audio Player & Status */}
+            <div style={{ marginBottom: '16px', background: '#0f172a', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                <Volume2 size={16} color={selectedCall.hasRecording ? "#4ade80" : (selectedCall.recordingFileName ? "#38bdf8" : "#94a3b8")} />
+                <span>وضعیت ضبط مکالمه:</span>
+              </span>
+              {selectedCall.hasRecording ? (
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: '#4ade80', marginBottom: '6px' }}>
+                    فایل صوتی محلی آماده پخش است ({selectedCall.recordingFileName})
+                  </div>
+                  <audio 
+                    controls 
+                    src={getCallRecordingUrl(selectedCall.id)}
+                    style={{ width: '100%', height: '36px' }}
+                    preload="metadata"
+                  />
+                </div>
+              ) : (selectedCall.recordingFileName && selectedCall.recordingFileName.trim() !== '') ? (
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: '#38bdf8', marginBottom: '6px' }}>
+                    نام فایل ضبط در CDR ثبت شده است ({selectedCall.recordingFileName}). با آغاز پخش، دریافت از سرور آزمایش می‌شود.
+                  </div>
+                  <audio 
+                    controls 
+                    src={getCallRecordingUrl(selectedCall.id)}
+                    style={{ width: '100%', height: '36px' }}
+                    preload="none"
+                  />
+                </div>
+              ) : selectedCall.status === 0 || selectedCall.status === 1 ? (
+                <div style={{ fontSize: '0.8rem', color: '#facc15' }}>
+                  مکالمه در جریان است و فایل صوتی پس از پایان مکالمه آماده خواهد شد.
+                </div>
+              ) : (
+                <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                  وضعیت ضبط هنوز تأیید نشده است؛ نام فایل صوتی این تماس از CDR ایزابل به CRM نرسیده است.
+                </div>
+              )}
+            </div>
 
             {/* Existing Notes */}
             <div style={{ marginBottom: '16px' }}>
@@ -1053,46 +1458,228 @@ export const CallsView: React.FC<CallsViewProps> = ({
         </div>
       )}
 
-      {/* Classify Supplier Modal */}
+      {/* Generalized Caller Identification Modal */}
       {classifyingCall && (
         <div className="modal-backdrop" onClick={() => setClassifyingCall(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '560px' }}>
             <div className="modal-header">
-              <h3>انتساب شماره ناشناس به تأمین‌کننده</h3>
+              <h3>شناسایی و انتساب هویت تماس‌گیرنده</h3>
               <button onClick={() => setClassifyingCall(null)} className="close-btn"><X size={18} /></button>
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>شماره تماس گیرنده:</div>
+            <div style={{ marginBottom: '14px', background: '#0f172a', padding: '10px 14px', borderRadius: '8px' }}>
+              <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>شماره تماس‌گیرنده:</div>
               <div style={{ fontSize: '1.1rem', fontWeight: 700, fontFamily: 'monospace', color: '#38bdf8', marginTop: '2px' }}>
                 {classifyingCall.callerNumber}
               </div>
             </div>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '6px' }}>
-                تأمین‌کننده مرتبط را انتخاب کنید:
+            {/* 4 Workflow Options Tabs */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '16px' }}>
+              {[
+                { id: 'link_existing', label: 'اتصال به طرف حساب' },
+                { id: 'standalone_contact', label: 'مخاطب مستقل' },
+                { id: 'representative', label: 'نماینده شرکت' },
+                { id: 'new_party', label: 'طرف حساب جدید' }
+              ].map(opt => (
+                <button
+                  key={opt.id}
+                  onClick={() => setClassifyMode(opt.id as any)}
+                  style={{
+                    padding: '8px 4px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    background: classifyMode === opt.id ? '#38bdf8' : 'rgba(255,255,255,0.05)',
+                    color: classifyMode === opt.id ? '#0f172a' : '#94a3b8',
+                    border: 'none',
+                    textAlign: 'center'
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Option A: Link Existing Party */}
+            {classifyMode === 'link_existing' && (
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '6px' }}>
+                  طرف حساب موجود را انتخاب کنید:
+                </label>
+                <select
+                  value={selectedSupplierId}
+                  onChange={e => setSelectedSupplierId(e.target.value)}
+                  className="input-field"
+                  style={{ width: '100%' }}
+                >
+                  <option value="">-- انتخاب طرف حساب از سیستم --</option>
+                  {suppliersList.map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.displayName} {s.sepidarCode ? `[سپیدار: ${s.sepidarCode}]` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Option B: Standalone Contact */}
+            {classifyMode === 'standalone_contact' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '4px' }}>نام و نام خانوادگی مخاطب:</label>
+                  <input
+                    type="text"
+                    value={standaloneName}
+                    onChange={e => setStandaloneName(e.target.value)}
+                    placeholder="مثال: مهندس احمدی"
+                    className="input-field"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '4px' }}>سمت / حوزه فعالیت:</label>
+                  <input
+                    type="text"
+                    value={standalonePosition}
+                    onChange={e => setStandalonePosition(e.target.value)}
+                    placeholder="مثال: مشاور فنی، بازرس"
+                    className="input-field"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Option C: Representative of Existing Party */}
+            {classifyMode === 'representative' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '4px' }}>شرکت / طرف حساب:</label>
+                  <select
+                    value={selectedSupplierId}
+                    onChange={e => setSelectedSupplierId(e.target.value)}
+                    className="input-field"
+                    style={{ width: '100%' }}
+                  >
+                    <option value="">-- انتخاب طرف حساب --</option>
+                    {suppliersList.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.displayName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '4px' }}>نام نماینده:</label>
+                    <input
+                      type="text"
+                      value={repName}
+                      onChange={e => setRepName(e.target.value)}
+                      placeholder="نام و نام خانوادگی"
+                      className="input-field"
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '4px' }}>سمت نماینده:</label>
+                    <input
+                      type="text"
+                      value={repPosition}
+                      onChange={e => setRepPosition(e.target.value)}
+                      placeholder="مثال: کارشناس فنی، مدیر فروش"
+                      className="input-field"
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Option D: Brand New CRM Party */}
+            {classifyMode === 'new_party' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '4px' }}>نام طرف حساب جدید:</label>
+                  <input
+                    type="text"
+                    value={newPartyName}
+                    onChange={e => setNewPartyName(e.target.value)}
+                    placeholder="نام شرکت یا شخص"
+                    className="input-field"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '4px' }}>ماهیت:</label>
+                    <select
+                      value={newPartyType}
+                      onChange={e => setNewPartyType(Number(e.target.value))}
+                      className="input-field"
+                      style={{ width: '100%' }}
+                    >
+                      <option value={2}>شخص حقوقی (شرکت)</option>
+                      <option value={1}>شخص حقیقی</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '4px' }}>دسته‌بندی تجاری:</label>
+                    <select
+                      value={partyCategory}
+                      onChange={e => setPartyCategory(Number(e.target.value))}
+                      className="input-field"
+                      style={{ width: '100%' }}
+                    >
+                      <option value={1}>تأمین‌کننده (Supplier)</option>
+                      <option value={2}>خدماتی / پیمانکار (Service Provider)</option>
+                      <option value={3}>مشتری (Customer)</option>
+                      <option value={4}>سایر (Other)</option>
+                    </select>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '4px' }}>نام رابط / مخاطب:</label>
+                    <input
+                      type="text"
+                      value={newContactName}
+                      onChange={e => setNewContactName(e.target.value)}
+                      placeholder="اختیاری"
+                      className="input-field"
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '4px' }}>سمت مخاطب:</label>
+                    <input
+                      type="text"
+                      value={newContactPosition}
+                      onChange={e => setNewContactPosition(e.target.value)}
+                      placeholder="اختیاری"
+                      className="input-field"
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Follow-up Assignment Field */}
+            <div style={{ marginBottom: '16px', background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '4px' }}>
+                واحد یا دپارتمان مسئول پیگیری:
               </label>
-              <select
-                value={selectedSupplierId}
-                onChange={e => setSelectedSupplierId(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  background: '#0f172a',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  color: '#f8fafc',
-                  fontSize: '0.85rem'
-                }}
-              >
-                <option value="">-- انتخاب تأمین‌کننده از لیست --</option>
-                {suppliersList.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.displayName} {s.nationalIdentifier ? `(${s.nationalIdentifier})` : ''}
-                  </option>
-                ))}
-              </select>
+              <input
+                type="text"
+                value={assignedDepartment}
+                onChange={e => setAssignedDepartment(e.target.value)}
+                placeholder="مثال: تدارکات، مالی، بازرگانی، اداری"
+                className="input-field"
+                style={{ width: '100%' }}
+              />
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
@@ -1104,10 +1691,258 @@ export const CallsView: React.FC<CallsViewProps> = ({
               </button>
               <button
                 onClick={handleClassify}
-                disabled={isClassifying || !selectedSupplierId}
+                disabled={isClassifying}
                 className="btn btn-primary"
               >
                 {isClassifying ? 'در حال ثبت...' : 'تأیید و اتصال به پرونده'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Caller Association Modal */}
+      {editingAssociationCall && (
+        <div className="modal-backdrop" onClick={() => setEditingAssociationCall(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <h3>اصلاح انتساب تماس‌گیرنده (با ثبت ردپا)</h3>
+              <button onClick={() => setEditingAssociationCall(null)} className="close-btn"><X size={18} /></button>
+            </div>
+
+            <div style={{ marginBottom: '14px', background: '#0f172a', padding: '10px 14px', borderRadius: '8px' }}>
+              <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>شماره تماس: {editingAssociationCall.callerNumber}</div>
+              <div style={{ fontSize: '0.85rem', color: '#e2e8f0', marginTop: '2px' }}>
+                طرف حساب فعلی: <strong>{editingAssociationCall.partyName || 'نامشخص'}</strong>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '4px' }}>
+                  طرف حساب جدید:
+                </label>
+                <select
+                  value={reassignPartyId}
+                  onChange={e => setReassignPartyId(e.target.value)}
+                  className="input-field"
+                  style={{ width: '100%' }}
+                >
+                  <option value="">-- حذف انتساب (ناشناس شود) --</option>
+                  {suppliersList.map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.displayName} {s.sepidarCode ? `[${s.sepidarCode}]` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '4px' }}>
+                  واحد مسئول پیگیری:
+                </label>
+                <input
+                  type="text"
+                  value={reassignDept}
+                  onChange={e => setReassignDept(e.target.value)}
+                  placeholder="مثال: مالی، تدارکات"
+                  className="input-field"
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '4px' }}>
+                  علت اصلاح انتساب (جهت درج در ردپای حسابرسی):
+                </label>
+                <textarea
+                  value={reassignReason}
+                  onChange={e => setReassignReason(e.target.value)}
+                  placeholder="مثال: شماره به اشتباه به شرکت قبلی متصل شده بود..."
+                  rows={2}
+                  className="input-field"
+                  style={{ width: '100%', resize: 'none' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button
+                onClick={() => setEditingAssociationCall(null)}
+                className="btn btn-secondary"
+                disabled={isSavingAssociation}
+              >
+                انصراف
+              </button>
+              <button
+                onClick={handleSaveCallerAssociation}
+                disabled={isSavingAssociation}
+                className="btn btn-primary"
+              >
+                {isSavingAssociation ? 'در حال ذخیره...' : 'ذخیره اصلاحیه'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sepidar Financial History Modal */}
+      {financialPartyId && (
+        <div className="modal-backdrop" onClick={() => setFinancialPartyId(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '780px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="modal-header">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <DollarSign size={20} color="#4ade80" />
+                <span>گردش مالی طرف حساب در سپیدار سیستم</span>
+              </h3>
+              <button onClick={() => setFinancialPartyId(null)} className="close-btn"><X size={18} /></button>
+            </div>
+
+            <div style={{ marginBottom: '14px', background: '#0f172a', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '1rem', color: '#f8fafc' }}>{financialPartyName}</div>
+                  {financialHistory?.sepidarCode && (
+                    <div style={{ fontSize: '0.8rem', color: '#38bdf8', fontFamily: 'monospace' }}>
+                      کد تفصیلی در سپیدار: {financialHistory.sepidarCode}
+                    </div>
+                  )}
+                </div>
+                {financialHistory?.retrievedAtUtc && (
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                    زمان استعلام: {formatJalaliDateTime(financialHistory.retrievedAtUtc)}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {loadingFinancial ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                در حال استعلام امن اطلاعات مالی از سرور سپیدار...
+              </div>
+            ) : financialError ? (
+              <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '14px', borderRadius: '8px', fontSize: '0.88rem' }}>
+                {financialError}
+              </div>
+            ) : financialHistory && !financialHistory.isConnected ? (
+              <div style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', color: '#facc15', padding: '14px', borderRadius: '8px', fontSize: '0.88rem' }}>
+                <strong>عدم دسترسی به پایگاه داده سپیدار:</strong>
+                <p style={{ marginTop: '4px', margin: 0 }}>{financialHistory.statusMessage || financialHistory.message || 'اتصال زنده به سرور حسابداری سپیدار پیکربندی نشده است. اطلاعات مالی فرضی تولید نمی‌شود.'}</p>
+              </div>
+            ) : financialHistory && !financialHistory.isAvailable ? (
+              <div style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.25)', color: '#facc15', padding: '16px', borderRadius: '8px', fontSize: '0.88rem' }}>
+                <div style={{ fontWeight: 700, marginBottom: '6px', color: '#fde047' }}>
+                  اطلاعات مالی در حال حاضر در دسترس نیست (عدم تایید قراردادهای منبع):
+                </div>
+                <p style={{ margin: '0 0 10px 0', lineHeight: 1.6, color: '#fef08a' }}>
+                  {financialHistory.statusMessage || financialHistory.message || 'قراردادهای حسابداری و پایگاه داده سپیدار برای این سامانه هنوز به تایید نهایی نرسیده‌اند.'}
+                </p>
+                {financialHistory.unverifiedDependencyDetails && (
+                  <div style={{ background: '#090d16', border: '1px solid rgba(255,255,255,0.08)', padding: '10px', borderRadius: '6px', fontSize: '0.8rem', color: '#94a3b8', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                    <div style={{ fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>جزییات نیازمندی‌های باز منبع سپیدار:</div>
+                    {financialHistory.unverifiedDependencyDetails}
+                  </div>
+                )}
+                <div style={{ marginTop: '10px', fontSize: '0.78rem', color: '#94a3b8' }}>
+                  * به منظور حفظ یکپارچگی مالی و انطباق با اصل شفافیت، اطلاعات مالی تخمینی یا مانده‌های فرضی نمایش داده نمی‌شوند.
+                </div>
+              </div>
+            ) : financialHistory ? (
+              <div>
+                {/* Period info bar */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '6px', fontSize: '0.82rem' }}>
+                  <div>
+                    <span style={{ color: '#94a3b8' }}>دوره مالی: </span>
+                    <strong style={{ color: '#f8fafc' }}>{financialHistory.fiscalPeriod}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#94a3b8' }}>واحد پول: </span>
+                    <strong style={{ color: '#f8fafc' }}>{financialHistory.currency === 'IRR' ? 'ریال' : financialHistory.currency}</strong>
+                  </div>
+                </div>
+
+                {/* Financial Balances Summary */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '16px' }}>
+                  <div style={{ background: 'rgba(148, 163, 184, 0.08)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(148, 163, 184, 0.2)' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>تراز افتتاحیه:</div>
+                    <div style={{ fontSize: '1rem', fontWeight: 700, color: '#cbd5e1', fontFamily: 'monospace', marginTop: '2px' }}>
+                      {financialHistory.openingBalance.toLocaleString()}
+                    </div>
+                  </div>
+                  <div style={{ background: 'rgba(56, 189, 248, 0.08)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(56, 189, 248, 0.2)' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>گردش بدهکار دوره:</div>
+                    <div style={{ fontSize: '1rem', fontWeight: 700, color: '#38bdf8', fontFamily: 'monospace', marginTop: '2px' }}>
+                      {financialHistory.totalDebit.toLocaleString()}
+                    </div>
+                  </div>
+                  <div style={{ background: 'rgba(234, 179, 8, 0.08)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(234, 179, 8, 0.2)' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>گردش بستانکار دوره:</div>
+                    <div style={{ fontSize: '1rem', fontWeight: 700, color: '#facc15', fontFamily: 'monospace', marginTop: '2px' }}>
+                      {financialHistory.totalCredit.toLocaleString()}
+                    </div>
+                  </div>
+                  <div style={{ background: financialHistory.balance >= 0 ? 'rgba(34, 197, 94, 0.08)' : 'rgba(239, 68, 68, 0.08)', padding: '10px', borderRadius: '8px', border: `1px solid ${financialHistory.balance >= 0 ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)'}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>مانده نهایی:</span>
+                      <span style={{ fontSize: '0.68rem', padding: '1px 6px', borderRadius: '4px', background: financialHistory.balance >= 0 ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)', color: financialHistory.balance >= 0 ? '#4ade80' : '#f87171' }}>
+                        {financialHistory.balanceType}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '1rem', fontWeight: 700, color: financialHistory.balance >= 0 ? '#4ade80' : '#f87171', fontFamily: 'monospace', marginTop: '2px' }}>
+                      {financialHistory.balance.toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Movements Table */}
+                <div style={{ overflowX: 'auto', maxHeight: '320px' }}>
+                  <table className="data-table" style={{ width: '100%', fontSize: '0.8rem', textAlign: 'right' }}>
+                    <thead>
+                      <tr>
+                        <th>شماره سند</th>
+                        <th>تاریخ سند</th>
+                        <th>شرح آرتیکل</th>
+                        <th>بدهکار</th>
+                        <th>بستانکار</th>
+                        <th>مانده تجمعی</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {financialHistory.movements.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>
+                            گردش حسابی برای این طرف حساب در دوره مالی ثبت نشده است.
+                          </td>
+                        </tr>
+                      ) : (
+                        financialHistory.movements.map((m, idx) => (
+                          <tr key={idx}>
+                            <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{m.voucherNumber}</td>
+                            <td>{m.voucherDateUtc ? formatJalali(m.voucherDateUtc) : '-'}</td>
+                            <td style={{ maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={m.description}>
+                              {m.description || '-'}
+                            </td>
+                            <td style={{ fontFamily: 'monospace', color: m.debit > 0 ? '#38bdf8' : '#64748b' }}>
+                              {m.debit > 0 ? m.debit.toLocaleString() : '-'}
+                            </td>
+                            <td style={{ fontFamily: 'monospace', color: m.credit > 0 ? '#facc15' : '#64748b' }}>
+                              {m.credit > 0 ? m.credit.toLocaleString() : '-'}
+                            </td>
+                            <td style={{ fontFamily: 'monospace', fontWeight: 700, color: m.cumulativeBalance >= 0 ? '#4ade80' : '#f87171' }}>
+                              {m.cumulativeBalance.toLocaleString()}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : null}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+              <button onClick={() => setFinancialPartyId(null)} className="btn btn-secondary">
+                بستن
               </button>
             </div>
           </div>
