@@ -30,6 +30,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onSelectView, use
       icon: LayoutDashboard,
       isVisible: true 
     },
+    {
+      id: 'executiveDashboard',
+      label: 'داشبورد تصمیم',
+      icon: LayoutDashboard,
+      isVisible: hasPerm('Reports.View') || hasPerm('Reports.Manager') || hasPerm('Org.ReportsView') || hasPerm('Finance.PartyLedgerView')
+        || hasAnyRole('Admin', 'Manager', 'Finance', 'Procurement', 'Warehouse', 'OrganizationManager')
+    },
     { 
       id: 'materials', 
       label: 'کاتالوگ مواد اولیه', 
@@ -38,12 +45,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onSelectView, use
     },
     { 
       id: 'suppliers', 
-      label: 'تأمین‌کنندگان و مخاطبین', 
+      label: 'تأمین‌کنندگان', 
       icon: Users,
       isVisible: hasPerm('Suppliers.View') || hasAnyRole('Admin', 'Procurement', 'Manager', 'Finance')
     },
     { 
-      id: 'orders', 
+      id: 'sepidarParties', 
+      label: 'طرف‌حساب‌های سپیدار', 
+      icon: Users,
+      isVisible: hasPerm('Suppliers.View') || hasPerm('Finance.View') || hasAnyRole('Admin', 'Procurement', 'Manager', 'Finance')
+    },
+    { 
+      id: 'contacts', 
+      label: 'مخاطبان', 
+      icon: Users,
+      isVisible: hasPerm('Suppliers.View') || hasPerm('Calls.View') || hasAnyRole('Admin', 'Procurement', 'Manager', 'Finance')
+    },
+    {
+      id: 'orders',
       label: 'سفارشات و تدارکات', 
       icon: ShoppingCart,
       isVisible: hasPerm('Orders.View') || hasAnyRole('Admin', 'Procurement', 'Manager')
@@ -55,6 +74,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onSelectView, use
       isVisible: hasPerm('Warehouse.View') || hasPerm('Inventory.View') || hasAnyRole('Admin', 'Warehouse', 'Manager')
     },
     { 
+      id: 'financeDashboard', 
+      label: 'داشبورد مالی', 
+      icon: Receipt,
+      isVisible: hasPerm('Finance.View') || hasPerm('Reports.Manager') || hasPerm('Reports.Finance') || hasAnyRole('Admin', 'Finance', 'Manager')
+    },
+    { 
       id: 'finance', 
       label: 'مالی و تطبیق فاکتورها', 
       icon: Receipt,
@@ -64,11 +89,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onSelectView, use
       id: 'calls', 
       label: 'مرکز تماس (ایزابل)', 
       icon: PhoneCall,
-      isVisible: hasPerm('Calls.View') || hasAnyRole('Admin', 'Procurement', 'Manager')
+      isVisible: hasPerm('Calls.View')
     },
     { 
       id: 'admin', 
-      label: 'مدیریت و دسترسی‌ها', 
+      label: 'کاربران و دسترسی‌ها', 
       icon: ShieldCheck,
       isVisible: isAdmin || hasPerm('Admin.Users')
     }

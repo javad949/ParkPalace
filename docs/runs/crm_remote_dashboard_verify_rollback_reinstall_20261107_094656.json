@@ -1,0 +1,119 @@
+﻿{
+    "StartedAtUtc":  "2026-11-07T06:17:41.6139325Z",
+    "Result":  {
+                   "Rollback":  {
+                                    "StageV1024Untouched":  true,
+                                    "FromWeb":  "D:\\ParkPlaceCRM\\staging\\dashboard_exec_v1\\dashboardexec_web_20261107_093539",
+                                    "ToApi":  "D:\\ParkPlaceCRM\\staging\\dashboard_exec_v1\\rc3_clone_api_20261107_092606",
+                                    "ToWeb":  "D:\\ParkPlaceCRM\\staging\\dashboard_exec_v1\\rc3_clone_web_20261107_092606",
+                                    "FromApi":  "D:\\ParkPlaceCRM\\staging\\dashboard_exec_v1\\dashboardexec_api_20261107_093539",
+                                    "HealthBody":  "{\"status\":\"Healthy\",\"service\":\"ParkPalace Procurement CRM API\",\"version\":\"1.0.0\",\"serverTimeUtc\":\"2026-11-07T06:17:23.7802882Z\",\"databaseConnected\":true,\"sepidarIntegrationStatus\":\"Not configured (Fixture Mode active - Phase 4 \u0026 5)\"}"
+                                },
+                   "ExecuteExit":  0,
+                   "ExecuteGate":  "StageDashboardExecV1ExecutePassed",
+                   "ExecuteEvidence":  "D:\\ParkPlaceCRM\\docs\\runs\\stage_dashboard_exec_v1_runner_Execute_20261107_094724.json",
+                   "ExecuteOutput":  "=== dashboard-exec-v1 runner Mode=Execute ===\r\nPackageDir=D:\\ParkPlaceCRM\\packages\\dashboard-exec-v1\\latest\r\nEvidence -\u003e D:\\ParkPlaceCRM\\docs\\runs\\stage_dashboard_exec_v1_runner_Execute_20261107_094724.json\r\nProduction mutate: FORBIDDEN\r\n[PASS] PackageDirExists\r\n[PASS] ManifestDeployAllowedFalse\r\n[PASS] ManifestIndependentOfRc3\r\n[PASS] ManifestPackageId\r\n[PASS] ZipMatch_ParkPalace_Api_dashboard_exec_v1_zip\r\n[PASS] ZipMatch_ParkPalace_Web_dashboard_exec_v1_zip\r\n[PASS] PackageVerified\r\n[PASS] ProductionApiDllFingerprintReadable\r\n[PASS] StagingSiteNameExact\r\n[PASS] StagingApiApplicationExact\r\n[PASS] StagingBindingPortExact\r\n[PASS] StagingAppPoolPresent\r\n[PASS] StagingPathsUnderStagingRoot\r\n[PASS] ExpectedApiBaselineExact\r\n[PASS] NotSepidarSearchStaging\r\n[PASS] CurrentStagingApiPathExists\r\n[PASS] CurrentStagingWebPathExists\r\n[PASS] CurrentApiWebConfigExists\r\n[PASS] CurrentWebWebConfigExists\r\n[PASS] CurrentStagingIsolationReadable\r\n[PASS] StagingIisIdentityBundle\r\n[PASS] StagingDatabaseIdentity\r\n[PASS] StagingHealthHealthy_PreInstall\r\nExtracting package to unique staging folders under D:\\ParkPlaceCRM\\staging\\dashboard_exec_v1 ...\r\n[PASS] PreserveWebConfig_Api\r\n[PASS] PreserveWebConfig_Web\r\nApplying / validating isolated staging appsettings...\r\n[PASS] CopiedPriorIsolatedAppsettings\r\n[PASS] IsolatedAppsettingsValidatedPreStart\r\nRetargeting IIS staging site ONLY (ParkPalaceCRM-Stage-DashboardExec)...\r\n[PASS] PostInstall_HealthHealthy\r\n[PASS] PostInstall_ExecutiveDashboard_Http200\r\n[PASS] PostInstall_Admin_NoPartyLedgerView\r\n[PASS] PostInstall_Admin_ED06_BlockedNoAmount\r\n[PASS] PostInstall_UnassignedRoleHeader_Finance403\r\n[PASS] PostInstall_AdminFinanceDashboard_403\r\n[PASS] ProductionApiDllUnchanged\r\nGate=StageDashboardExecV1ExecutePassed ExecuteEligible=True\r\nEvidence: D:\\ParkPlaceCRM\\docs\\runs\\stage_dashboard_exec_v1_runner_Execute_20261107_094724.json\r\n",
+                   "AfterApi":  "D:\\ParkPlaceCRM\\staging\\dashboard_exec_v1\\dashboardexec_api_20261107_094724",
+                   "AfterWeb":  "D:\\ParkPlaceCRM\\staging\\dashboard_exec_v1\\dashboardexec_web_20261107_094724",
+                   "ProductionUnchanged":  true,
+                   "ProductionSha":  "7E693A9BDD8BC449BBFA3D037694B86EF46B533BE0DC9C410A36198386B068E0",
+                   "Admin":  {
+                                 "FinanceStatus":  403,
+                                 "FiscalYearLabel":  null,
+                                 "BlockedCardsNoAmount":  true,
+                                 "FinanceBodySnippet":  "{\"title\":\"عدم دسترسی\",\"status\":403,\"detail\":\"مانده/جمع طرف‌حساب فقط با Finance.PartyLedgerView باز است؛ Admin، Finance.View یا Finance.Reconcile به‌تنهایی کافی نیست.\"}",
+                                 "FinanceCards":  [
+                                                      {
+                                                          "contractId":  "ED-06",
+                                                          "code":  "receivables",
+                                                          "title":  "مطالبات تجاری",
+                                                          "status":  3,
+                                                          "amount":  null,
+                                                          "numericValue":  null,
+                                                          "drillTarget":  "financeDashboard",
+                                                          "drillQuery":  null
+                                                      },
+                                                      {
+                                                          "contractId":  "ED-07",
+                                                          "code":  "payables",
+                                                          "title":  "بدهی تجاری",
+                                                          "status":  3,
+                                                          "amount":  null,
+                                                          "numericValue":  null,
+                                                          "drillTarget":  "financeDashboard",
+                                                          "drillQuery":  null
+                                                      },
+                                                      {
+                                                          "contractId":  "ED-13",
+                                                          "code":  "receipts",
+                                                          "title":  "دریافت‌ها",
+                                                          "status":  3,
+                                                          "amount":  null,
+                                                          "numericValue":  null,
+                                                          "drillTarget":  "financeDashboard",
+                                                          "drillQuery":  null
+                                                      },
+                                                      {
+                                                          "contractId":  "ED-14",
+                                                          "code":  "payments",
+                                                          "title":  "پرداخت‌ها",
+                                                          "status":  3,
+                                                          "amount":  null,
+                                                          "numericValue":  null,
+                                                          "drillTarget":  "financeDashboard",
+                                                          "drillQuery":  null
+                                                      },
+                                                      {
+                                                          "contractId":  "ED-15",
+                                                          "code":  "overdue",
+                                                          "title":  "مطالبات سررسیدگذشته",
+                                                          "status":  3,
+                                                          "amount":  null,
+                                                          "numericValue":  null,
+                                                          "drillTarget":  "financeDashboard",
+                                                          "drillQuery":  null
+                                                      }
+                                                  ],
+                                 "LedgerStatus":  404,
+                                 "DisabledSlicers":  [
+                                                         "fiscalYear:فقط با مجوز Finance.PartyLedgerView",
+                                                         "partySearch:جستجوی طرف‌حساب مالی فقط با مجوز دفتر",
+                                                         "partyType:فقط فهرست بازبینی CRM؛ روی جمع AR/AP سپیدار اعمال نمی‌شود",
+                                                         "followUpOwner:فقط با مجوز مالی",
+                                                         "orgUnit:نگاشت معتبر واحد سازمانی به اسناد مالی سپیدار در کد فعلی نیست",
+                                                         "itemGroup:روی AR/AP سپیدار اعمال نمی‌شود؛ مصرف مواد از مسیر گزارش انبار",
+                                                         "status:اسلایسر وضعیت سراسری روی این API پیاده‌سازی نشده؛ فیلتر از کارت اقدام به صفحه مقصد می‌رود"
+                                                     ],
+                                 "ExecutiveStatus":  200,
+                                 "HasPartyLedgerView":  false
+                             },
+                   "FinanceRoleProbe":  {
+                                            "FinanceDashSnippet":  "{\"generatedAtUtc\":\"2026-11-07T06:17:38.0057784Z\",\"sepidarReadAttempted\":true,\"freshness\":\"Unavailable\",\"freshnessDetail\":\"رشته اتصال سپیدار تنظیم نشده است.\",\"lastSuccessfulFinancialReadUtc\":null,\"catalogFiscalYear\":{\"fiscalYearId\":10,\"title\":\"1405\",\"startDate\":\"2026-03-21T00:00:0",
+                                            "ExecutiveAsFinanceStatus":  200,
+                                            "FinanceUsers":  [
+                                                                 "CRM\\Administrator",
+                                                                 "SAHAR\\a.mohammadi",
+                                                                 "SAHAR\\Administrator",
+                                                                 "SAHAR\\finance",
+                                                                 "SAHAR\\j.asg"
+                                                             ],
+                                            "LedgerPermUsers":  [
+                                                                    "CRM\\Administrator",
+                                                                    "SAHAR\\a.mohammadi",
+                                                                    "SAHAR\\Administrator",
+                                                                    "SAHAR\\finance",
+                                                                    "SAHAR\\j.asg"
+                                                                ],
+                                            "FinanceDashboardStatus":  200,
+                                            "ExecutiveHasLedger":  true
+                                        },
+                   "PackageVerify":  {
+                                         "WebSha":  "E1EC83E2AEDC9868AF03CBC5C9517C91617455C406F22C694F07A3B63494856F",
+                                         "ApiSha":  "3A2B24F486A914B1A9CAEA47CBCD21FD566342D3DDDBAE8FB4F0B71B4634AD12"
+                                     },
+                   "PSComputerName":  "crm-mgmt.sahar.loc",
+                   "RunspaceId":  "1ef4e655-1f00-450d-8435-9384f3e5e9b4",
+                   "PSShowComputerName":  true
+               },
+    "FinishedAtUtc":  "2026-11-07T06:17:41.6179335Z"
+}

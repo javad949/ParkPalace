@@ -1,0 +1,251 @@
+﻿{
+    "TransferMethod":  "WinRM HTTPS crm-mgmt.sahar.loc:5987 Copy-Item -ToSession",
+    "ProductionTouched":  false,
+    "ModeExecuted":  "PreviewOnly",
+    "ExecuteNotRun":  true,
+    "RemoteVerify":  {
+                         "ManifestDeployAllowed":  false,
+                         "IndependentOf":  "v1.0.24-rc3",
+                         "Files":  [
+                                       {
+                                           "Name":  "ParkPalace_Api_dashboard-exec-v1.zip",
+                                           "Exists":  true,
+                                           "ExpectedSha":  "78AC0225BD250DDF2525CEC3E0C3741143EA03D7FFFEB414BFE6CE272E2BC013",
+                                           "ActualSha":  "78AC0225BD250DDF2525CEC3E0C3741143EA03D7FFFEB414BFE6CE272E2BC013",
+                                           "ExpectedBytes":  8263013,
+                                           "ActualBytes":  8263013,
+                                           "Match":  true
+                                       },
+                                       {
+                                           "Name":  "ParkPalace_Web_dashboard-exec-v1.zip",
+                                           "Exists":  true,
+                                           "ExpectedSha":  "1A00681E28BDDF1F71A577F88409DB186C2EA3041206FF081CB4C675B70919DD",
+                                           "ActualSha":  "1A00681E28BDDF1F71A577F88409DB186C2EA3041206FF081CB4C675B70919DD",
+                                           "ExpectedBytes":  1616369,
+                                           "ActualBytes":  1616369,
+                                           "Match":  true
+                                       },
+                                       {
+                                           "Name":  "crm_stage_dashboard_exec_v1_runner.ps1",
+                                           "Exists":  true,
+                                           "ExpectedSha":  null,
+                                           "ActualSha":  "E8B9764E8A9BB3231C71782B5245119CC50E2E30AD6C8862FC495F4EC6701500",
+                                           "ExpectedBytes":  null,
+                                           "ActualBytes":  28484,
+                                           "Match":  true
+                                       }
+                                   ],
+                         "AllZipMatch":  true,
+                         "PSComputerName":  "crm-mgmt.sahar.loc",
+                         "RunspaceId":  "f30fedd2-453f-4169-8ee5-67e96e1306eb",
+                         "PSShowComputerName":  true
+                     },
+    "PreviewExitCode":  0,
+    "RemoteEvidencePath":  "D:\\ParkPlaceCRM\\docs\\runs\\stage_dashboard_exec_v1_runner_PreviewOnly_20261107_085152.json",
+    "PreviewEvidence":  {
+                            "Gate":  "StagingPreviewPassed",
+                            "Mode":  "PreviewOnly",
+                            "StartedAtUtc":  "2026-11-07T05:21:52.7731923Z",
+                            "HostName":  "CRM",
+                            "PackageDir":  "D:\\ParkPlaceCRM\\packages\\dashboard-exec-v1\\latest",
+                            "EvidenceDir":  "D:\\ParkPlaceCRM\\docs\\runs",
+                            "StagingSiteName":  "ParkPalaceCRM-Stage-v1024",
+                            "StagingApiBase":  "http://127.0.0.1:51024",
+                            "StagingDb":  "ParkPalaceCRM_Stage_20261106_123740_c98981ae",
+                            "StagingRoot":  "D:\\ParkPlaceCRM\\staging\\v1024_c98981ae",
+                            "ProductionSiteTouched":  false,
+                            "ProductionMutated":  false,
+                            "deploy_allowed_package":  false,
+                            "deploy_allowed_rc3":  false,
+                            "ExecuteEligible":  true,
+                            "Checks":  [
+                                           {
+                                               "Path":  "D:\\ParkPlaceCRM\\packages\\dashboard-exec-v1\\latest",
+                                               "Name":  "PackageDirExists",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "deploy_allowed":  false,
+                                               "Name":  "ManifestDeployAllowedFalse",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "independentOf":  "v1.0.24-rc3",
+                                               "Name":  "ManifestIndependentOfRc3",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "Name":  "ManifestPackageId",
+                                               "packageId":  "dashboard-exec-v1",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "Path":  "D:\\ParkPlaceCRM\\packages\\dashboard-exec-v1\\latest\\ParkPalace_Api_dashboard-exec-v1.zip",
+                                               "ExpectedSha":  "78AC0225BD250DDF2525CEC3E0C3741143EA03D7FFFEB414BFE6CE272E2BC013",
+                                               "Passed":  true,
+                                               "ExpectedBytes":  8263013,
+                                               "Name":  "ZipMatch_ParkPalace_Api_dashboard_exec_v1_zip",
+                                               "ActualBytes":  8263013,
+                                               "ActualSha":  "78AC0225BD250DDF2525CEC3E0C3741143EA03D7FFFEB414BFE6CE272E2BC013"
+                                           },
+                                           {
+                                               "Path":  "D:\\ParkPlaceCRM\\packages\\dashboard-exec-v1\\latest\\ParkPalace_Web_dashboard-exec-v1.zip",
+                                               "ExpectedSha":  "1A00681E28BDDF1F71A577F88409DB186C2EA3041206FF081CB4C675B70919DD",
+                                               "Passed":  true,
+                                               "ExpectedBytes":  1616369,
+                                               "Name":  "ZipMatch_ParkPalace_Web_dashboard_exec_v1_zip",
+                                               "ActualBytes":  1616369,
+                                               "ActualSha":  "1A00681E28BDDF1F71A577F88409DB186C2EA3041206FF081CB4C675B70919DD"
+                                           },
+                                           {
+                                               "Name":  "PackageVerified",
+                                               "Note":  "ZIP SHA256+bytes + manifest identity only",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "Path":  "D:\\ParkPlaceCRM\\api\\ParkPalace.Api.dll",
+                                               "Sha256":  "7E693A9BDD8BC449BBFA3D037694B86EF46B533BE0DC9C410A36198386B068E0",
+                                               "Name":  "ProductionApiDllFingerprintReadable",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "Expected":  "ParkPalaceCRM-Stage-v1024",
+                                               "Name":  "StagingSiteNameExact",
+                                               "SiteName":  "ParkPalaceCRM-Stage-v1024",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "ApiAppPath":  "/api",
+                                               "Name":  "StagingApiApplicationExact",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "Name":  "StagingBindingPort51024",
+                                               "Bindings":  [
+                                                                "*:51024:",
+                                                                "*:80:crm-stage.sahar.loc",
+                                                                "*:443:crm-stage.sahar.loc"
+                                                            ],
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "AppPool":  "ParkPalaceCRM-Stage-v1024",
+                                               "Name":  "StagingAppPoolPresent",
+                                               "ApiAppPool":  "ParkPalaceCRM-Stage-v1024",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "Api":  "D:\\ParkPlaceCRM\\staging\\v1024_c98981ae\\sepidarsearch_api_20261106_200041",
+                                               "Name":  "StagingPathsUnderStagingRoot",
+                                               "Web":  "D:\\ParkPlaceCRM\\staging\\v1024_c98981ae\\web",
+                                               "StagingRoot":  "D:\\ParkPlaceCRM\\staging\\v1024_c98981ae",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "Path":  "D:\\ParkPlaceCRM\\staging\\v1024_c98981ae\\sepidarsearch_api_20261106_200041",
+                                               "Name":  "CurrentStagingApiPathExists",
+                                               "Rc3HintMatch":  false,
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "Path":  "D:\\ParkPlaceCRM\\staging\\v1024_c98981ae\\web",
+                                               "Name":  "CurrentStagingWebPathExists",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "Path":  "D:\\ParkPlaceCRM\\staging\\v1024_c98981ae\\sepidarsearch_api_20261106_200041\\web.config",
+                                               "Name":  "CurrentApiWebConfigExists",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "Path":  "D:\\ParkPlaceCRM\\staging\\v1024_c98981ae\\web\\web.config",
+                                               "Name":  "CurrentWebWebConfigExists",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "SftpEmpty":  true,
+                                               "Path":  "D:\\ParkPlaceCRM\\staging\\v1024_c98981ae\\sepidarsearch_api_20261106_200041\\appsettings.Production.json",
+                                               "CrmCs":  "Server=localhost;Database=ParkPalaceCRM_Stage_20261106_123740_c98981ae;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;Application Name=ParkPalaceCRM_StagingRehearsal;",
+                                               "Passed":  false,
+                                               "SepidarEmpty":  false,
+                                               "TelephonySim":  true,
+                                               "Name":  "CurrentStagingIsolationReadable",
+                                               "Ok":  false,
+                                               "DbOk":  true
+                                           },
+                                           {
+                                               "Name":  "StagingIisIdentityBundle",
+                                               "Note":  "site+/api+pool+bindings+paths+web.config",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "Expected":  "ParkPalaceCRM_Stage_20261106_123740_c98981ae",
+                                               "Connected":  "ParkPalaceCRM_Stage_20261106_123740_c98981ae",
+                                               "Name":  "StagingDatabaseIdentity",
+                                               "Passed":  true
+                                           },
+                                           {
+                                               "Status":  200,
+                                               "Url":  "http://127.0.0.1:51024/api/health",
+                                               "Name":  "StagingHealthHealthy_PreInstall",
+                                               "Note":  "Pre-install health of CURRENT staging (likely RC3). Not a dashboard-exec install pass.",
+                                               "Passed":  true
+                                           }
+                                       ],
+                            "Notes":  [
+                                          "All CRM staging identity gates green. Execute may be run on THIS host with the same PackageDir."
+                                      ],
+                            "PackageManifest":  {
+                                                    "packageId":  "dashboard-exec-v1",
+                                                    "builtAtUtc":  "2026-11-06T21:46:56.7854131Z",
+                                                    "independentOf":  "v1.0.24-rc3",
+                                                    "deploy_allowed":  false,
+                                                    "notes":  "Executive decision dashboard only. Do not treat as rc3 cutover. Production deploy forbidden until separate staging gates pass.",
+                                                    "files":  [
+                                                                  {
+                                                                      "sha256":  "78AC0225BD250DDF2525CEC3E0C3741143EA03D7FFFEB414BFE6CE272E2BC013",
+                                                                      "bytes":  8263013,
+                                                                      "relativePath":  "ParkPalace_Api_dashboard-exec-v1.zip"
+                                                                  },
+                                                                  {
+                                                                      "sha256":  "1A00681E28BDDF1F71A577F88409DB186C2EA3041206FF081CB4C675B70919DD",
+                                                                      "bytes":  1616369,
+                                                                      "relativePath":  "ParkPalace_Web_dashboard-exec-v1.zip"
+                                                                  }
+                                                              ],
+                                                    "evidenceDocs":  [
+                                                                         "docs/ParkPalace_Executive_Decision_Dashboard_Implementation_Report_20261107.md",
+                                                                         "docs/ParkPalace_Executive_Decision_Dashboard_Audit_20261107.md",
+                                                                         "docs/ParkPalace_Executive_Decision_Dashboard_KPI_Contracts_20261107.md",
+                                                                         "docs/ParkPalace_Executive_Decision_Dashboard_Design_20261107.md"
+                                                                     ],
+                                                    "productionTouched":  false,
+                                                    "stagingScript":  "scripts/crm_stage_dashboard_exec_v1_runner.ps1",
+                                                    "stagingHttpGatesOnly":  "scripts/crm_stage_dashboard_exec_v1_gates.ps1",
+                                                    "stagingSiteName":  "ParkPalaceCRM-Stage-v1024",
+                                                    "stagingHealthUrl":  "http://127.0.0.1:51024/api/health"
+                                                },
+                            "ProductionApiDllSha256Before":  "7E693A9BDD8BC449BBFA3D037694B86EF46B533BE0DC9C410A36198386B068E0",
+                            "IisSnapshot":  {
+                                                "SiteName":  "ParkPalaceCRM-Stage-v1024",
+                                                "SiteState":  "Started",
+                                                "AppPool":  "ParkPalaceCRM-Stage-v1024",
+                                                "ApiAppPool":  "ParkPalaceCRM-Stage-v1024",
+                                                "Bindings":  [
+                                                                 "*:51024:",
+                                                                 "*:80:crm-stage.sahar.loc",
+                                                                 "*:443:crm-stage.sahar.loc"
+                                                             ],
+                                                "WebPhysicalPath":  "D:\\ParkPlaceCRM\\staging\\v1024_c98981ae\\web",
+                                                "ApiPhysicalPath":  "D:\\ParkPlaceCRM\\staging\\v1024_c98981ae\\sepidarsearch_api_20261106_200041",
+                                                "HasApiApp":  true,
+                                                "ApiAppPath":  "/api"
+                                            },
+                            "PreInstallHealth":  {
+                                                     "Status":  200,
+                                                     "Body":  "{\"status\":\"Healthy\",\"service\":\"ParkPalace Procurement CRM API\",\"version\":\"1.0.0\",\"serverTimeUtc\":\"2026-11-07T05:21:56.7059869Z\",\"databaseConnected\":true,\"sepidarIntegrationStatus\":\"Active (Read-Only)\"}",
+                                                     "Error":  null
+                                                 },
+                            "FinishedAtUtc":  "2026-11-07T05:21:56.7576252Z"
+                        }
+}

@@ -5,12 +5,103 @@ export interface MeResponse {
   username: string;
   displayName: string;
   email?: string;
+  extension?: string;
   adSid?: string;
   isAuthenticated: boolean;
   roles: string[];
   permissions: string[];
   activeRole?: string;
   availableRoles?: string[];
+}
+
+export interface UserDto {
+  id: string;
+  username: string;
+  displayName: string;
+  email?: string;
+  adObjectSid?: string;
+  isEnabled: boolean;
+  lastLoginAtUtc?: string;
+  roles: string[];
+  extension?: string;
+  deviceType?: string;
+  department?: string;
+  jobTitle?: string;
+  adDepartment?: string;
+  adTitle?: string;
+  telephonyGroupId?: string;
+  telephonyGroupName?: string;
+  isSupervisor?: boolean;
+}
+
+export interface UserAccessPreviewDto {
+  id: string;
+  username: string;
+  displayName: string;
+  extension?: string;
+  activeRole: string;
+  roles: string[];
+  availableRoles: string[];
+  permissions: string[];
+}
+
+export interface UpdateUserRequest {
+  roles?: string[];
+  extension?: string;
+  deviceType?: string;
+  department?: string;
+  jobTitle?: string;
+  telephonyGroupId?: string;
+  isSupervisor?: boolean;
+}
+
+export interface AdUserDirectoryDto {
+  samAccountName: string;
+  displayName: string;
+  email?: string;
+  title?: string;
+  department?: string;
+  telephoneNumber?: string;
+  ipPhone?: string;
+  mobile?: string;
+  sid: string;
+  isDisabled: boolean;
+  isImportedInCrm: boolean;
+  existingUserId?: string;
+  existingRoles: string[];
+  existingExtension?: string;
+}
+
+export interface UpdateUserRolesRequest {
+  roles: string[];
+}
+
+export interface UpdateUserExtensionRequest {
+  extension?: string;
+  deviceType?: string;
+  description?: string;
+}
+
+export interface UpdateUserStatusRequest {
+  isEnabled: boolean;
+}
+
+export interface AvailableExtensionDto {
+  extension: string;
+  displayName: string;
+  deviceType: string;
+  isAssigned: boolean;
+  assignedUserId?: string;
+  assignedUsername?: string;
+  assignedDisplayName?: string;
+  holderName?: string;
+  status: string;
+}
+
+export interface SyncAdUsersRequest {
+  samAccountNames?: string[];
+  defaultRole?: string;
+  overwriteExistingExtensions?: boolean;
 }
 
 export interface HealthResponse {
@@ -25,8 +116,30 @@ export interface HealthResponse {
 export interface RoleDto {
   id: string;
   name: string;
+  displayName?: string;
   description: string;
   permissions: string[];
+  isSystemRole?: boolean;
+}
+
+export interface PermissionDto {
+  id: string;
+  code: string;
+  category: string;
+  description: string;
+}
+
+export interface CreateRoleRequest {
+  name: string;
+  displayName: string;
+  description?: string;
+  permissions: string[];
+}
+
+export interface UpdateRoleRequest {
+  displayName: string;
+  description?: string;
+  permissions?: string[];
 }
 
 export interface PagedResult<T> {
@@ -35,6 +148,22 @@ export interface PagedResult<T> {
   pageNumber: number;
   pageSize: number;
   totalPages: number;
+}
+
+export interface DirectoryPartyListItem {
+  id: string;
+  displayName: string;
+  crmTitle?: string;
+  sepidarTitle?: string;
+  sepidarCode?: string;
+  sepidarPartyRef?: string;
+  isSupplier: boolean;
+  isVendor?: boolean;
+  isCustomer?: boolean;
+  hasCrmProfile?: boolean;
+  sepidarMappingVerified: boolean;
+  financialCalculationVerified?: boolean;
+  category?: string;
 }
 
 // Category
@@ -143,11 +272,18 @@ export interface MaterialDetailDto extends MaterialDto {
 
 // Supplier & Party
 export type PartyType = 1 | 2; // 1 = Individual, 2 = LegalEntity
+export type PartyCategory = 1 | 2 | 3 | 4; // 1 = Supplier, 2 = ServiceProvider, 3 = Customer, 4 = OtherCounterparty
 
 export interface PartyDto {
   id: string;
   partyType: PartyType;
+  category?: PartyCategory;
+  categoryLabel?: string;
   displayName: string;
+  crmTitle?: string;
+  sepidarCode?: string;
+  sepidarTitle?: string;
+  sepidarPartyRef?: string;
   isActive: boolean;
   notes?: string;
   firstName?: string;
@@ -158,10 +294,21 @@ export interface PartyDto {
   nationalIdentifier?: string;
   registrationNumber?: string;
   economicCode?: string;
+  assignedDepartment?: string;
+  assignedGroupId?: string;
+  assignedGroupName?: string;
+  assignedUserId?: string;
+  assignedUserName?: string;
   primaryPhone?: string;
   primaryContactName?: string;
   primaryAddressCity?: string;
+  primaryAddressProvince?: string;
+  primaryAddressText?: string;
+  primaryAddressPostalCode?: string;
   suppliedMaterialsCount: number;
+  purchaseOrdersCount?: number;
+  isSepidarLinked?: boolean;
+  canDelete?: boolean;
 }
 
 export interface PartyContactDto {
@@ -731,6 +878,8 @@ export interface UnlinkPayload {
 
 // Phase 6: Telephony, Calls & PBX
 export type CallDirection = 0 | 1 | 2; // 0: Incoming, 1: Outgoing, 2: Internal
+export type CallScope = 0 | 1 | 2; // 0: Unknown, 1: Trunk, 2: Internal
+export type CallClassificationFilter = 'all' | 'inbound_trunk' | 'outbound_trunk' | 'internal_inbound' | 'internal_outbound';
 export type CallStatus = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0: Ringing, 1: Answered, 2: Missed, 3: Busy, 4: Failed, 5: Transferred, 6: Completed
 export type CallReconciliationStatus = 0 | 1 | 2 | 3 | 4; // 0: Pending, 1: Reconciled, 2: Uncorrelated, 3: Ambiguous, 4: ManualReview
 export type FollowUpStatus = 0 | 1 | 2; // 0: Pending, 1: Completed, 2: Cancelled
@@ -740,11 +889,14 @@ export interface CallRecordDto {
   uniqueId: string;
   linkedId: string;
   direction: CallDirection;
+  scope?: CallScope;
   status: CallStatus;
   callerNumber: string;
   normalizedCallerNumber: string;
   callerName?: string;
   destinationNumber: string;
+  internalCallerName?: string;
+  internalDestinationName?: string;
   extension?: string;
   channel?: string;
   destinationChannel?: string;
@@ -756,9 +908,15 @@ export interface CallRecordDto {
   partyId?: string;
   partyName?: string;
   partyCode?: string;
+  partyCategory?: PartyCategory;
   contactId?: string;
   contactName?: string;
   contactPosition?: string;
+  assignedDepartment?: string;
+  assignedGroupId?: string;
+  assignedGroupName?: string;
+  assignedUserId?: string;
+  assignedUserName?: string;
   isUnknownCaller: boolean;
   matchConfidence: string;
   recordingFileName?: string;
@@ -810,6 +968,9 @@ export interface PartyMatchDto {
   partyId: string;
   partyName: string;
   partyCode: string;
+  partyType?: PartyType;
+  category?: PartyCategory;
+  categoryLabel?: string;
   contactId?: string;
   contactName?: string;
   contactRole?: string;
@@ -854,8 +1015,62 @@ export interface CreateCallNoteRequest {
 }
 
 export interface ClassifyCallRequest {
-  partyId: string;
+  partyId?: string;
   contactId?: string;
+  newContactName?: string;
+  newContactPosition?: string;
+  createNewParty?: boolean;
+  newPartyType?: number;
+  newPartyName?: string;
+  newPartyCity?: string;
+  createStandaloneContact?: boolean;
+  standaloneName?: string;
+  standalonePosition?: string;
+  partyCategory?: PartyCategory;
+  assignedDepartment?: string;
+  assignedGroupId?: string;
+  assignedUserId?: string;
+}
+
+export interface UpdateCallerAssociationRequest {
+  partyId?: string;
+  contactId?: string;
+  assignedDepartment?: string;
+  assignedGroupId?: string;
+  assignedUserId?: string;
+  reason?: string;
+}
+
+export interface SepidarAccountMovementDto {
+  voucherItemId: string;
+  voucherNumber: string;
+  voucherDateUtc: string;
+  debit: number;
+  credit: number;
+  description: string;
+  cumulativeBalance: number;
+}
+
+export interface SepidarPartyFinancialHistoryDto {
+  isConnected: boolean;
+  isAvailable: boolean;
+  partyRef?: string;
+  sepidarCode?: string;
+  sepidarTitle?: string;
+  fiscalPeriod: string;
+  fiscalYear?: number;
+  currency: string;
+  retrievedAtUtc: string;
+  openingBalance: number;
+  totalDebit: number;
+  totalCredit: number;
+  balance: number;
+  netBalance?: number;
+  balanceType: string;
+  movements: SepidarAccountMovementDto[];
+  statusMessage?: string;
+  message?: string;
+  unverifiedDependencyDetails?: string;
 }
 
 export interface SimulateCallRequest {
@@ -883,11 +1098,15 @@ export interface CdrReconciliationDto {
 
 export type ViewType = 
   | 'dashboard'
+  | 'executiveDashboard'
   | 'materials'
   | 'suppliers'
+  | 'sepidarParties'
+  | 'contacts'
   | 'orders'
   | 'warehouse'
   | 'finance'
+  | 'financeDashboard'
   | 'calls'
   | 'admin';
 
@@ -1107,6 +1326,181 @@ export interface DashboardActionItemDto {
   jalaliDate: string;
 }
 
+export type FinancialFigureStatusName = 'Verified' | 'Unverified' | 'Blocked' | 'Unavailable' | 'NoData' | 'Zero';
+
+export interface FinancialFigureDto {
+  code: string;
+  title: string;
+  amount?: number | null;
+  status: FinancialFigureStatusName | number;
+  reason: string;
+}
+
+export interface FinancialDashboardDto {
+  generatedAtUtc: string;
+  sepidarReadAttempted: boolean;
+  freshness: string;
+  freshnessDetail: string;
+  lastSuccessfulFinancialReadUtc?: string | null;
+  catalogFiscalYear?: {
+    fiscalYearId: number;
+    title: string;
+    startDate: string;
+    endDate: string;
+    evidence: string;
+    liveRead: boolean;
+  } | null;
+  comparisonStatus?: string | null;
+  currentPeriodFromUtc?: string | null;
+  currentPeriodToUtc?: string | null;
+  previousPeriodFromUtc?: string | null;
+  previousPeriodToUtc?: string | null;
+  fiscalYears?: Array<{ fiscalYearId: number; title: string; startDate: string; endDate: string }>;
+  accountScope?: Array<{ code: string; title: string; side: string }>;
+  cards: FinancialFigureDto[];
+  monthlyComparison: FinancialFigureDto[];
+  monthly?: Array<{ monthStart: string; side: string; net: number; previousPeriod: boolean }>;
+  dueDates: FinancialFigureDto;
+  largestBalances: FinancialFigureDto;
+  topParties?: Array<{
+    code: string;
+    title: string;
+    net: number;
+    side: string;
+    partyId?: string | null;
+    crmName?: string | null;
+  }>;
+  sepidarSearchHits?: Array<{
+    code: string;
+    title: string;
+    partyRef?: string | null;
+    partyId?: string | null;
+    crmName?: string | null;
+    mappingVerified: boolean;
+  }>;
+  sepidarSearchMessage?: string | null;
+  needsReview: Array<{
+    partyId: string;
+    displayName: string;
+    category: string;
+    issue: string;
+    sepidarCode?: string | null;
+    sepidarPartyRef?: string | null;
+  }>;
+  reviewSampleCapped: boolean;
+  unmappedPartyCount: number;
+  openFollowUps: Array<{
+    noteId: string;
+    partyId?: string | null;
+    partyName?: string | null;
+    owner?: string | null;
+    dueDateUtc?: string | null;
+    noteText: string;
+    source: string;
+  }>;
+  activeFilters: Array<{ key: string; label: string }>;
+}
+
+export interface ExecutiveKpiCardDto {
+  contractId: string;
+  code: string;
+  title: string;
+  amount?: number | null;
+  numericValue?: number | null;
+  unit?: string | null;
+  status: FinancialFigureStatusName | number;
+  reason: string;
+  source: string;
+  requiredPermission: string;
+  drillTarget?: string | null;
+  drillQuery?: string | null;
+  previousPeriodAmount?: number | null;
+  previousPeriodNote?: string | null;
+  lastSuccessfulReadUtc?: string | null;
+  validationCause?: string | null;
+}
+
+export interface ExecutiveDashboardDto {
+  generatedAtUtc: string;
+  viewer: {
+    hasPartyLedgerView: boolean;
+    canViewOps: boolean;
+    roles: string[];
+    permissionsNote: string;
+  };
+  slicers: {
+    fiscalYears: Array<{ fiscalYearId: number; title: string; startDate: string; endDate: string }>;
+    activeFiscalYearId?: number | null;
+    items: Array<{
+      key: string;
+      label: string;
+      enabled: boolean;
+      disabledReason?: string | null;
+      appliesTo?: string | null;
+    }>;
+  };
+  freshness: {
+    lastSuccessfulReadUtc?: string | null;
+    fiscalYearLabel?: string | null;
+    financeFreshness: string;
+    financeFreshnessDetail: string;
+    completenessFlags: string[];
+    opsFreshnessBadge: string;
+  };
+  cards: ExecutiveKpiCardDto[];
+  actionItems: DashboardActionItemDto[];
+  monthlyTrend: NonNullable<FinancialDashboardDto['monthly']>;
+  topDebtors: NonNullable<FinancialDashboardDto['topParties']>;
+  topCreditors: NonNullable<FinancialDashboardDto['topParties']>;
+  needsReview: FinancialDashboardDto['needsReview'];
+  openFollowUps: FinancialDashboardDto['openFollowUps'];
+  topSuppliersOps: SupplierPerformanceReportItemDto[];
+  criticalMaterials: MaterialConsumptionReportItemDto[];
+  drillLinks: Record<string, string>;
+  comparison?: {
+    currentFromUtc?: string | null;
+    currentToUtc?: string | null;
+    previousFromUtc?: string | null;
+    previousToUtc?: string | null;
+    statusNote?: string | null;
+    hasEquivalentPreviousPeriod: boolean;
+  };
+  financeAccessNote?: string | null;
+}
+
+export interface PartyLedgerDto {
+  partyId: string;
+  displayName: string;
+  sepidarPartyRef?: string | null;
+  sepidarCode?: string | null;
+  mappingVerified: boolean;
+  documentsAuthorized: boolean;
+  openingBalance: FinancialFigureDto;
+  totalDebit: FinancialFigureDto;
+  totalCredit: FinancialFigureDto;
+  receipts: FinancialFigureDto;
+  payments: FinancialFigureDto;
+  closingBalance: FinancialFigureDto;
+  linesStatus: FinancialFigureStatusName | number;
+  linesReason: string;
+  page: number;
+  pageSize: number;
+  totalLineCount?: number | null;
+  lines: Array<{
+    sepidarReference?: string | null;
+    dateUtc?: string | null;
+    documentNumber?: string | null;
+    documentType?: string | null;
+    description?: string | null;
+    debit?: number | null;
+    credit?: number | null;
+    runningBalance?: number | null;
+  }>;
+  contacts: Array<{ id: string; personName: string; position?: string | null }>;
+  calls: Array<{ id: string; startTimeUtc: string; callerNumber: string; destinationNumber: string; callerName?: string | null }>;
+  followUps: FinancialDashboardDto['openFollowUps'];
+}
+
 export interface RoleDashboardDto {
   role: string;
   generatedAtUtc: string;
@@ -1130,4 +1524,62 @@ export interface ExportRequestDto {
   status?: string;
   searchTerm?: string;
 }
+
+export interface TelephonyGroupMemberDto {
+  id: string;
+  groupId: string;
+  extension: string;
+  displayName: string;
+  userId?: string;
+  username?: string;
+  isSupervisor: boolean;
+  notes?: string;
+  joinedAtUtc: string;
+}
+
+export interface TelephonyGroupDto {
+  id: string;
+  name: string;
+  code?: string;
+  description?: string;
+  isActive: boolean;
+  supervisorUserId?: string;
+  supervisorExtension?: string;
+  supervisorDisplayName?: string;
+  membersCount: number;
+  members: TelephonyGroupMemberDto[];
+  createdAtUtc: string;
+}
+
+export interface CreateTelephonyGroupRequest {
+  name: string;
+  code?: string;
+  description?: string;
+  supervisorUserId?: string;
+  supervisorExtension?: string;
+  supervisorDisplayName?: string;
+}
+
+export interface UpdateTelephonyGroupRequest {
+  name: string;
+  description?: string;
+  isActive?: boolean;
+}
+
+export interface AddGroupMemberRequest {
+  extension: string;
+  displayName?: string;
+  userId?: string;
+  username?: string;
+  isSupervisor?: boolean;
+  notes?: string;
+}
+
+export interface SetGroupSupervisorRequest {
+  /** Empty string clears the supervisor. */
+  extension?: string;
+  userId?: string;
+  displayName?: string;
+}
+
 

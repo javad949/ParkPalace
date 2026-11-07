@@ -2,6 +2,9 @@ import {
   HealthResponse, 
   MeResponse, 
   RoleDto,
+  PermissionDto,
+  CreateRoleRequest,
+  UpdateRoleRequest,
   CategoryDto,
   CategoryTreeDto,
   UnitOfMeasureDto,
@@ -10,6 +13,9 @@ import {
   PagedResult,
   PartyDto,
   PartyDetailDto,
+  PartyContactDto,
+  PartyPhoneDto,
+  PartyAddressDto,
   SupplierMaterialDto,
   SupplierPriceHistoryDto,
   WarehouseDto,
@@ -36,12 +42,21 @@ import {
   LinkSepidarInvoiceRequest,
   CallRecordDto,
   CallNoteDto,
+  CallerPopupDto,
   UserExtensionDto,
   PartyMatchDto,
   CreateCallNoteRequest,
   ClassifyCallRequest,
   SimulateCallRequest,
   CdrReconciliationDto,
+  UserDto,
+  UserAccessPreviewDto,
+  UpdateUserRequest,
+  AdUserDirectoryDto,
+  UpdateUserExtensionRequest,
+  SyncAdUsersRequest,
+  UpdateCallerAssociationRequest,
+  SepidarPartyFinancialHistoryDto,
   FollowUpStatus,
   ReportFilterParams,
   ProcurementSummaryReportDto,
@@ -53,7 +68,13 @@ import {
   TelephonyActivityReportDto,
   IntegrationHealthReportDto,
   RoleDashboardDto,
-  ExportRequestDto
+  ExportRequestDto,
+  AvailableExtensionDto,
+  TelephonyGroupDto,
+  CreateTelephonyGroupRequest,
+  UpdateTelephonyGroupRequest,
+  AddGroupMemberRequest,
+  SetGroupSupervisorRequest
 } from '../types';
 
 const API_BASE = '/api';
@@ -91,10 +112,66 @@ export async function fetchMe(devRoleHeader?: string): Promise<MeResponse> {
 }
 
 export async function fetchRoles(devRoleHeader?: string): Promise<RoleDto[]> {
-  const res = await fetch(`${API_BASE}/roles`, { headers: getHeaders(devRoleHeader), credentials: 'include' });
-  if (!res.ok) throw new Error(`خطا در بازیابی نقش‌ها: ${res.status}`);
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 6000);
+  try {
+    const res = await fetch(`${API_BASE}/roles`, {
+      headers: getHeaders(devRoleHeader),
+      credentials: 'include',
+      signal: controller.signal
+    });
+    if (!res.ok) throw new Error(`خطا در بازیابی نقش‌ها: ${res.status}`);
+    return await res.json();
+  } catch (err: any) {
+    if (controller.signal.aborted) {
+      throw new Error('زمان انتظار برای دریافت نقش‌ها به پایان رسید.');
+    }
+    throw err;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+export async function fetchPermissionsCatalog(devRole?: string): Promise<PermissionDto[]> {
+  const res = await fetch(`${API_BASE}/roles/permissions`, {
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در دریافت فهرست مجوزها: ${res.status}`);
+  }
   return res.json();
 }
+
+export async function createRole(data: CreateRoleRequest, devRole?: string): Promise<RoleDto> {
+  const res = await fetch(`${API_BASE}/roles`, {
+    method: 'POST',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || err.message || `خطا در ایجاد نقش: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function updateRole(id: string, data: UpdateRoleRequest, devRole?: string): Promise<RoleDto> {
+  const res = await fetch(`${API_BASE}/roles/${id}`, {
+    method: 'PUT',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || err.message || `خطا در ویرایش نقش: ${res.status}`);
+  }
+  return res.json();
+}
+
 
 // ================= Phase 3: Categories & Catalog =================
 
@@ -314,6 +391,224 @@ export async function createSupplier(data: {
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || err.title || `خطا در ثبت تأمین‌کننده: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function updateSupplier(id: string, data: {
+  displayName?: string;
+  crmTitle?: string;
+  partyType?: number;
+  notes?: string;
+  firstName?: string;
+  lastName?: string;
+  shopName?: string;
+  nationalId?: string;
+  legalName?: string;
+  nationalIdentifier?: string;
+  registrationNumber?: string;
+  economicCode?: string;
+  isActive?: boolean;
+  primaryAddressCity?: string;
+  primaryAddressProvince?: string;
+  primaryAddressText?: string;
+  primaryAddressPostalCode?: string;
+}, devRole?: string): Promise<PartyDto> {
+  const res = await fetch(`${API_BASE}/v1/suppliers/${id}`, {
+    method: 'PUT',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در ویرایش تأمین‌کننده: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function deleteSupplier(id: string, devRole?: string): Promise<{ message: string; id: string }> {
+  const res = await fetch(`${API_BASE}/v1/suppliers/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در حذف تأمین‌کننده: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchPartyFinancialHistory(partyId: string, fiscalYear?: number, devRole?: string): Promise<SepidarPartyFinancialHistoryDto> {
+  const params = new URLSearchParams();
+  if (fiscalYear) params.append('fiscalYear', fiscalYear.toString());
+  const res = await fetch(`${API_BASE}/v1/suppliers/${partyId}/sepidar-financial-history?${params.toString()}`, {
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || err.message || `خطا در استعلام گردش مالی سپیدار: ${res.status}`);
+  }
+  return res.json();
+}
+
+
+export async function addSupplierContact(supplierId: string, data: {
+  personName: string;
+  position?: string;
+  isPrimary?: boolean;
+  phoneNumber?: string;
+  phoneType?: string;
+}, devRole?: string): Promise<PartyContactDto> {
+  const res = await fetch(`${API_BASE}/v1/suppliers/${supplierId}/contacts`, {
+    method: 'POST',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در ثبت نماینده: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function updateSupplierContact(supplierId: string, contactId: string, data: {
+  personName: string;
+  position?: string;
+  isPrimary?: boolean;
+  isActive?: boolean;
+}, devRole?: string): Promise<PartyContactDto> {
+  const res = await fetch(`${API_BASE}/v1/suppliers/${supplierId}/contacts/${contactId}`, {
+    method: 'PUT',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در ویرایش نماینده: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function deleteSupplierContact(supplierId: string, contactId: string, devRole?: string): Promise<{ message: string; contactId: string }> {
+  const res = await fetch(`${API_BASE}/v1/suppliers/${supplierId}/contacts/${contactId}`, {
+    method: 'DELETE',
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در حذف نماینده: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function addSupplierPhone(supplierId: string, data: {
+  contactId?: string;
+  phoneType: string;
+  phoneNumber: string;
+  isPrimary?: boolean;
+}, devRole?: string): Promise<PartyPhoneDto> {
+  const res = await fetch(`${API_BASE}/v1/suppliers/${supplierId}/phones`, {
+    method: 'POST',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در ثبت شماره تماس: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function updateSupplierPhone(supplierId: string, phoneId: string, data: {
+  contactId?: string;
+  phoneType: string;
+  phoneNumber: string;
+  isPrimary?: boolean;
+}, devRole?: string): Promise<PartyPhoneDto> {
+  const res = await fetch(`${API_BASE}/v1/suppliers/${supplierId}/phones/${phoneId}`, {
+    method: 'PUT',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در ویرایش شماره تماس: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function deleteSupplierPhone(supplierId: string, phoneId: string, devRole?: string): Promise<{ message: string; phoneId: string }> {
+  const res = await fetch(`${API_BASE}/v1/suppliers/${supplierId}/phones/${phoneId}`, {
+    method: 'DELETE',
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در حذف شماره تماس: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function addSupplierAddress(supplierId: string, data: {
+  addressType: string;
+  province: string;
+  city: string;
+  addressText: string;
+  postalCode?: string;
+  isPrimary?: boolean;
+}, devRole?: string): Promise<PartyAddressDto> {
+  const res = await fetch(`${API_BASE}/v1/suppliers/${supplierId}/addresses`, {
+    method: 'POST',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در ثبت آدرس: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function updateSupplierAddress(supplierId: string, addressId: string, data: {
+  addressType: string;
+  province: string;
+  city: string;
+  addressText: string;
+  postalCode?: string;
+  isPrimary?: boolean;
+}, devRole?: string): Promise<PartyAddressDto> {
+  const res = await fetch(`${API_BASE}/v1/suppliers/${supplierId}/addresses/${addressId}`, {
+    method: 'PUT',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در ویرایش آدرس: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function deleteSupplierAddress(supplierId: string, addressId: string, devRole?: string): Promise<{ message: string; addressId: string }> {
+  const res = await fetch(`${API_BASE}/v1/suppliers/${supplierId}/addresses/${addressId}`, {
+    method: 'DELETE',
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در حذف آدرس: ${res.status}`);
   }
   return res.json();
 }
@@ -790,19 +1085,86 @@ export async function fetchCalls(params?: {
   take?: number;
   extension?: string;
   direction?: number;
+  classification?: string;
   status?: number;
   unknownOnly?: boolean;
-}, devRole?: string): Promise<CallRecordDto[]> {
+  fromDate?: string;
+  toDate?: string;
+  previewUserId?: string;
+  employeeId?: string;
+}, devRole?: string): Promise<CallRecordDto[] & { totalCount?: number }> {
   const queryParts: string[] = [];
   if (params?.skip !== undefined) queryParts.push(`skip=${params.skip}`);
   if (params?.take !== undefined) queryParts.push(`take=${params.take}`);
   if (params?.extension) queryParts.push(`extension=${encodeURIComponent(params.extension)}`);
   if (params?.direction !== undefined) queryParts.push(`direction=${params.direction}`);
+  if (params?.classification) {
+    const classMap: Record<string, number> = {
+      all: 0,
+      inbound_trunk: 1,
+      outbound_trunk: 2,
+      internal_inbound: 3,
+      internal_outbound: 4
+    };
+    const val = classMap[params.classification] ?? params.classification;
+    queryParts.push(`classification=${val}`);
+  }
   if (params?.status !== undefined) queryParts.push(`status=${params.status}`);
   if (params?.unknownOnly !== undefined) queryParts.push(`unknownOnly=${params.unknownOnly}`);
+  if (params?.fromDate) queryParts.push(`fromDate=${encodeURIComponent(params.fromDate)}`);
+  if (params?.toDate) queryParts.push(`toDate=${encodeURIComponent(params.toDate)}`);
+  if (params?.previewUserId) queryParts.push(`previewUserId=${encodeURIComponent(params.previewUserId)}`);
+  if (params?.employeeId) queryParts.push(`employeeId=${encodeURIComponent(params.employeeId)}`);
 
   const queryString = queryParts.length ? `?${queryParts.join('&')}` : '';
   const res = await fetch(`${API_BASE}/v1/calls${queryString}`, {
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در دریافت تاریخچه تماس‌ها: ${res.status}`);
+  }
+  const totalHeader = res.headers.get('X-Total-Count');
+  const items = await res.json();
+  if (totalHeader) {
+    items.totalCount = parseInt(totalHeader, 10);
+  }
+  return items;
+}
+
+export async function fetchCallsPaged(params?: {
+  skip?: number;
+  take?: number;
+  extension?: string;
+  classification?: string;
+  status?: number;
+  unknownOnly?: boolean;
+  fromDate?: string;
+  toDate?: string;
+}, devRole?: string): Promise<{ items: CallRecordDto[]; totalCount: number; pageNumber: number; pageSize: number; totalPages: number }> {
+  const queryParts: string[] = [];
+  if (params?.skip !== undefined) queryParts.push(`skip=${params.skip}`);
+  if (params?.take !== undefined) queryParts.push(`take=${params.take}`);
+  if (params?.extension) queryParts.push(`extension=${encodeURIComponent(params.extension)}`);
+  if (params?.classification) {
+    const classMap: Record<string, number> = {
+      all: 0,
+      inbound_trunk: 1,
+      outbound_trunk: 2,
+      internal_inbound: 3,
+      internal_outbound: 4
+    };
+    const val = classMap[params.classification] ?? params.classification;
+    queryParts.push(`classification=${val}`);
+  }
+  if (params?.status !== undefined) queryParts.push(`status=${params.status}`);
+  if (params?.unknownOnly !== undefined) queryParts.push(`unknownOnly=${params.unknownOnly}`);
+  if (params?.fromDate) queryParts.push(`fromDate=${encodeURIComponent(params.fromDate)}`);
+  if (params?.toDate) queryParts.push(`toDate=${encodeURIComponent(params.toDate)}`);
+
+  const queryString = queryParts.length ? `?${queryParts.join('&')}` : '';
+  const res = await fetch(`${API_BASE}/v1/calls/paged${queryString}`, {
     headers: getHeaders(devRole),
     credentials: 'include'
   });
@@ -849,6 +1211,20 @@ export async function classifyCall(id: string, data: ClassifyCallRequest, devRol
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || err.title || `خطا در انتساب تأمین‌کننده به تماس: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function updateCallerAssociation(id: string, data: UpdateCallerAssociationRequest, devRole?: string): Promise<CallRecordDto> {
+  const res = await fetch(`${API_BASE}/v1/calls/${id}/caller-association`, {
+    method: 'PUT',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || err.message || `خطا در اصلاح انتساب تماس: ${res.status}`);
   }
   return res.json();
 }
@@ -942,6 +1318,62 @@ export async function fetchUserExtensions(devRole?: string): Promise<UserExtensi
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || err.title || `خطا در دریافت داخلی‌های کاربران: ${res.status}`);
+  }
+  return res.json();
+}
+
+export interface EmployeePickerItem {
+  employeeId: string;
+  displayName: string;
+  department?: string;
+  jobTitle?: string;
+  isActive: boolean;
+  hasCrmLogin: boolean;
+  crmUserId?: string;
+  extension?: string;
+  statusLabel: string;
+}
+
+export interface ExtensionPickerItem {
+  extension: string;
+  displayName: string;
+  employeeId?: string;
+  workPositionId?: string;
+  crmUserId?: string;
+  isCrmUser: boolean;
+  isWorkPosition: boolean;
+  isActive: boolean;
+  groupId?: string;
+}
+
+export async function fetchEmployeePicker(params?: { search?: string; includeInactive?: boolean }, devRole?: string): Promise<EmployeePickerItem[]> {
+  const q: string[] = [];
+  if (params?.search) q.push(`search=${encodeURIComponent(params.search)}`);
+  if (params?.includeInactive === false) q.push('includeInactive=false');
+  const qs = q.length ? `?${q.join('&')}` : '';
+  const res = await fetch(`${API_BASE}/v1/employees/picker${qs}`, {
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در دریافت فهرست کارمندان: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchExtensionPicker(params?: { search?: string; includeInactive?: boolean }, devRole?: string): Promise<ExtensionPickerItem[]> {
+  const q: string[] = [];
+  if (params?.search) q.push(`search=${encodeURIComponent(params.search)}`);
+  if (params?.includeInactive === false) q.push('includeInactive=false');
+  const qs = q.length ? `?${q.join('&')}` : '';
+  const res = await fetch(`${API_BASE}/v1/employees/extensions/picker${qs}`, {
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در دریافت فهرست داخلی‌ها: ${res.status}`);
   }
   return res.json();
 }
@@ -1087,6 +1519,195 @@ export async function fetchIntegrationHealth(devRole?: string): Promise<Integrat
   return res.json();
 }
 
+export async function fetchDirectorySuppliers(
+  params: { search?: string; sortBy?: string; sortDir?: string; page?: number; pageSize?: number } | string = {},
+  devRole?: string
+): Promise<import('../types').PagedResult<import('../types').DirectoryPartyListItem>> {
+  const q = typeof params === 'string' ? { search: params } : params;
+  const sp = new URLSearchParams();
+  if (q.search) sp.set('search', q.search);
+  if (q.sortBy) sp.set('sortBy', q.sortBy);
+  if (q.sortDir) sp.set('sortDir', q.sortDir);
+  sp.set('page', String(q.page ?? 1));
+  sp.set('pageSize', String(q.pageSize ?? 50));
+  const res = await fetch(`${API_BASE}/v1/directory/suppliers?${sp}`, { headers: getHeaders(devRole), credentials: 'include' });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'فهرست تأمین‌کنندگان بارگذاری نشد.');
+  return res.json();
+}
+
+export async function fetchSepidarParties(
+  params: { search?: string; sortBy?: string; sortDir?: string; page?: number; pageSize?: number } | string = {},
+  devRole?: string
+): Promise<import('../types').PagedResult<import('../types').DirectoryPartyListItem>> {
+  const q = typeof params === 'string' ? { search: params } : params;
+  const sp = new URLSearchParams();
+  if (q.search) sp.set('search', q.search);
+  if (q.sortBy) sp.set('sortBy', q.sortBy);
+  if (q.sortDir) sp.set('sortDir', q.sortDir);
+  sp.set('page', String(q.page ?? 1));
+  sp.set('pageSize', String(q.pageSize ?? 50));
+  const res = await fetch(`${API_BASE}/v1/directory/sepidar-parties?${sp}`, { headers: getHeaders(devRole), credentials: 'include' });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'فهرست طرف‌حساب‌های سپیدار بارگذاری نشد.');
+  return res.json();
+}
+
+export async function fetchDirectoryContacts(search = '', devRole?: string) {
+  const res = await fetch(`${API_BASE}/v1/directory/contacts?search=${encodeURIComponent(search)}`, { headers: getHeaders(devRole), credentials: 'include' });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'فهرست مخاطبان بارگذاری نشد.');
+  return res.json();
+}
+
+export async function fetchDirectoryProfile(partyId: string, devRole?: string) {
+  const res = await fetch(`${API_BASE}/v1/directory/parties/${partyId}`, { headers: getHeaders(devRole), credentials: 'include' });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'پرونده بارگذاری نشد.');
+  return res.json();
+}
+
+export async function createDirectoryContact(body: {
+  personName: string;
+  phone?: string;
+  representativeRole?: string;
+  department?: string;
+  partyId?: string;
+}, devRole?: string) {
+  const res = await fetch(`${API_BASE}/v1/directory/contacts`, {
+    method: 'POST',
+    headers: { ...getHeaders(devRole), 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'مخاطب ثبت نشد.');
+  return res.json();
+}
+
+export async function linkDirectorySepidar(partyId: string, sepidarCode: string, devRole?: string) {
+  const res = await fetch(`${API_BASE}/v1/directory/parties/${partyId}/sepidar-link`, {
+    method: 'POST',
+    headers: { ...getHeaders(devRole), 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ sepidarCode })
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'اتصال سپیدار تأیید نشد.');
+  return res.json();
+}
+
+export async function ensureDirectorySepidarParty(body: {
+  sepidarPartyRef: string;
+  sepidarCode?: string;
+  sepidarTitle?: string;
+  isVendor?: boolean;
+  isCustomer?: boolean;
+}, devRole?: string): Promise<import('../types').DirectoryPartyListItem> {
+  const res = await fetch(`${API_BASE}/v1/directory/sepidar-parties/ensure`, {
+    method: 'POST',
+    headers: { ...getHeaders(devRole), 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'ایجاد پرونده CRM از سپیدار انجام نشد.');
+  return res.json();
+}
+
+export async function updateDirectoryParty(partyId: string, body: {
+  crmTitle?: string;
+  partyType?: number;
+  notes?: string;
+  firstName?: string;
+  lastName?: string;
+  shopName?: string;
+  nationalId?: string;
+  legalName?: string;
+  nationalIdentifier?: string;
+  registrationNumber?: string;
+  economicCode?: string;
+  assignedDepartment?: string;
+  isSupplier?: boolean;
+}, devRole?: string): Promise<import('../types').DirectoryPartyListItem> {
+  const res = await fetch(`${API_BASE}/v1/directory/parties/${partyId}`, {
+    method: 'PUT',
+    headers: { ...getHeaders(devRole), 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'ویرایش طرف‌حساب ذخیره نشد.');
+  return res.json();
+}
+
+export async function setDirectorySupplierRole(partyId: string, isSupplier: boolean, devRole?: string): Promise<import('../types').DirectoryPartyListItem> {
+  const res = await fetch(`${API_BASE}/v1/directory/parties/${partyId}/supplier-role`, {
+    method: 'POST',
+    headers: { ...getHeaders(devRole), 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ isSupplier })
+  });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || 'تغییر نقش تأمین‌کننده انجام نشد.');
+  return res.json();
+}
+
+export async function fetchFinancialDashboard(filters: {
+  fiscalYear?: number;
+  fromUtc?: string;
+  toUtc?: string;
+  partyCategory?: number;
+  search?: string;
+  followUpOwner?: string;
+} = {}, devRole?: string): Promise<import('../types').FinancialDashboardDto> {
+  const params = new URLSearchParams();
+  if (filters.fiscalYear) params.set('fiscalYear', String(filters.fiscalYear));
+  if (filters.fromUtc) params.set('fromUtc', filters.fromUtc);
+  if (filters.toUtc) params.set('toUtc', filters.toUtc);
+  if (filters.partyCategory) params.set('partyCategory', String(filters.partyCategory));
+  if (filters.search) params.set('search', filters.search);
+  if (filters.followUpOwner) params.set('followUpOwner', filters.followUpOwner);
+  const res = await fetch(`${API_BASE}/v1/finance/dashboard?${params.toString()}`, {
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در داشبورد مالی: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchPartyLedger(partyId: string, includeDocuments: boolean, devRole?: string): Promise<import('../types').PartyLedgerDto> {
+  const res = await fetch(`${API_BASE}/v1/finance/dashboard/parties/${partyId}/ledger?includeDocuments=${includeDocuments ? 'true' : 'false'}`, {
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در پرونده مالی: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchExecutiveDashboard(filters: {
+  fiscalYear?: number;
+  fromUtc?: string;
+  toUtc?: string;
+  partyCategory?: number;
+  search?: string;
+  followUpOwner?: string;
+} = {}, devRole?: string): Promise<import('../types').ExecutiveDashboardDto> {
+  const params = new URLSearchParams();
+  if (filters.fiscalYear) params.set('fiscalYear', String(filters.fiscalYear));
+  if (filters.fromUtc) params.set('fromUtc', filters.fromUtc);
+  if (filters.toUtc) params.set('toUtc', filters.toUtc);
+  if (filters.partyCategory) params.set('partyCategory', String(filters.partyCategory));
+  if (filters.search) params.set('search', filters.search);
+  if (filters.followUpOwner) params.set('followUpOwner', filters.followUpOwner);
+  const res = await fetch(`${API_BASE}/v1/reports/executive-dashboard?${params.toString()}`, {
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در داشبورد تصمیم: ${res.status}`);
+  }
+  return res.json();
+}
+
 export async function fetchRoleDashboard(role: string, filters: ReportFilterParams = {}, devRole?: string): Promise<RoleDashboardDto> {
   const params = new URLSearchParams();
   if (filters.startDateUtc) params.append('startDateUtc', filters.startDateUtc);
@@ -1140,4 +1761,304 @@ export async function exportReport(request: ExportRequestDto, devRole?: string):
   window.URL.revokeObjectURL(url);
   document.body.removeChild(a);
 }
+
+// ==========================================
+// User Management & Active Directory (PDC)
+// ==========================================
+
+export async function fetchUsers(devRole?: string): Promise<UserDto[]> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 8000);
+  try {
+    const res = await fetch(`${API_BASE}/v1/users`, {
+      headers: getHeaders(devRole),
+      credentials: 'include',
+      signal: controller.signal
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || `خطا در دریافت کاربران: ${res.status}`);
+    }
+    return await res.json();
+  } catch (err: any) {
+    if (controller.signal.aborted) {
+      throw new Error('زمان انتظار برای دریافت کاربران به پایان رسید.');
+    }
+    throw err;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+export async function fetchUserAccessPreview(userId: string, devRole?: string): Promise<UserAccessPreviewDto> {
+  const res = await fetch(`${API_BASE}/v1/users/${userId}/access-preview`, {
+    headers: getHeaders(devRole || 'Admin'),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || err.message || `خطا در پیش‌نمایش دسترسی: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchAdDirectoryUsers(devRole?: string): Promise<AdUserDirectoryDto[]> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 20000);
+  try {
+  const res = await fetch(`${API_BASE}/v1/users/ad-directory`, {
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    signal: controller.signal
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در خواندن کاربران از سرور PDC: ${res.status}`);
+  }
+  return await res.json();
+  } catch (err) {
+    if (controller.signal.aborted) {
+      throw new Error('دریافت کاربران PDC در ۲۰ ثانیه انجام نشد. ارتباط این محیط با اکتیودایرکتوری را بررسی کنید. کاربران ثبت‌شدهٔ CRM در تب «کاربران سیستم» قابل مدیریت هستند.');
+    }
+    throw err;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+export async function syncAdUsers(data: SyncAdUsersRequest, devRole?: string): Promise<{ message: string; addedCount: number; updatedCount: number; totalDomainUsers: number }> {
+  const res = await fetch(`${API_BASE}/v1/users/sync-ad`, {
+    method: 'POST',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در همگام‌سازی کاربران اکتیودایرکتوری: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function updateUser(id: string, data: UpdateUserRequest, devRole?: string): Promise<UserDto> {
+  const res = await fetch(`${API_BASE}/v1/users/${id}`, {
+    method: 'PUT',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || err.message || `خطا در ویرایش کاربر: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function updateUserRoles(id: string, roles: string[], devRole?: string): Promise<{ message: string; roles: string[] }> {
+  const res = await fetch(`${API_BASE}/v1/users/${id}/roles`, {
+    method: 'PUT',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify({ roles })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در به‌روزرسانی نقش‌های کاربر: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function updateUserExtension(id: string, data: UpdateUserExtensionRequest, devRole?: string): Promise<{ message: string; extension?: string }> {
+  const res = await fetch(`${API_BASE}/v1/users/${id}/extension`, {
+    method: 'PUT',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در تخصیص شماره داخلی: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function updateUserStatus(id: string, isEnabled: boolean, devRole?: string): Promise<{ message: string; isEnabled: boolean }> {
+  const res = await fetch(`${API_BASE}/v1/users/${id}/status`, {
+    method: 'PUT',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify({ isEnabled })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در تغییر وضعیت کاربر: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchActiveCallForExtension(extension?: string, devRole?: string): Promise<CallerPopupDto | null> {
+  const params = new URLSearchParams();
+  if (extension) params.append('extension', extension);
+  const res = await fetch(`${API_BASE}/v1/calls/active?${params.toString()}`, {
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function saveExtensionHolderName(extension: string, displayName: string, devRole?: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/v1/users/extension-holder`, {
+    method: 'PUT',
+    headers: { ...getHeaders(devRole), 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ extension, displayName })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در ذخیره نام داخلی: ${res.status}`);
+  }
+}
+
+export async function fetchAvailableExtensions(devRole?: string): Promise<AvailableExtensionDto[]> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 12000);
+  try {
+    const res = await fetch(`${API_BASE}/v1/users/available-extensions`, {
+      headers: getHeaders(devRole),
+      credentials: 'include',
+      signal: controller.signal
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || err.title || `خطا در دریافت لیست داخلی‌های ایزابل: ${res.status}`);
+    }
+    return await res.json();
+  } catch (err: any) {
+    if (controller.signal.aborted) {
+      throw new Error('زمان انتظار برای دریافت فهرست داخلی‌های ایزابل به پایان رسید.');
+    }
+    throw err;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+export async function triggerTestCall(data: { extension?: string; callerNumber?: string; callerName?: string }, devRole?: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/v1/calls/simulate`, {
+    method: 'POST',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify({
+      extension: data.extension || '222',
+      callerNumber: data.callerNumber || '09121234567',
+      callerName: data.callerName || 'تأمین‌کننده تجهیزات صنعتی صبا (مهندس صبوری)',
+      callType: 'incoming',
+      durationSeconds: 25
+    })
+  });
+  if (!res.ok) throw new Error(`خطا در شبیه‌سازی تماس: ${res.status}`);
+  return res.json();
+}
+
+// ==========================================
+// Telephony Groups & Supervisors Management
+// ==========================================
+
+export async function fetchTelephonyGroups(devRole?: string): Promise<TelephonyGroupDto[]> {
+  const res = await fetch(`${API_BASE}/v1/telephony/groups`, {
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در دریافت گروه‌های تلفنی: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function createTelephonyGroup(data: CreateTelephonyGroupRequest, devRole?: string): Promise<TelephonyGroupDto> {
+  const res = await fetch(`${API_BASE}/v1/telephony/groups`, {
+    method: 'POST',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در ایجاد گروه تلفنی: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function updateTelephonyGroup(id: string, data: UpdateTelephonyGroupRequest, devRole?: string): Promise<TelephonyGroupDto> {
+  const res = await fetch(`${API_BASE}/v1/telephony/groups/${id}`, {
+    method: 'PUT',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در ویرایش گروه تلفنی: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function deleteTelephonyGroup(id: string, devRole?: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/v1/telephony/groups/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || `خطا در حذف گروه تلفنی: ${res.status}`);
+  }
+}
+
+export async function addGroupMember(groupId: string, data: AddGroupMemberRequest, devRole?: string): Promise<TelephonyGroupDto> {
+  const res = await fetch(`${API_BASE}/v1/telephony/groups/${groupId}/members`, {
+    method: 'POST',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || err.detail || err.title || `خطا در افزودن داخلی به گروه: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function removeGroupMember(groupId: string, extension: string, devRole?: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/v1/telephony/groups/${groupId}/members/${encodeURIComponent(extension)}`, {
+    method: 'DELETE',
+    headers: getHeaders(devRole),
+    credentials: 'include'
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || err.title || err.message || `خطا در حذف عضو گروه: ${res.status}`);
+  }
+}
+
+export async function setGroupSupervisor(groupId: string, data: SetGroupSupervisorRequest, devRole?: string): Promise<TelephonyGroupDto> {
+  const res = await fetch(`${API_BASE}/v1/telephony/groups/${groupId}/supervisor`, {
+    method: 'PUT',
+    headers: getHeaders(devRole),
+    credentials: 'include',
+    body: JSON.stringify({
+      extension: data.extension ?? '',
+      displayName: data.displayName,
+      userId: data.userId
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || err.detail || err.title || `خطا در تعیین سرپرست گروه: ${res.status}`);
+  }
+  return res.json();
+}
+
 

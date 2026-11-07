@@ -1,33 +1,41 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ParkPalace.Application.DTOs;
+using ParkPalace.Application.Financial;
 using ParkPalace.Application.Interfaces;
 using ParkPalace.Domain.Constants;
+using ParkPalace.Domain.Entities;
 
 namespace ParkPalace.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/reports")]
+[Route("v1/reports")]
 [Route("api/reports")]
+[Route("reports")]
 public class ReportsController : ControllerBase
 {
     private readonly IReportingService _reportingService;
     private readonly IExportService _exportService;
+    private readonly IExecutiveDashboardService _executiveDashboard;
     private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<ReportsController> _logger;
 
     public ReportsController(
         IReportingService reportingService,
         IExportService exportService,
+        IExecutiveDashboardService executiveDashboard,
         ICurrentUserService currentUserService,
         ILogger<ReportsController> logger)
     {
         _reportingService = reportingService;
         _exportService = exportService;
+        _executiveDashboard = executiveDashboard;
         _currentUserService = currentUserService;
         _logger = logger;
     }
@@ -147,6 +155,50 @@ public class ReportsController : ControllerBase
             return Forbidden("شما مجوز مشاهده سلامت اتصالات سیستم را ندارید.");
 
         var result = await _reportingService.GetIntegrationHealthAsync(cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Decision-oriented executive dashboard. Ops KPIs for report roles;
+    /// Sepidar money only when Finance.PartyLedgerView is present (Admin alone is not enough).
+    /// </summary>
+    [HttpGet("executive-dashboard")]
+    public async Task<ActionResult<ExecutiveDashboardDto>> GetExecutiveDashboard(
+        [FromQuery] int? fiscalYear,
+        [FromQuery] DateTime? fromUtc,
+        [FromQuery] DateTime? toUtc,
+        [FromQuery] PartyCategory? partyCategory,
+        [FromQuery] string? search,
+        [FromQuery] string? followUpOwner,
+        CancellationToken cancellationToken)
+    {
+        if (CheckAuthentication() is { } auth) return auth;
+
+        var canOps = ExecutiveDashboardAccess.CanViewOps(_currentUserService);
+        var canFinance = ExecutiveDashboardAccess.CanViewFinanceFigures(_currentUserService);
+        if (!canOps && !canFinance)
+            return Forbidden("شما مجوز مشاهده داشبورد تصمیم مدیریتی را ندارید.");
+
+        var result = await _executiveDashboard.GetAsync(new ExecutiveDashboardQuery
+        {
+            FiscalYear = fiscalYear,
+            FromUtc = fromUtc,
+            ToUtc = toUtc,
+            PartyCategory = partyCategory,
+            Search = search,
+            FollowUpOwner = followUpOwner
+        }, includeFinance: canFinance, cancellationToken);
+
+        result.Viewer = new ExecutiveViewerDto
+        {
+            HasPartyLedgerView = canFinance,
+            CanViewOps = canOps,
+            Roles = _currentUserService.Roles.ToList(),
+            PermissionsNote = canFinance
+                ? "ارقام سپیدار با Finance.PartyLedgerView و برچسب نیازمند اعتبارسنجی."
+                : "ارقام سپیدار مخفی است؛ Admin فنی بدون مجوز مالی صریح رقم نمی‌بیند."
+        };
+
         return Ok(result);
     }
 

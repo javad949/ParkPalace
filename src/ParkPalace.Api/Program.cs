@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.EntityFrameworkCore;
 using ParkPalace.Api.Middleware;
@@ -80,6 +81,11 @@ else
     builder.Services.AddScoped<ISepidarFinancialAdapter, SepidarFixtureFinancialAdapter>();
 }
 builder.Services.AddScoped<ISepidarReconciliationService, SepidarReconciliationService>();
+builder.Services.AddScoped<ISepidarPartyLookup, SepidarPartyLookup>();
+builder.Services.AddScoped<ICrmDirectoryService, CrmDirectoryService>();
+builder.Services.AddScoped<IEmployeeDirectoryService, ParkPalace.Infrastructure.Services.EmployeeDirectoryService>();
+builder.Services.AddScoped<ISepidarLedgerReader, SepidarLedgerReader>();
+builder.Services.AddScoped<IFinancialDashboardService, FinancialDashboardService>();
 
 // Phase 6 Services: Telephony, Call Management, Audio Recordings & SignalR
 builder.Services.AddSignalR();
@@ -92,13 +98,24 @@ else
 {
     builder.Services.AddSingleton<ITelephonyAdapter, ParkPalace.Infrastructure.Services.Telephony.SimulatedTelephonyAdapter>();
 }
+
+builder.Services.AddSingleton<ITrunkCallDetectionService, ParkPalace.Infrastructure.Services.Telephony.TrunkCallDetectionService>();
 builder.Services.AddScoped<ICallManagerService, ParkPalace.Infrastructure.Services.Telephony.CallManagerService>();
 builder.Services.AddScoped<IRecordingService, ParkPalace.Infrastructure.Services.Telephony.RecordingService>();
+<<<<<<< HEAD
+=======
+builder.Services.AddSingleton<ISftpClientRunner, ParkPalace.Infrastructure.Services.Telephony.ProcessSftpClientRunner>();
+builder.Services.AddScoped<ISftpRecordingFetchService, ParkPalace.Infrastructure.Services.Telephony.SftpRecordingFetchService>();
+builder.Services.AddSingleton<ITelephonyConnectionTracker, ParkPalace.Infrastructure.Services.Telephony.TelephonyConnectionTracker>();
+builder.Services.AddSingleton<ITelephonyHubGroupManager, ParkPalace.Api.Services.SignalRTelephonyHubGroupManager>();
+builder.Services.AddSingleton<ITelephonyAccessControlService, ParkPalace.Infrastructure.Services.Telephony.TelephonyAccessControlService>();
+>>>>>>> eefa1a3 (Accept isolated dashboard-exec staging with drill navigation and evidence.)
 builder.Services.AddSingleton<ITelephonyNotificationService, ParkPalace.Api.Services.SignalRTelephonyNotificationService>();
 builder.Services.AddHostedService<ParkPalace.Api.Services.TelephonyBackgroundService>();
 
 // Phase 7 Services: Reporting, Analytics & Exports
 builder.Services.AddScoped<IReportingService, ParkPalace.Infrastructure.Services.Reporting.ReportingService>();
+builder.Services.AddScoped<IExecutiveDashboardService, ParkPalace.Infrastructure.Services.ExecutiveDashboardService>();
 builder.Services.AddScoped<IExportService, ParkPalace.Infrastructure.Services.Reporting.ExportService>();
 
 // 4. Controllers & JSON serialization
@@ -147,25 +164,65 @@ if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
     });
 }
 
-// Ensure database seed data, roles, permissions, and initial admin mappings exist across all environments
-using (var scope = app.Services.CreateScope())
+// Database seeding and DDL creation is strictly restricted to Development and Staging.
+// In Production, automated startup DDL/seeding is disabled to protect operational data and enforce read-only/no-migration invariants.
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
+    using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
     try
     {
-        await CrmDbSeeder.SeedAsync(dbContext, app.Environment.IsDevelopment() || app.Environment.IsStaging());
+        await CrmDbSeeder.SeedAsync(dbContext, isDevelopmentOrTest: true);
     }
     catch (Exception ex)
     {
         app.Logger.LogWarning(ex, "Database seeding warning: {Message}", ex.Message);
     }
 }
+else
+{
+    app.Logger.LogInformation("Production environment active: automated startup database seeding/DDL is disabled.");
+}
+
 
 app.UseCors("AllowLocalFrontend");
 
 if (isWindowsAuth)
 {
     app.UseAuthentication();
+    app.Use(async (context, next) =>
+    {
+        // Windows authentication identifies the account; CRM IsEnabled grants app access.
+        // Keep health checks and /api/me reachable so the client can report denial.
+        var path = context.Request.Path;
+        var protectedPath = path.StartsWithSegments("/api") || path.StartsWithSegments("/v1") ||
+                            path.StartsWithSegments("/hubs") || path.StartsWithSegments("/roles") ||
+                            path.StartsWithSegments("/reports");
+        var publicPath = path.StartsWithSegments("/api/health") ||
+                         path.StartsWithSegments("/api/me") || path.StartsWithSegments("/me");
+        if (protectedPath && !publicPath && !HttpMethods.IsOptions(context.Request.Method))
+        {
+            // A bare 403 gives the browser no chance to send Negotiate credentials.
+            // Parallel calls then stay anonymous. Challenge first; 403 only after Windows
+            // has authenticated an account that CRM does not allow.
+            if (context.User?.Identity?.IsAuthenticated != true)
+            {
+                await context.ChallengeAsync(NegotiateDefaults.AuthenticationScheme);
+                return;
+            }
+
+            var currentUser = context.RequestServices.GetRequiredService<ICurrentUserService>();
+            if (!currentUser.IsAuthenticated)
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "application/problem+json; charset=utf-8";
+                await context.Response.WriteAsync(
+                    "{\"status\":403,\"title\":\"عدم دسترسی\",\"detail\":\"این حساب ویندوز در CRM فعال نیست.\"}");
+                return;
+            }
+        }
+        await next();
+    });
 }
 
 app.UseAuthorization();
