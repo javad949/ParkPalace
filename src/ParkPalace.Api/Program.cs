@@ -82,8 +82,6 @@ else
 }
 builder.Services.AddScoped<ISepidarReconciliationService, SepidarReconciliationService>();
 builder.Services.AddScoped<ISepidarPartyLookup, SepidarPartyLookup>();
-builder.Services.AddScoped<ICrmDirectoryService, CrmDirectoryService>();
-builder.Services.AddScoped<IEmployeeDirectoryService, ParkPalace.Infrastructure.Services.EmployeeDirectoryService>();
 builder.Services.AddScoped<ISepidarLedgerReader, SepidarLedgerReader>();
 builder.Services.AddScoped<IFinancialDashboardService, FinancialDashboardService>();
 
@@ -99,17 +97,11 @@ else
     builder.Services.AddSingleton<ITelephonyAdapter, ParkPalace.Infrastructure.Services.Telephony.SimulatedTelephonyAdapter>();
 }
 
-builder.Services.AddSingleton<ITrunkCallDetectionService, ParkPalace.Infrastructure.Services.Telephony.TrunkCallDetectionService>();
 builder.Services.AddScoped<ICallManagerService, ParkPalace.Infrastructure.Services.Telephony.CallManagerService>();
 builder.Services.AddScoped<IRecordingService, ParkPalace.Infrastructure.Services.Telephony.RecordingService>();
-<<<<<<< HEAD
-=======
-builder.Services.AddSingleton<ISftpClientRunner, ParkPalace.Infrastructure.Services.Telephony.ProcessSftpClientRunner>();
-builder.Services.AddScoped<ISftpRecordingFetchService, ParkPalace.Infrastructure.Services.Telephony.SftpRecordingFetchService>();
 builder.Services.AddSingleton<ITelephonyConnectionTracker, ParkPalace.Infrastructure.Services.Telephony.TelephonyConnectionTracker>();
-builder.Services.AddSingleton<ITelephonyHubGroupManager, ParkPalace.Api.Services.SignalRTelephonyHubGroupManager>();
 builder.Services.AddSingleton<ITelephonyAccessControlService, ParkPalace.Infrastructure.Services.Telephony.TelephonyAccessControlService>();
->>>>>>> eefa1a3 (Accept isolated dashboard-exec staging with drill navigation and evidence.)
+builder.Services.AddScoped<IActiveDirectoryService, ParkPalace.Infrastructure.Services.ActiveDirectory.ActiveDirectoryService>();
 builder.Services.AddSingleton<ITelephonyNotificationService, ParkPalace.Api.Services.SignalRTelephonyNotificationService>();
 builder.Services.AddHostedService<ParkPalace.Api.Services.TelephonyBackgroundService>();
 

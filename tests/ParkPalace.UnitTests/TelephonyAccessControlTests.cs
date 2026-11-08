@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using ParkPalace.Application.DTOs;
 using ParkPalace.Application.Interfaces;
 using ParkPalace.Api.Controllers;
+using ParkPalace.Api.Hubs;
 using ParkPalace.Domain.Constants;
 using ParkPalace.Domain.Entities;
 using ParkPalace.Infrastructure.Data;

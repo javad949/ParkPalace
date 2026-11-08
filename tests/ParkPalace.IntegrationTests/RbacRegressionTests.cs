@@ -147,7 +147,14 @@ public class RbacRegressionTests
             // Act 2: Procurement forbidden from Finance dashboard
             var repService = new ReportingService(db, Microsoft.Extensions.Logging.Abstractions.NullLogger<ReportingService>.Instance);
             var expService = new ExportService(db, Microsoft.Extensions.Logging.Abstractions.NullLogger<ExportService>.Instance);
-            var reportsController = new ReportsController(repService, expService, procUserService, Microsoft.Extensions.Logging.Abstractions.NullLogger<ReportsController>.Instance);
+            var financeService = new FinancialDashboardService(db, new SepidarFixtureFinancialAdapter());
+            var executiveService = new ExecutiveDashboardService(repService, financeService);
+            var reportsController = new ReportsController(
+                repService,
+                expService,
+                executiveService,
+                procUserService,
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<ReportsController>.Instance);
 
             var finDashResult = await reportsController.GetRoleDashboard(Roles.Finance, new ReportFilterParams(), CancellationToken.None);
             var objResult = finDashResult.Result as ObjectResult;

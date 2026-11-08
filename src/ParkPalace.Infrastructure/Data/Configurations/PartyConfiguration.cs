@@ -15,6 +15,18 @@ public class PartyConfiguration : IEntityTypeConfiguration<Party>
         builder.Property(p => p.PartyType)
             .IsRequired();
 
+        builder.Property(p => p.Category)
+            .IsRequired();
+
+        builder.Property(p => p.SepidarCode)
+            .HasMaxLength(50);
+
+        builder.Property(p => p.SepidarTitle)
+            .HasMaxLength(300);
+
+        builder.Property(p => p.SepidarPartyRef)
+            .HasMaxLength(50);
+
         builder.Property(p => p.DisplayName)
             .IsRequired()
             .HasMaxLength(200);

@@ -145,6 +145,30 @@ public class DashboardPartyBalanceDto
     public string? CrmName { get; set; }
 }
 
+public class SepidarPartyFinancialMovementDto
+{
+    public string VoucherItemId { get; set; } = string.Empty;
+    public DateTime VoucherDateUtc { get; set; }
+    public string VoucherNumber { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public decimal Debit { get; set; }
+    public decimal Credit { get; set; }
+    public decimal CumulativeBalance { get; set; }
+}
+
+public class SepidarPartyFinancialHistoryDto
+{
+    public bool IsConnected { get; set; }
+    public bool IsAvailable { get; set; }
+    public string? StatusMessage { get; set; }
+    public string? UnverifiedDependencyDetails { get; set; }
+    public decimal OpeningBalance { get; set; }
+    public decimal TotalDebit { get; set; }
+    public decimal TotalCredit { get; set; }
+    public decimal Balance { get; set; }
+    public List<SepidarPartyFinancialMovementDto> Movements { get; set; } = new();
+}
+
 public class PartyLedgerLineDto
 {
     public string? SepidarReference { get; set; }

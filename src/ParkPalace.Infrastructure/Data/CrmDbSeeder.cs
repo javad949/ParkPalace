@@ -34,6 +34,7 @@ public static class CrmDbSeeder
             new() { Code = Permissions.RecommendationsView, Category = "Procurement", Description = "مشاهده محاسبات و پیشنهادات خرید روزانه" },
             new() { Code = Permissions.PoliciesManage, Category = "Procurement", Description = "تنظیم و ویرایش خط‌مشی‌های سفارش‌دهی مواد اولیه" },
             new() { Code = Permissions.FinanceView, Category = "Finance", Description = "مشاهده وضعیت مالی و فاکتورها" },
+            new() { Code = Permissions.FinancePartyLedgerView, Category = "Finance", Description = "مشاهده دفتر و مانده طرف‌حساب در سپیدار" },
             new() { Code = Permissions.FinanceReconcile, Category = "Finance", Description = "تطبیق اسناد سپیدار با سفارشات CRM" },
             new() { Code = Permissions.InvoicesView, Category = "Finance", Description = "مشاهده فاکتورهای تأمین‌کنندگان" },
             new() { Code = Permissions.InvoicesManage, Category = "Finance", Description = "ثبت و مدیریت فاکتورهای تأمین‌کنندگان" },
@@ -51,6 +52,7 @@ public static class CrmDbSeeder
             new() { Code = Permissions.ReportsWarehouse, Category = "Reporting", Description = "دسترسی به گزارشات موجودی و سلامت انبار" },
             new() { Code = Permissions.ReportsFinance, Category = "Reporting", Description = "دسترسی به گزارشات انطباق مالی و مغایرت‌ها" },
             new() { Code = Permissions.ReportsAdmin, Category = "Reporting", Description = "دسترسی به مانیتورینگ سلامت سیستم و اتصالات" },
+            new() { Code = Permissions.OrgReportsView, Category = "Reporting", Description = "مشاهده گزارش‌های سازمانی" },
             new() { Code = Permissions.AdminUsers, Category = "Administration", Description = "مدیریت کاربران و تخصیص نقش‌ها" },
             new() { Code = Permissions.AdminSettings, Category = "Administration", Description = "تنظیمات عمومی و سیستم" },
             new() { Code = Permissions.AdminAudit, Category = "Administration", Description = "مشاهده لاگ‌های امنیتی و رویدادها" }

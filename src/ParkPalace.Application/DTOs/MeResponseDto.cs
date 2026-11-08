@@ -22,6 +22,11 @@ public class RoleDto
     public List<string> Permissions { get; set; } = new();
 }
 
+public class UpdateRolePermissionsRequest
+{
+    public List<string> Permissions { get; set; } = new();
+}
+
 public class HealthResponseDto
 {
     public string Status { get; set; } = "Healthy";

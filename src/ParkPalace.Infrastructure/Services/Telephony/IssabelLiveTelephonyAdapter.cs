@@ -139,4 +139,10 @@ public class IssabelLiveTelephonyAdapter : ITelephonyAdapter
             _isConnected = false;
         }
     }
+
+    public Task<List<AvailableExtensionDto>> GetAvailableExtensionsAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Issabel extension catalog is unavailable until a live PBX session is configured.");
+        return Task.FromResult(new List<AvailableExtensionDto>());
+    }
 }
