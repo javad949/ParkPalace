@@ -8,12 +8,25 @@ public enum PartyType
     LegalEntity = 2
 }
 
+public enum PartyCategory
+{
+    Supplier = 1,
+    ServiceProvider = 2,
+    Customer = 3,
+    OtherCounterparty = 4
+}
+
 public class Party : BaseEntity
 {
     public PartyType PartyType { get; set; } = PartyType.LegalEntity;
+    public PartyCategory Category { get; set; } = PartyCategory.Supplier;
     public string DisplayName { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
     public string? Notes { get; set; }
+    public string? SepidarCode { get; set; }
+    public string? SepidarTitle { get; set; }
+    public string? SepidarPartyRef { get; set; }
+    public bool SepidarMappingVerified { get; set; }
 
     // Individual profile (شخص حقیقی)
     public string? FirstName { get; set; }

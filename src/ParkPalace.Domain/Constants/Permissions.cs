@@ -37,6 +37,7 @@ public static class Permissions
 
     // Finance, Invoices & 3-Way Matching (Phase 5)
     public const string FinanceView = "Finance.View";
+    public const string FinancePartyLedgerView = "Finance.PartyLedgerView";
     public const string FinanceReconcile = "Finance.Reconcile";
     public const string InvoicesView = "Invoices.View";
     public const string InvoicesManage = "Invoices.Manage";
@@ -58,6 +59,7 @@ public static class Permissions
     public const string ReportsWarehouse = "Reports.Warehouse";
     public const string ReportsFinance = "Reports.Finance";
     public const string ReportsAdmin = "Reports.Admin";
+    public const string OrgReportsView = "Org.ReportsView";
 
     // Administration
     public const string AdminUsers = "Admin.Users";
@@ -72,9 +74,9 @@ public static class Permissions
         WarehouseView, WarehouseReceive, ReceiptsView, ReceiptsManage,
         InventoryView, InventoryManage, InventorySync,
         RecommendationsView, PoliciesManage,
-        FinanceView, FinanceReconcile, InvoicesView, InvoicesManage, MatchingView, MatchingResolve,
+        FinanceView, FinancePartyLedgerView, FinanceReconcile, InvoicesView, InvoicesManage, MatchingView, MatchingResolve,
         CallsView, CallsManage, CallsSupervise, CallsRecordingsListen, CallsConfig,
-        ReportsView, ReportsExport, ReportsProcurement, ReportsManager, ReportsWarehouse, ReportsFinance, ReportsAdmin,
+        ReportsView, ReportsExport, ReportsProcurement, ReportsManager, ReportsWarehouse, ReportsFinance, ReportsAdmin, OrgReportsView,
         AdminUsers, AdminSettings, AdminAudit
     };
 }

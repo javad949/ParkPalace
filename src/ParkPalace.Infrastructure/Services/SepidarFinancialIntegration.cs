@@ -83,6 +83,16 @@ public class SepidarFixtureFinancialAdapter : ISepidarFinancialAdapter
 
         return Task.FromResult(fixtures);
     }
+
+    public Task<SepidarPartyFinancialHistoryDto> GetPartyFinancialHistoryAsync(string sepidarPartyRef, string? sepidarCode, int? fiscalYear = null, CancellationToken ct = default)
+    {
+        return Task.FromResult(new SepidarPartyFinancialHistoryDto
+        {
+            IsConnected = true,
+            IsAvailable = false,
+            StatusMessage = "تاریخچه مالی آزمایشی به‌عنوان مانده تأییدشده استفاده نمی‌شود."
+        });
+    }
 }
 
 public class SepidarLiveFinancialAdapter : ISepidarFinancialAdapter
@@ -155,6 +165,17 @@ public class SepidarLiveFinancialAdapter : ISepidarFinancialAdapter
         }
 
         return results;
+    }
+
+    public Task<SepidarPartyFinancialHistoryDto> GetPartyFinancialHistoryAsync(string sepidarPartyRef, string? sepidarCode, int? fiscalYear = null, CancellationToken ct = default)
+    {
+        _logger.LogInformation("Sepidar party history was requested for {PartyRef} without a verified local reader.", sepidarPartyRef);
+        return Task.FromResult(new SepidarPartyFinancialHistoryDto
+        {
+            IsConnected = false,
+            IsAvailable = false,
+            StatusMessage = "خواندن دفتر سپیدار در محیط توسعه محلی پیکربندی نشده است."
+        });
     }
 }
 

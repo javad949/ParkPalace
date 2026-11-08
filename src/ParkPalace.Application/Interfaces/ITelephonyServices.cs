@@ -35,6 +35,7 @@ public interface ITelephonyAdapter
     Task StopAsync(CancellationToken cancellationToken);
     event Func<CallEventPayload, Task>? OnCallEventReceived;
     Task SimulateCallAsync(SimulateCallRequest request);
+    Task<List<AvailableExtensionDto>> GetAvailableExtensionsAsync(CancellationToken cancellationToken = default);
 }
 
 public interface ICallManagerService

@@ -7,6 +7,7 @@ public static class Roles
     public const string Manager = "Manager";
     public const string Warehouse = "Warehouse";
     public const string Finance = "Finance";
+    public const string OrganizationManager = "OrganizationManager";
 
-    public static readonly string[] All = { Admin, Procurement, Manager, Warehouse, Finance };
+    public static readonly string[] All = { Admin, Procurement, Manager, Warehouse, Finance, OrganizationManager };
 }

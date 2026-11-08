@@ -41,6 +41,7 @@ public interface ISepidarFinancialAdapter
 {
     string AdapterName { get; }
     Task<List<SepidarCandidateInvoiceDto>> GetCandidateInvoicesAsync(DateTime? sinceDateUtc, CancellationToken ct = default);
+    Task<SepidarPartyFinancialHistoryDto> GetPartyFinancialHistoryAsync(string sepidarPartyRef, string? sepidarCode, int? fiscalYear = null, CancellationToken ct = default);
 }
 
 public interface ISepidarReconciliationService

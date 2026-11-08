@@ -1,5 +1,5 @@
 import React from 'react';
-import { MeResponse } from '../types';
+import { MeResponse, UserDto } from '../types';
 import { formatJalali } from '../utils/jalali';
 import { Calendar, User } from 'lucide-react';
 
@@ -29,9 +29,21 @@ interface HeaderProps {
   user: MeResponse;
   sepidarStatus: string;
   onRoleChange?: (newRole: string) => void;
+  previewUsers?: UserDto[];
+  previewUserId?: string;
+  onPreviewUserChange?: (userId: string) => void;
+  previewActiveRole?: string;
 }
 
-export const Header: React.FC<HeaderProps> = ({ user, sepidarStatus, onRoleChange }) => {
+export const Header: React.FC<HeaderProps> = ({
+  user,
+  sepidarStatus,
+  onRoleChange,
+  previewUsers = [],
+  previewUserId = '',
+  onPreviewUserChange,
+  previewActiveRole,
+}) => {
   const todayJalali = formatJalali(new Date());
 
   const isLive = sepidarStatus.includes('Active') || sepidarStatus.includes('Live');
@@ -94,6 +106,25 @@ export const Header: React.FC<HeaderProps> = ({ user, sepidarStatus, onRoleChang
       </div>
 
       <div className="user-profile">
+        {previewUsers.length > 0 && onPreviewUserChange && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)' }}>
+            پیش‌نمایش
+            {previewActiveRole ? ` (${ROLE_LABELS_FA[previewActiveRole] || previewActiveRole})` : ''}
+            <select
+              id="header-preview-user-select"
+              className="role-selector-header"
+              value={previewUserId}
+              onChange={(e) => onPreviewUserChange(e.target.value)}
+            >
+              <option value="">خودم</option>
+              {previewUsers.map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.displayName || person.username}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         {canSwitchRoles ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>نقش فعال:</span>
